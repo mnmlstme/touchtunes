@@ -61,4 +61,13 @@ dl.score-stats > * + dt {
 
 .part-body {
     flex-grow: 100;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+/* Note */
+
+.note {
+    padding: 0 1em;
 }

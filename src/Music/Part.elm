@@ -4,6 +4,7 @@ module Music.Part
         , view
         )
 
+import Music.Measure as Measure exposing (Measure)
 import Html
     exposing
         ( Html
@@ -19,6 +20,7 @@ import Html.Attributes exposing (class)
 type alias Part =
     { name : String
     , abbrev : String
+    , measures : List Measure
     }
 
 
@@ -30,5 +32,5 @@ view part =
                 [ text part.abbrev ]
             ]
         , div [ class "part-body" ]
-            []
+            (List.map Measure.view part.measures)
         ]
