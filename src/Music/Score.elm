@@ -6,9 +6,21 @@ module Music.Score
         , countMeasures
         )
 
-import Svg exposing (Svg, svg, g)
-import Svg.Attributes exposing (class, width, height, viewBox)
 import Music.Part as Part exposing (Part)
+import Html
+    exposing
+        ( Html
+        , article
+        , header
+        , footer
+        , h1
+        , div
+        , dl
+        , dt
+        , dd
+        , text
+        )
+import Html.Attributes exposing (class)
 
 
 type alias Score =
@@ -27,26 +39,32 @@ countParts score =
     1
 
 
-view : Score -> Svg msg
+view : Score -> Html msg
 view score =
     let
-        w =
-            600
+        nParts =
+            countParts score
 
-        h =
-            400
-
-        viewbox =
-            String.join " "
-                (List.map toString
-                    [ 0, 0, w, h ]
-                )
+        nMeasures =
+            countMeasures score
     in
-        svg
-            [ class "score"
-            , width (toString 600)
-            , height (toString 400)
-            , viewBox viewbox
-            ]
-            [ g [] (List.map Part.view score.parts)
+        article
+            [ class "score frame" ]
+            [ header [ class "frame-header" ]
+                [ h1 [] [ text score.title ]
+                ]
+            , div [ class "frame-body score-parts" ]
+                (List.map Part.view score.parts)
+            , footer [ class "frame-footer" ]
+                [ dl [ class "score-stats" ]
+                    [ dt []
+                        [ text "Parts" ]
+                    , dd []
+                        [ text (toString nParts) ]
+                    , dt []
+                        [ text "Measures" ]
+                    , dd []
+                        [ text (toString nMeasures) ]
+                    ]
+                ]
             ]

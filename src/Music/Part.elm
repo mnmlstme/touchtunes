@@ -4,8 +4,16 @@ module Music.Part
         , view
         )
 
-import Svg exposing (Svg, g, text, text_)
-import Svg.Attributes exposing (class, transform)
+import Html
+    exposing
+        ( Html
+        , section
+        , header
+        , div
+        , h3
+        , text
+        )
+import Html.Attributes exposing (class)
 
 
 type alias Part =
@@ -14,9 +22,13 @@ type alias Part =
     }
 
 
-view : Part -> Svg msg
+view : Part -> Html msg
 view part =
-    g [ transform "translate(60, 60)" ]
-        [ text_ [ class "part-name" ]
-            [ text part.abbrev ]
+    section [ class "part" ]
+        [ header [ class "part-header" ]
+            [ h3 [ class "part-abbrev" ]
+                [ text part.abbrev ]
+            ]
+        , div [ class "part-body" ]
+            []
         ]

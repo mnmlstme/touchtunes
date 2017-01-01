@@ -4,10 +4,61 @@
     box-sizing: border-box;
 }
 
-svg.score {
-    overflow: visible;
+body {
+    font-family: Didot, 'Didot LT STD', 'Hoefler Text', Garamond, 'Times New Roman', serif;
 }
 
-text.part-name {
-    text-anchor: end;
+/* Frame */
+
+.frame {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 100; /* for child frame */
+}
+
+.fullscreen-.frame {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+.frame-body {
+    flex-grow: 100;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Score */
+
+.score-parts {
+    justify-content: center;
+}
+
+dl.score-stats > * {
+    display: inline-block;
+}
+
+dl.score-stats > dt {
+    font-weight: bold;
+}
+
+dl.score-stats > * + dd {
+    margin-left: .25em;
+}
+
+dl.score-stats > * + dt {
+    margin-left: 1em;
+}
+
+/* Part */
+
+.part {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.part-body {
+    flex-grow: 100;
 }

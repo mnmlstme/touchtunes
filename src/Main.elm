@@ -6,14 +6,11 @@ import Html
         , section
         , header
         , footer
-        , h1
-        , p
-        , dl
-        , dd
-        , dt
+        , div
         , button
         , text
         )
+import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Music.Score as Score exposing (Score)
 import Example1 exposing (example)
@@ -74,29 +71,11 @@ view model =
     let
         score =
             model.score
-
-        nParts =
-            Score.countParts score
-
-        nMeasures =
-            Score.countMeasures score
     in
-        section []
-            [ header []
-                [ h1 [] [ text score.title ]
-                ]
-            , Score.view model.score
-            , footer []
+        section [ class "fullscreen- frame" ]
+            [ div [ class "frame-body" ]
+                [ Score.view score ]
+            , footer [ class "frame-footer" ]
                 [ button [ onClick Reset ] [ text "Reset" ]
-                , dl []
-                    [ dt []
-                        [ text "Parts" ]
-                    , dd []
-                        [ text (toString nParts) ]
-                    , dt []
-                        [ text "Measures" ]
-                    , dd []
-                        [ text (toString nMeasures) ]
-                    ]
                 ]
             ]
