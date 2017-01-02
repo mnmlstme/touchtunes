@@ -30,31 +30,32 @@ type alias Score =
 
 
 countMeasures : Score -> Int
-countMeasures score =
-    4
+countMeasures s =
+    List.map Part.countMeasures s.parts
+        |> List.foldl max 0
 
 
 countParts : Score -> Int
-countParts score =
-    1
+countParts s =
+    List.length s.parts
 
 
 view : Score -> Html msg
-view score =
+view s =
     let
         nParts =
-            countParts score
+            countParts s
 
         nMeasures =
-            countMeasures score
+            countMeasures s
     in
         article
             [ class "score frame" ]
             [ header [ class "frame-header" ]
-                [ h1 [] [ text score.title ]
+                [ h1 [] [ text s.title ]
                 ]
             , div [ class "frame-body score-parts" ]
-                (List.map Part.view score.parts)
+                (List.map Part.view s.parts)
             , footer [ class "frame-footer" ]
                 [ dl [ class "score-stats" ]
                     [ dt []

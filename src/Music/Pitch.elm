@@ -9,8 +9,11 @@ module Music.Pitch
         , e_
         , f
         , g
+        , alter
         , flat
         , sharp
+        , doubleFlat
+        , doubleSharp
         , toString
         )
 
@@ -55,49 +58,68 @@ type alias Octave =
     Int
 
 
-a : Int -> Pitch
+a : Octave -> Pitch
 a =
     Pitch A unaltered
 
 
-b : Int -> Pitch
+b : Octave -> Pitch
 b =
     Pitch B unaltered
 
 
-c : Int -> Pitch
+c : Octave -> Pitch
 c =
     Pitch C unaltered
 
 
-d : Int -> Pitch
+d : Octave -> Pitch
 d =
     Pitch D unaltered
 
 
-e_ : Int -> Pitch
+e_ : Octave -> Pitch
 e_ =
     Pitch E unaltered
 
 
-f : Int -> Pitch
+f : Octave -> Pitch
 f =
     Pitch F unaltered
 
 
-g : Int -> Pitch
+g : Octave -> Pitch
 g =
     Pitch G unaltered
 
 
-sharp : Pitch -> Pitch
-sharp p =
-    { p | alter = p.alter + 1 }
+alter : Semitones -> (Octave -> Pitch) -> (Octave -> Pitch)
+alter semi base =
+    let
+        alteration p =
+            { p | alter = p.alter + semi }
+    in
+        \oct -> base oct |> alteration
 
 
-flat : Pitch -> Pitch
-flat p =
-    { p | alter = p.alter - 1 }
+sharp : (Octave -> Pitch) -> (Octave -> Pitch)
+sharp =
+    alter 1
+
+
+flat : (Octave -> Pitch) -> (Octave -> Pitch)
+flat =
+    alter -1
+
+
+doubleSharp : (Octave -> Pitch) -> (Octave -> Pitch)
+doubleSharp =
+    alter 2
+
+
+doubleFlat : (Octave -> Pitch) -> (Octave -> Pitch)
+doubleFlat =
+    alter -2
 
 
 toString : Pitch -> String
@@ -107,6 +129,7 @@ toString p =
             Basics.toString p.step
 
         alteration =
+            -- TODO: use Unicode for flat/sharp
             if p.alter > 0 then
                 "#"
             else if p.alter < 0 then

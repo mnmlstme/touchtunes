@@ -1,6 +1,7 @@
 module Music.Part
     exposing
         ( Part
+        , countMeasures
         , view
         )
 
@@ -22,6 +23,11 @@ type alias Part =
     , abbrev : String
     , measures : List Measure
     }
+
+
+countMeasures : Part -> Int
+countMeasures p =
+    List.length p.measures
 
 
 view : Part -> Html msg
