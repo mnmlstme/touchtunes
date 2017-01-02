@@ -1,4 +1,4 @@
-module Example1 exposing (..)
+module Example1 exposing (example)
 
 import Music.Score exposing (Score)
 import Music.Part exposing (Part)

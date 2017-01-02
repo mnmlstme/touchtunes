@@ -59,12 +59,30 @@ dl.score-stats > * + dt {
     flex-wrap: nowrap;
 }
 
+.part-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 .part-body {
     flex-grow: 100;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
 }
+
+/* Staff */
+
+.staff {
+    overflow: visible;
+}
+
+.staff-lines {
+    stroke-width: 2px;
+    stroke: #aaa;
+}
+
 
 /* Note */
 

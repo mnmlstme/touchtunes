@@ -5,6 +5,7 @@ module Music.Measure
         )
 
 import Music.Note as Note exposing (Note)
+import Music.Staff as Staff
 import Html
     exposing
         ( Html
@@ -22,5 +23,17 @@ type alias Measure =
 
 view : Measure -> Html msg
 view measure =
-    div [ class "measure" ]
-        (List.map Note.view measure.notes)
+    let
+        width =
+            200
+
+        staff =
+            Staff.treble width
+    in
+        div [ class "measure" ]
+            [ Staff.view staff
+            ]
+
+
+
+-- (List.map Note.view measure.notes)
