@@ -10,6 +10,7 @@ module Music.Staff
 
 import Music.Pitch as Pitch exposing (Pitch)
 import Music.Note as Note exposing (Note)
+import Music.Time as Time exposing (Time, Beat)
 import Html exposing (Html)
 import Svg
     exposing
@@ -89,23 +90,36 @@ type alias Layout =
     , w : Float
     , h : Float
     , scalePitch : Pitch -> Float
+    , scaleBeat : Beat -> Float
     }
 
 
-layout : Staff -> Tenths -> Layout
-layout staff width =
+layout : Staff -> Time -> Layout
+layout staff time =
     let
+        beats =
+            time.beats
+
         spacing =
             staff.scale * 10.0
+
+        beatSpacing =
+            staff.scale * 40.0
 
         vmargin =
             2.0 * spacing
 
+        hmargin =
+            spacing
+
         margins =
-            Margins vmargin 0.0 vmargin 0.0
+            Margins vmargin hmargin vmargin hmargin
 
         w =
-            staff.scale * width
+            margins.left
+                + margins.right
+                + (toFloat beats)
+                * beatSpacing
 
         h =
             margins.top + margins.bottom + 4 * spacing
@@ -119,59 +133,78 @@ layout staff width =
                 n =
                     (Pitch.stepNumber p) - base
             in
-                vmargin
+                margins.top
                     + 3.0
                     * spacing
                     - (toFloat n)
                     / 2.0
                     * spacing
+
+        -- scaleBeat locates the center of the beat on staff
+        scaleBeat b =
+            margins.left + ((toFloat b) + 0.5) * beatSpacing
     in
-        Layout spacing margins w h scalePitch
+        Layout spacing margins w h scalePitch scaleBeat
 
 
 drawStaffLine : Layout -> Int -> Svg msg
 drawStaffLine layout n =
     let
-        x0 =
-            layout.margins.left
-
-        y0 =
-            layout.margins.top
-
         y =
-            y0 + toFloat n * layout.spacing
+            layout.margins.top + toFloat n * layout.spacing
     in
         line
-            [ x1 (toString x0)
-            , x2 (toString (x0 + layout.w))
-            , y1 (toString y)
-            , y2 (toString y)
+            [ x1 "0"
+            , x2 <| toString layout.w
+            , y1 <| toString y
+            , y2 <| toString y
             ]
             []
 
 
-drawNote : Layout -> Note -> Svg msg
-drawNote layout note =
+drawBarLine : Layout -> Svg msg
+drawBarLine layout =
+    line
+        [ x1 <| toString layout.w
+        , y1 <| toString layout.margins.top
+        , x2 <| toString layout.w
+        , y2 <| toString <| layout.h - layout.margins.bottom
+        ]
+        []
+
+
+drawNote : Layout -> ( Beat, Note ) -> Svg msg
+drawNote layout ( beat, note ) =
     let
         sym =
             "#quarter-note-stem-up"
 
+        noteHeight =
+            layout.spacing
+
+        noteWidth =
+            1.5 * layout.spacing
+
         ypos =
             layout.scalePitch note.pitch
+
+        xpos =
+            layout.scaleBeat beat - noteWidth / 2.0
     in
         g []
             [ use
                 [ xlinkHref sym
-                , x "0"
-                , y (toString ypos)
-                , height "20"
+                , x <| toString xpos
+                , y <| toString ypos
+                , height <| toString noteHeight
+                , width <| toString noteWidth
                 ]
                 []
             ]
 
 
-view : Staff -> Layout -> List Note -> Html msg
-view staff layout notes =
+view : Staff -> Layout -> List ( Beat, Note ) -> Html msg
+view staff layout noteSequence =
     let
         vb =
             [ 0.0, 0.0, layout.w, layout.h ]
@@ -190,6 +223,8 @@ view staff layout notes =
             , g [ class "staff-notes" ]
                 (List.map
                     (drawNote layout)
-                    notes
+                    noteSequence
                 )
+            , g [ class "staff-barline" ]
+                [ drawBarLine layout ]
             ]

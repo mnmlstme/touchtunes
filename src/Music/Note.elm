@@ -2,9 +2,11 @@ module Music.Note
     exposing
         ( Note
         , heldFor
+        , beats
         , view
         )
 
+import Music.Time as Time exposing (Time, Beat)
 import Music.Duration as Duration exposing (Duration)
 import Music.Pitch as Pitch exposing (Pitch)
 import Html
@@ -25,6 +27,11 @@ type alias Note =
 heldFor : Duration -> Pitch -> Note
 heldFor d p =
     Note p d
+
+
+beats : Time -> Note -> Beat
+beats time note =
+    Duration.beats time note.duration
 
 
 view : Note -> Html msg

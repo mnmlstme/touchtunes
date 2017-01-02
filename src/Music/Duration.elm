@@ -10,8 +10,12 @@ module Music.Duration
         , thirtysecond
         , sixtyfourth
         , dotted
+        , beats
         , toString
         )
+
+import Music.Time exposing (Time, Beat)
+
 
 -- Duration expressed as a certain integer number of
 -- divisions (typically 1, 2, 4, 8, 16, ... but left open
@@ -68,6 +72,11 @@ sixtyfourth =
 dotted : Duration -> Duration
 dotted d =
     Duration (d.count * 3) (d.divisor * 2)
+
+
+beats : Time -> Duration -> Beat
+beats time d =
+    d.count * (time.divisor // d.divisor)
 
 
 toString : Duration -> String

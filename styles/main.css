@@ -82,13 +82,15 @@ dl.score-stats > * + dt {
 
 .staff {
     overflow: visible;
+    stroke: none;
+    fill: #333;
 }
 
-.staff-lines {
+.staff-lines,
+.staff-barline {
     stroke-width: 2px;
-    stroke: #aaa;
+    stroke: #999;
 }
-
 
 /* Note */
 

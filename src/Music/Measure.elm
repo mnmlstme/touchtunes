@@ -4,6 +4,7 @@ module Music.Measure
         , view
         )
 
+import Music.Time as Time exposing (Time, Beat)
 import Music.Note as Note exposing (Note)
 import Music.Staff as Staff
 import Html
@@ -21,21 +22,32 @@ type alias Measure =
     }
 
 
+sequence : Time -> Measure -> List ( Beat, Note )
+sequence time measure =
+    let
+        beats =
+            List.map (Note.beats time) measure.notes
+
+        startsAt =
+            List.scanl (+) 0 beats
+    in
+        List.map2 (,) startsAt measure.notes
+
+
 view : Measure -> Html msg
 view measure =
     let
-        width =
-            200
+        time =
+            Time.common
 
         staff =
             Staff.treble 2.0
 
         layout =
-            Staff.layout staff width
+            Staff.layout staff time
+
+        noteSequence =
+            sequence time measure
     in
         div [ class "measure" ]
-            [ Staff.view staff layout measure.notes ]
-
-
-
--- (List.map Note.view measure.notes)
+            [ Staff.view staff layout noteSequence ]
