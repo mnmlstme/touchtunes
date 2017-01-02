@@ -4,14 +4,17 @@ module Music.Staff
         , Tenths
         , treble
         , bass
+        , layout
         , view
         )
 
 import Music.Pitch exposing (Pitch, f, a)
+import Music.Note exposing (Note)
 import Html exposing (Html)
 import Svg
     exposing
-        ( svg
+        ( Svg
+        , svg
         , g
         , line
         )
@@ -31,9 +34,17 @@ import Svg.Attributes
 type alias Staff =
     { -- basePitch is the pitch of the lowest space on staff
       basePitch : Pitch
-    , scale : Float
-    , width : Tenths
     }
+
+
+treble : Staff
+treble =
+    Staff (f 4)
+
+
+bass : Staff
+bass =
+    Staff (a 2)
 
 
 
@@ -45,65 +56,91 @@ type alias Tenths =
     Float
 
 
-treble : Tenths -> Staff
-treble =
-    Staff (f 4) 2.0
+
+-- Scale
+-- Scale is the number of Pixels per Tenth
 
 
-bass : Tenths -> Staff
-bass =
-    Staff (a 2) 2.0
+type alias Scale =
+    Float
 
 
-view : Staff -> Html msg
-view staff =
+
+-- Layout
+-- All dimensions required to layout notes on a staff
+
+
+type alias Margins =
+    { top : Float
+    , right : Float
+    , bottom : Float
+    , left : Float
+    }
+
+
+type alias Layout =
+    { scale : Scale
+    , spacing : Float
+    , margins : Margins
+    , w : Float
+    , h : Float
+    }
+
+
+layout : Scale -> Tenths -> Layout
+layout scale width =
     let
-        fromTenths tenths =
-            tenths * staff.scale
+        spacing =
+            scale * 10.0
 
         vmargin =
-            fromTenths 20.0
+            2.0 * spacing
 
-        x0 =
-            0.0
-
-        y0 =
-            vmargin
-
-        spacing =
-            fromTenths 10.0
+        w =
+            scale * width
 
         h =
             2 * vmargin + 4 * spacing
+    in
+        Layout scale spacing (Margins vmargin 0.0 vmargin 0.0) w h
 
-        w =
-            fromTenths staff.width
 
+staffLine : Layout -> Int -> Svg msg
+staffLine layout n =
+    let
+        x0 =
+            layout.margins.left
+
+        y0 =
+            layout.margins.top
+
+        y =
+            y0 + toFloat n * layout.spacing
+    in
+        line
+            [ x1 (toString x0)
+            , x2 (toString (x0 + layout.w))
+            , y1 (toString y)
+            , y2 (toString y)
+            ]
+            []
+
+
+view : Staff -> Layout -> List Note -> Html msg
+view staff layout notes =
+    let
         vb =
-            [ 0.0, 0.0, w, h ]
-
-        staffLine n =
-            let
-                y =
-                    y0 + toFloat n * spacing
-            in
-                line
-                    [ x1 (toString x0)
-                    , x2 (toString (x0 + w))
-                    , y1 (toString y)
-                    , y2 (toString y)
-                    ]
-                    []
+            [ 0.0, 0.0, layout.w, layout.h ]
     in
         svg
             [ class "staff"
-            , height (toString h)
-            , width (toString w)
+            , height (toString layout.h)
+            , width (toString layout.w)
             , viewBox (String.join " " (List.map toString vb))
             ]
             [ g [ class "staff-lines" ]
                 (List.map
-                    staffLine
+                    (staffLine layout)
                     (List.range 0 4)
                 )
             ]

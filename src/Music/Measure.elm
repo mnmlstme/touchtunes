@@ -28,11 +28,13 @@ view measure =
             200
 
         staff =
-            Staff.treble width
+            Staff.treble
+
+        layout =
+            Staff.layout 2.0 width
     in
         div [ class "measure" ]
-            [ Staff.view staff
-            ]
+            [ Staff.view staff layout measure.notes ]
 
 
 
