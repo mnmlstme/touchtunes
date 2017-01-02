@@ -19,6 +19,7 @@ import Svg
         , g
         , line
         , use
+        , text
         )
 import Svg.Attributes
     exposing
@@ -33,6 +34,7 @@ import Svg.Attributes
         , y1
         , y2
         , xlinkHref
+        , transform
         )
 
 
@@ -176,8 +178,19 @@ drawBarLine layout =
 drawNote : Layout -> ( Beat, Note ) -> Svg msg
 drawNote layout ( beat, note ) =
     let
-        sym =
+        noteSymbol =
             "#quarter-note-stem-up"
+
+        p =
+            note.pitch
+
+        altSymbol =
+            if p.alter > 0 then
+                "#sharp"
+            else if p.alter < 0 then
+                "#flat"
+            else
+                ""
 
         noteHeight =
             layout.spacing
@@ -190,16 +203,31 @@ drawNote layout ( beat, note ) =
 
         xpos =
             layout.scaleBeat beat - noteWidth / 2.0
+
+        position =
+            String.join ","
+                (List.map toString [ xpos, ypos ])
     in
-        g []
+        g [ transform ("translate(" ++ position ++ ")") ]
             [ use
-                [ xlinkHref sym
-                , x <| toString xpos
-                , y <| toString ypos
+                [ xlinkHref noteSymbol
+                , x "0"
+                , y "0"
                 , height <| toString noteHeight
                 , width <| toString noteWidth
                 ]
                 []
+            , if altSymbol == "" then
+                text ""
+              else
+                use
+                    [ xlinkHref altSymbol
+                    , x (toString -noteWidth)
+                    , y "0"
+                    , height <| toString noteHeight
+                    , width <| toString noteWidth
+                    ]
+                    []
             ]
 
 
