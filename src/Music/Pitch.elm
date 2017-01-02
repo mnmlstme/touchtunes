@@ -14,6 +14,7 @@ module Music.Pitch
         , sharp
         , doubleFlat
         , doubleSharp
+        , stepNumber
         , toString
         )
 
@@ -33,6 +34,46 @@ type Step
     | E
     | F
     | G
+
+
+
+-- StepNumber
+-- assigns an integer to each (Octave, Step),
+-- disregarding alterations.  Relates to position on staff.
+-- NOT the same as MIDI Note number, which considers semitones
+
+
+type alias StepNumber =
+    Int
+
+
+stepNumber : Pitch -> StepNumber
+stepNumber p =
+    let
+        offset =
+            case p.step of
+                C ->
+                    0
+
+                D ->
+                    1
+
+                E ->
+                    2
+
+                F ->
+                    3
+
+                G ->
+                    4
+
+                A ->
+                    5
+
+                B ->
+                    6
+    in
+        7 * p.octave + offset
 
 
 

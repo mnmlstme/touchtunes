@@ -8,8 +8,8 @@ module Music.Staff
         , view
         )
 
-import Music.Pitch exposing (Pitch, f, a)
-import Music.Note exposing (Note)
+import Music.Pitch as Pitch exposing (Pitch)
+import Music.Note as Note exposing (Note)
 import Html exposing (Html)
 import Svg
     exposing
@@ -17,6 +17,7 @@ import Svg
         , svg
         , g
         , line
+        , use
         )
 import Svg.Attributes
     exposing
@@ -24,27 +25,31 @@ import Svg.Attributes
         , height
         , width
         , viewBox
+        , x
         , x1
         , x2
+        , y
         , y1
         , y2
+        , xlinkHref
         )
 
 
 type alias Staff =
     { -- basePitch is the pitch of the lowest space on staff
       basePitch : Pitch
+    , scale : Scale
     }
 
 
-treble : Staff
+treble : Scale -> Staff
 treble =
-    Staff (f 4)
+    Staff (Pitch.f 4)
 
 
-bass : Staff
+bass : Scale -> Staff
 bass =
-    Staff (a 2)
+    Staff (Pitch.a 2)
 
 
 
@@ -79,34 +84,53 @@ type alias Margins =
 
 
 type alias Layout =
-    { scale : Scale
-    , spacing : Float
+    { spacing : Float
     , margins : Margins
     , w : Float
     , h : Float
+    , scalePitch : Pitch -> Float
     }
 
 
-layout : Scale -> Tenths -> Layout
-layout scale width =
+layout : Staff -> Tenths -> Layout
+layout staff width =
     let
         spacing =
-            scale * 10.0
+            staff.scale * 10.0
 
         vmargin =
             2.0 * spacing
 
+        margins =
+            Margins vmargin 0.0 vmargin 0.0
+
         w =
-            scale * width
+            staff.scale * width
 
         h =
-            2 * vmargin + 4 * spacing
+            margins.top + margins.bottom + 4 * spacing
+
+        base =
+            Pitch.stepNumber staff.basePitch
+
+        -- scalePitch locates the top of the note on staff
+        scalePitch p =
+            let
+                n =
+                    (Pitch.stepNumber p) - base
+            in
+                vmargin
+                    + 3.0
+                    * spacing
+                    - (toFloat n)
+                    / 2.0
+                    * spacing
     in
-        Layout scale spacing (Margins vmargin 0.0 vmargin 0.0) w h
+        Layout spacing margins w h scalePitch
 
 
-staffLine : Layout -> Int -> Svg msg
-staffLine layout n =
+drawStaffLine : Layout -> Int -> Svg msg
+drawStaffLine layout n =
     let
         x0 =
             layout.margins.left
@@ -126,6 +150,26 @@ staffLine layout n =
             []
 
 
+drawNote : Layout -> Note -> Svg msg
+drawNote layout note =
+    let
+        sym =
+            "#quarter-note-stem-up"
+
+        ypos =
+            layout.scalePitch note.pitch
+    in
+        g []
+            [ use
+                [ xlinkHref sym
+                , x "0"
+                , y (toString ypos)
+                , height "20"
+                ]
+                []
+            ]
+
+
 view : Staff -> Layout -> List Note -> Html msg
 view staff layout notes =
     let
@@ -140,7 +184,12 @@ view staff layout notes =
             ]
             [ g [ class "staff-lines" ]
                 (List.map
-                    (staffLine layout)
+                    (drawStaffLine layout)
                     (List.range 0 4)
+                )
+            , g [ class "staff-notes" ]
+                (List.map
+                    (drawNote layout)
+                    notes
                 )
             ]

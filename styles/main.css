@@ -8,6 +8,12 @@ body {
     font-family: Didot, 'Didot LT STD', 'Hoefler Text', Garamond, 'Times New Roman', serif;
 }
 
+/* Music Symbols is an SVG sprite */
+
+.music-symbols symbol {
+    overflow: visible;
+}
+
 /* Frame */
 
 .frame {
@@ -69,7 +75,7 @@ dl.score-stats > * + dt {
     flex-grow: 100;
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: flex-start;
 }
 
 /* Staff */

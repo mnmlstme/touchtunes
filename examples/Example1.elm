@@ -28,18 +28,22 @@ example =
             "Piano"
             "Pno."
             [ Measure
-                [ c 4 |> heldFor quarter
-                , d 4 |> heldFor half
-                , e_ 4 |> heldFor quarter
+                [ f 4 |> heldFor quarter
+                , a 4 |> heldFor quarter
+                , c 5 |> heldFor quarter
+                , f 5 |> heldFor quarter
                 ]
             , Measure
-                [ (flat b) 5 |> heldFor quarter
-                , f 6 |> heldFor quarter
-                , (sharp c) 5 |> heldFor quarter
+                [ (flat e_) 4 |> heldFor quarter
+                , g 4 |> heldFor quarter
+                , (flat b) 4 |> heldFor quarter
+                , (flat e_) 5 |> heldFor quarter
                 ]
             , Measure
-                [ (doubleSharp c) 3 |> heldFor (dotted half)
-                , (doubleFlat d) 3 |> heldFor quarter
+                [ d 4 |> heldFor quarter
+                , (sharp f) 4 |> heldFor quarter
+                , a 4 |> heldFor quarter
+                , d 5 |> heldFor quarter
                 ]
             ]
         ]
