@@ -4,6 +4,7 @@ module Music.Measure
         , view
         )
 
+import Music.Note as Note exposing (Note)
 import Html
     exposing
         ( Html
@@ -14,13 +15,6 @@ import Html
 import Html.Attributes exposing (class)
 
 
--- temporary Note alias:
-
-
-type alias Note =
-    String
-
-
 type alias Measure =
     { notes : List Note
     }
@@ -28,9 +22,5 @@ type alias Measure =
 
 view : Measure -> Html msg
 view measure =
-    let
-        node s =
-            span [ class "note" ] [ text s ]
-    in
-        div [ class "measure" ]
-            (List.map node measure.notes)
+    div [ class "measure" ]
+        (List.map Note.view measure.notes)
