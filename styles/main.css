@@ -84,6 +84,7 @@ svg.measure-staff {
     overflow: visible;
     stroke: none;
     fill: #333;
+    cursor: cell;
 }
 
 .staff {

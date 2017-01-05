@@ -2,6 +2,9 @@ module Music.Score
     exposing
         ( Score
         , score
+        , empty
+        , Action
+        , update
         , view
         , countParts
         , countMeasures
@@ -23,6 +26,7 @@ import Html
         )
 import Html.Attributes exposing (class)
 import Music.Part as Part exposing (Part)
+import Music.Measure as Measure
 
 
 type alias Score =
@@ -31,9 +35,35 @@ type alias Score =
     }
 
 
+type Action
+    = PartAction Int Part.Action
+
+
+empty : Score
+empty =
+    score "New Score"
+        [ Part
+            "Piano"
+            "Pno."
+            (Array.repeat 4 Measure.empty)
+        ]
+
+
 score : String -> List Part -> Score
 score t list =
     Score t (Array.fromList list)
+
+
+update : Action -> Score -> Score
+update msg score =
+    case msg of
+        PartAction n action ->
+            case Array.get n score.parts of
+                Nothing ->
+                    score
+
+                Just p ->
+                    { score | parts = Array.set n (Part.update action p) score.parts }
 
 
 countMeasures : Score -> Int
@@ -47,7 +77,7 @@ countParts s =
     Array.length s.parts
 
 
-view : Score -> Html msg
+view : Score -> Html Action
 view s =
     let
         nParts =
@@ -55,6 +85,9 @@ view s =
 
         nMeasures =
             countMeasures s
+
+        partView n part =
+            Html.map (PartAction n) (Part.view part)
     in
         article
             [ class "score frame" ]
@@ -62,7 +95,7 @@ view s =
                 [ h1 [] [ text s.title ]
                 ]
             , div [ class "frame-body score-parts" ]
-                (Array.toList <| Array.map Part.view s.parts)
+                (Array.toList <| Array.indexedMap partView s.parts)
             , footer [ class "frame-footer" ]
                 [ dl [ class "score-stats" ]
                     [ dt []

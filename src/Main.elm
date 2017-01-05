@@ -13,7 +13,7 @@ import Html
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Music.Score as Score exposing (Score)
-import Example1 exposing (example)
+import Example1
 
 
 -- APP
@@ -42,7 +42,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         model =
-            Model example
+            Model Example1.example
     in
         ( model, Cmd.none )
 
@@ -52,14 +52,24 @@ init =
 
 
 type Msg
-    = Reset
+    = Clear
+    | ShowExample1
+    | ScoreAction Score.Action
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Reset ->
-            ( { model | score = example }, Cmd.none )
+        Clear ->
+            ( { model | score = Score.empty }, Cmd.none )
+
+        ShowExample1 ->
+            ( { model | score = Example1.example }, Cmd.none )
+
+        ScoreAction action ->
+            ( { model | score = Score.update action model.score }
+            , Cmd.none
+            )
 
 
 
@@ -74,8 +84,12 @@ view model =
     in
         section [ class "fullscreen- frame" ]
             [ div [ class "frame-body" ]
-                [ Score.view score ]
+                [ Html.map
+                    ScoreAction
+                    (Score.view score)
+                ]
             , footer [ class "frame-footer" ]
-                [ button [ onClick Reset ] [ text "Reset" ]
+                [ button [ onClick Clear ] [ text "Clear" ]
+                , button [ onClick ShowExample1 ] [ text "Example 1" ]
                 ]
             ]
