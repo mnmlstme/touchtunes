@@ -78,22 +78,17 @@ dl.score-stats > * + dt {
     justify-content: flex-start;
 }
 
-/* Staff */
+/* Measure */
 
-.staff {
+svg.measure-staff {
     overflow: visible;
     stroke: none;
     fill: #333;
 }
 
-.staff-lines,
-.staff-barline {
+.staff {
     stroke-width: 2px;
     stroke: #999;
 }
 
 /* Note */
-
-.note {
-    padding: 0 1em;
-}

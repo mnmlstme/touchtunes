@@ -11,7 +11,6 @@ module Music.Duration
         , sixtyfourth
         , dotted
         , beats
-        , toString
         )
 
 import Music.Time exposing (Time, Beat)
@@ -77,10 +76,3 @@ dotted d =
 beats : Time -> Duration -> Beat
 beats time d =
     d.count * (time.divisor // d.divisor)
-
-
-toString : Duration -> String
-toString d =
-    (Basics.toString d.count)
-        ++ "/"
-        ++ (Basics.toString d.divisor)

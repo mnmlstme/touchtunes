@@ -7,14 +7,17 @@ module Music.Measure
 import Music.Time as Time exposing (Time, Beat)
 import Music.Note as Note exposing (Note)
 import Music.Staff as Staff
-import Html
+import Music.Layout as Layout exposing (Layout)
+import Html exposing (Html, div)
+import Html.Attributes
+import Svg exposing (Svg, svg, g)
+import Svg.Attributes
     exposing
-        ( Html
-        , div
-        , span
-        , text
+        ( class
+        , height
+        , width
+        , viewBox
         )
-import Html.Attributes exposing (class)
 
 
 type alias Measure =
@@ -41,13 +44,29 @@ view measure =
             Time.common
 
         staff =
-            Staff.treble 2.0
+            Staff.treble
 
         layout =
-            Staff.layout staff time
+            Layout.standard staff.basePitch time
+
+        vb =
+            [ 0.0, 0.0, layout.w, layout.h ]
+
+        drawNote =
+            \( beat, note ) -> Note.draw layout beat note
 
         noteSequence =
             sequence time measure
     in
-        div [ class "measure" ]
-            [ Staff.view staff layout noteSequence ]
+        div [ Html.Attributes.class "measure" ]
+            [ svg
+                [ class "measure-staff"
+                , height (toString layout.h)
+                , width (toString layout.w)
+                , viewBox (String.join " " (List.map toString vb))
+                ]
+                [ Staff.draw layout
+                , g [ class "measure-notes" ]
+                    (List.map drawNote noteSequence)
+                ]
+            ]

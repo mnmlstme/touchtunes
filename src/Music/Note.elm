@@ -3,19 +3,37 @@ module Music.Note
         ( Note
         , heldFor
         , beats
-        , view
+        , draw
         )
 
 import Music.Time as Time exposing (Time, Beat)
 import Music.Duration as Duration exposing (Duration)
 import Music.Pitch as Pitch exposing (Pitch)
-import Html
+import Music.Layout exposing (Layout)
+import Svg
     exposing
-        ( Html
-        , span
+        ( Svg
+        , svg
+        , g
+        , line
+        , use
         , text
         )
-import Html.Attributes exposing (class)
+import Svg.Attributes
+    exposing
+        ( class
+        , height
+        , width
+        , viewBox
+        , x
+        , x1
+        , x2
+        , y
+        , y1
+        , y2
+        , xlinkHref
+        , transform
+        )
 
 
 type alias Note =
@@ -34,14 +52,57 @@ beats time note =
     Duration.beats time note.duration
 
 
-view : Note -> Html msg
-view note =
-    span [ class "note" ]
-        [ span [ class "duration" ]
-            [ text "("
-            , text (Duration.toString note.duration)
-            , text ")"
+draw : Layout -> Beat -> Note -> Svg msg
+draw layout beat note =
+    let
+        noteSymbol =
+            "#quarter-note-stem-up"
+
+        p =
+            note.pitch
+
+        altSymbol =
+            if p.alter > 0 then
+                "#sharp"
+            else if p.alter < 0 then
+                "#flat"
+            else
+                ""
+
+        noteHeight =
+            layout.spacing
+
+        noteWidth =
+            1.5 * layout.spacing
+
+        ypos =
+            layout.scalePitch note.pitch
+
+        xpos =
+            layout.scaleBeat beat - noteWidth / 2.0
+
+        position =
+            String.join ","
+                (List.map toString [ xpos, ypos ])
+    in
+        g [ transform ("translate(" ++ position ++ ")") ]
+            [ use
+                [ xlinkHref noteSymbol
+                , x "0"
+                , y "0"
+                , height <| toString noteHeight
+                , width <| toString noteWidth
+                ]
+                []
+            , if altSymbol == "" then
+                text ""
+              else
+                use
+                    [ xlinkHref altSymbol
+                    , x (toString -noteWidth)
+                    , y "0"
+                    , height <| toString noteHeight
+                    , width <| toString noteWidth
+                    ]
+                    []
             ]
-        , span [ class "pitch" ]
-            [ text (Pitch.toString note.pitch) ]
-        ]
