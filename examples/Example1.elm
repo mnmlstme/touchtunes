@@ -1,8 +1,8 @@
 module Example1 exposing (example)
 
-import Music.Score exposing (Score)
-import Music.Part exposing (Part)
-import Music.Measure exposing (Measure)
+import Music.Score exposing (Score, score)
+import Music.Part exposing (part)
+import Music.Measure exposing (measure)
 import Music.Pitch
     exposing
         ( a
@@ -23,23 +23,23 @@ import Music.Note exposing (heldFor)
 
 example : Score
 example =
-    Score "Example One"
-        [ Part
+    score "Example One"
+        [ part
             "Piano"
             "Pno."
-            [ Measure
+            [ measure
                 [ f 4 |> heldFor quarter
                 , a 4 |> heldFor quarter
                 , c 5 |> heldFor quarter
                 , f 5 |> heldFor quarter
                 ]
-            , Measure
+            , measure
                 [ (flat e_) 4 |> heldFor quarter
                 , g 4 |> heldFor quarter
                 , (flat b) 4 |> heldFor quarter
                 , (flat e_) 5 |> heldFor quarter
                 ]
-            , Measure
+            , measure
                 [ d 4 |> heldFor quarter
                 , (sharp f) 4 |> heldFor quarter
                 , a 4 |> heldFor quarter

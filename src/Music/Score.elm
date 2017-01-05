@@ -1,12 +1,13 @@
 module Music.Score
     exposing
         ( Score
+        , score
         , view
         , countParts
         , countMeasures
         )
 
-import Music.Part as Part exposing (Part)
+import Array as Array exposing (Array)
 import Html
     exposing
         ( Html
@@ -21,23 +22,29 @@ import Html
         , text
         )
 import Html.Attributes exposing (class)
+import Music.Part as Part exposing (Part)
 
 
 type alias Score =
     { title : String
-    , parts : List Part
+    , parts : Array Part
     }
+
+
+score : String -> List Part -> Score
+score t list =
+    Score t (Array.fromList list)
 
 
 countMeasures : Score -> Int
 countMeasures s =
-    List.map Part.countMeasures s.parts
-        |> List.foldl max 0
+    Array.map Part.countMeasures s.parts
+        |> Array.foldl max 0
 
 
 countParts : Score -> Int
 countParts s =
-    List.length s.parts
+    Array.length s.parts
 
 
 view : Score -> Html msg
@@ -55,7 +62,7 @@ view s =
                 [ h1 [] [ text s.title ]
                 ]
             , div [ class "frame-body score-parts" ]
-                (List.map Part.view s.parts)
+                (Array.toList <| Array.map Part.view s.parts)
             , footer [ class "frame-footer" ]
                 [ dl [ class "score-stats" ]
                     [ dt []

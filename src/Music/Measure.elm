@@ -1,6 +1,7 @@
 module Music.Measure
     exposing
         ( Measure
+        , measure
         , view
         )
 
@@ -23,6 +24,11 @@ import Svg.Attributes
 type alias Measure =
     { notes : List Note
     }
+
+
+measure : List Note -> Measure
+measure =
+    Measure
 
 
 sequence : Time -> Measure -> List ( Beat, Note )

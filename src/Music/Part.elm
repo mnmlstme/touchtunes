@@ -1,11 +1,12 @@
 module Music.Part
     exposing
         ( Part
+        , part
         , countMeasures
         , view
         )
 
-import Music.Measure as Measure exposing (Measure)
+import Array as Array exposing (Array)
 import Html
     exposing
         ( Html
@@ -16,18 +17,24 @@ import Html
         , text
         )
 import Html.Attributes exposing (class)
+import Music.Measure as Measure exposing (Measure)
 
 
 type alias Part =
     { name : String
     , abbrev : String
-    , measures : List Measure
+    , measures : Array Measure
     }
+
+
+part : String -> String -> List Measure -> Part
+part n a list =
+    Part n a (Array.fromList list)
 
 
 countMeasures : Part -> Int
 countMeasures p =
-    List.length p.measures
+    Array.length p.measures
 
 
 view : Part -> Html msg
@@ -38,5 +45,5 @@ view part =
                 [ text part.abbrev ]
             ]
         , div [ class "part-body" ]
-            (List.map Measure.view part.measures)
+            (Array.toList <| Array.map Measure.view part.measures)
         ]
