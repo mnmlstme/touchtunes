@@ -15,8 +15,11 @@ module Music.Pitch
         , doubleFlat
         , doubleSharp
         , stepNumber
+        , fromStepNumber
         , toString
         )
+
+import Array
 
 
 type alias Pitch =
@@ -74,6 +77,32 @@ stepNumber p =
                     6
     in
         7 * p.octave + offset
+
+
+stepFromNumber : Int -> Step
+stepFromNumber n =
+    let
+        steps =
+            Array.fromList [ C, D, E, F, G, A, B ]
+    in
+        case Array.get (n % 7) steps of
+            Just step ->
+                step
+
+            Nothing ->
+                C
+
+
+fromStepNumber : StepNumber -> Pitch
+fromStepNumber number =
+    let
+        octave =
+            number // 7
+
+        step =
+            stepFromNumber number
+    in
+        Pitch step 0 octave
 
 
 

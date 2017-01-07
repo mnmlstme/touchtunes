@@ -8,13 +8,17 @@ module Music.Measure
         , view
         )
 
+import Debug
 import Music.Time as Time exposing (Time, Beat)
+import Music.Pitch as Pitch
 import Music.Note as Note exposing (Note, heldFor)
 import Music.Staff as Staff
 import Music.Layout as Layout exposing (Layout)
 import Html exposing (Html, div)
 import Html.Attributes
-import Html.Events exposing (onClick)
+import Html.Events exposing (on)
+import Json.Decode as Decode
+import Mouse
 import Svg exposing (Svg, svg, g)
 import Svg.Attributes
     exposing
@@ -66,6 +70,21 @@ sequence time measure =
         List.map2 (,) startsAt measure.notes
 
 
+insertNote : Layout -> Measure -> Mouse.Position -> Action
+insertNote layout measure pt =
+    let
+        beat =
+            (Debug.log "x" pt.x) % 4
+
+        stepn =
+            (Debug.log "y" pt.y) % 7 + 28
+
+        pitch =
+            Pitch.fromStepNumber stepn
+    in
+        InsertNote (pitch |> heldFor quarter) beat measure
+
+
 view : Measure -> Html Action
 view measure =
     let
@@ -87,8 +106,10 @@ view measure =
         noteSequence =
             sequence time measure
 
-        insertNote =
-            InsertNote (f 4 |> heldFor quarter) 1 measure
+        onClick =
+            on "click" <|
+                Decode.map (insertNote layout measure) <|
+                    Mouse.position
     in
         div [ Html.Attributes.class "measure" ]
             [ svg
@@ -96,7 +117,8 @@ view measure =
                 , height (toString layout.h)
                 , width (toString layout.w)
                 , viewBox (String.join " " (List.map toString vb))
-                , onClick insertNote
+                  -- , on "click" (handleClick layout measure)
+                , onClick
                 ]
                 [ Staff.draw layout
                 , g [ class "measure-notes" ]
