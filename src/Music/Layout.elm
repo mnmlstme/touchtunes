@@ -24,6 +24,7 @@ type alias Layout =
     , h : Float
     , scalePitch : Pitch -> Float
     , scaleBeat : Beat -> Float
+    , unscalePitch : Float -> Pitch
     }
 
 
@@ -99,11 +100,25 @@ layout zoom basePitch time =
                     / 2.0
                     * spacing
 
+        -- unscalePitch returns the pitch, given Y pixels
+        unscalePitch y =
+            let
+                ybase =
+                    margins.top + 3.5 * spacing
+
+                n =
+                    round (2.0 * (ybase - y) / spacing)
+
+                sn =
+                    base + n
+            in
+                Pitch.fromStepNumber sn
+
         -- scaleBeat locates the center of the beat on staff
         scaleBeat b =
             margins.left + ((toFloat b) + 0.5) * beatSpacing
     in
-        Layout zoom spacing margins w h scalePitch scaleBeat
+        Layout zoom spacing margins w h scalePitch scaleBeat unscalePitch
 
 
 standard : Pitch -> Time -> Layout

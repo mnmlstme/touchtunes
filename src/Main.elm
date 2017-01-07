@@ -42,7 +42,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         model =
-            Model Example1.example
+            Model Score.empty
     in
         ( model, Cmd.none )
 

@@ -87,11 +87,8 @@ insertOffset layout measure offset =
         beat =
             offset.x % 4
 
-        sn =
-            (log "offset.y" offset.y) % 7 + 28
-
         pitch =
-            Pitch.fromStepNumber sn
+            layout.unscalePitch (toFloat offset.y)
     in
         InsertNote (pitch |> heldFor quarter) beat measure
 
