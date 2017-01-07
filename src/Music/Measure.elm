@@ -8,16 +8,16 @@ module Music.Measure
         , view
         )
 
-import Debug
+import Debug exposing (log)
 import Music.Time as Time exposing (Time, Beat)
-import Music.Pitch as Pitch
+import Music.Pitch as Pitch exposing (Pitch)
 import Music.Note as Note exposing (Note, heldFor)
 import Music.Staff as Staff
 import Music.Layout as Layout exposing (Layout)
 import Html exposing (Html, div)
 import Html.Attributes
 import Html.Events exposing (on)
-import Json.Decode as Decode
+import Json.Decode as Decode exposing (Decoder, field, int)
 import Mouse
 import Svg exposing (Svg, svg, g)
 import Svg.Attributes
@@ -70,17 +70,28 @@ sequence time measure =
         List.map2 (,) startsAt measure.notes
 
 
-insertNote : Layout -> Measure -> Mouse.Position -> Action
-insertNote layout measure pt =
+
+-- TODO: PR for adding this to elm-lang/mouse
+
+
+mouseOffset : Decoder Mouse.Position
+mouseOffset =
+    Decode.map2 Mouse.Position
+        (field "offsetX" int)
+        (field "offsetY" int)
+
+
+insertOffset : Layout -> Measure -> Mouse.Position -> Action
+insertOffset layout measure offset =
     let
         beat =
-            (Debug.log "x" pt.x) % 4
+            offset.x % 4
 
-        stepn =
-            (Debug.log "y" pt.y) % 7 + 28
+        sn =
+            (log "offset.y" offset.y) % 7 + 28
 
         pitch =
-            Pitch.fromStepNumber stepn
+            Pitch.fromStepNumber sn
     in
         InsertNote (pitch |> heldFor quarter) beat measure
 
@@ -106,10 +117,12 @@ view measure =
         noteSequence =
             sequence time measure
 
-        onClick =
+        insertAt =
+            insertOffset layout measure
+
+        onClickOffset =
             on "click" <|
-                Decode.map (insertNote layout measure) <|
-                    Mouse.position
+                Decode.map insertAt mouseOffset
     in
         div [ Html.Attributes.class "measure" ]
             [ svg
@@ -117,8 +130,7 @@ view measure =
                 , height (toString layout.h)
                 , width (toString layout.w)
                 , viewBox (String.join " " (List.map toString vb))
-                  -- , on "click" (handleClick layout measure)
-                , onClick
+                , onClickOffset
                 ]
                 [ Staff.draw layout
                 , g [ class "measure-notes" ]
