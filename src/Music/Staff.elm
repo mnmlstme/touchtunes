@@ -7,7 +7,7 @@ module Music.Staff
         )
 
 import Music.Pitch as Pitch exposing (Pitch)
-import Music.Layout exposing (Layout)
+import Music.Layout as Layout exposing (Layout)
 import Svg
     exposing
         ( Svg
@@ -53,12 +53,21 @@ draw layout =
 drawStaffLine : Layout -> Int -> Svg msg
 drawStaffLine layout n =
     let
+        m =
+            Layout.margins layout
+
+        s =
+            Layout.spacing layout
+
+        width =
+            Layout.width layout
+
         y =
-            layout.margins.top + toFloat n * layout.spacing
+            m.top + toFloat n * s
     in
         line
             [ x1 "0"
-            , x2 <| toString layout.w
+            , x2 <| toString width
             , y1 <| toString y
             , y2 <| toString y
             ]
@@ -67,10 +76,20 @@ drawStaffLine layout n =
 
 drawBarLine : Layout -> Svg msg
 drawBarLine layout =
-    line
-        [ x1 <| toString layout.w
-        , y1 <| toString layout.margins.top
-        , x2 <| toString layout.w
-        , y2 <| toString <| layout.h - layout.margins.bottom
-        ]
-        []
+    let
+        m =
+            Layout.margins layout
+
+        width =
+            Layout.width layout
+
+        height =
+            Layout.height layout
+    in
+        line
+            [ x1 <| toString width
+            , y1 <| toString m.top
+            , x2 <| toString width
+            , y2 <| toString <| height - m.bottom
+            ]
+            []

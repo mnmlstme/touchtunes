@@ -88,7 +88,7 @@ insertOffset layout measure offset =
             offset.x % 4
 
         pitch =
-            layout.unscalePitch (toFloat offset.y)
+            (Layout.unscalePitch layout) (toFloat offset.y)
     in
         InsertNote (pitch |> heldFor quarter) beat measure
 
@@ -105,8 +105,14 @@ view measure =
         layout =
             Layout.standard staff.basePitch time
 
+        w =
+            Layout.width layout
+
+        h =
+            Layout.height layout
+
         vb =
-            [ 0.0, 0.0, layout.w, layout.h ]
+            [ 0.0, 0.0, w, h ]
 
         drawNote =
             \( beat, note ) -> Note.draw layout beat note
@@ -124,8 +130,8 @@ view measure =
         div [ Html.Attributes.class "measure" ]
             [ svg
                 [ class "measure-staff"
-                , height (toString layout.h)
-                , width (toString layout.w)
+                , height (toString h)
+                , width (toString w)
                 , viewBox (String.join " " (List.map toString vb))
                 , onClickOffset
                 ]

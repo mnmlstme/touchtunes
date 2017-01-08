@@ -1,10 +1,15 @@
 module Music.Layout
     exposing
         ( Layout
-        , Zoom
-        , Tenths
         , Margins
-        , layout
+        , spacing
+        , width
+        , height
+        , margins
+        , scalePitch
+        , unscalePitch
+        , scaleBeat
+        , unscaleBeat
         , standard
         )
 
@@ -13,114 +18,179 @@ import Music.Time exposing (Time, Beat)
 
 
 -- Layout
--- All dimensions required to layout notes on a staff
+-- Compute dimensions for laying out notes on a staff
 
 
 type alias Layout =
-    { zoom : Zoom
-    , spacing : Float
-    , margins : Margins
-    , w : Float
-    , h : Float
-    , scalePitch : Pitch -> Float
-    , scaleBeat : Beat -> Float
-    , unscalePitch : Float -> Pitch
+    { zoom : Float
+    , basePitch : Pitch
+    , time : Time
     }
+
+
+type alias Pixels =
+    Float
 
 
 type alias Margins =
-    { top : Float
-    , right : Float
-    , bottom : Float
-    , left : Float
+    { top : Pixels
+    , right : Pixels
+    , bottom : Pixels
+    , left : Pixels
     }
 
 
 
--- Tenths
--- All dimensions are in tenths of the interline staff spacing
+-- the interline staff spacing in pixels
 
 
-type alias Tenths =
-    Float
+spacing : Layout -> Pixels
+spacing layout =
+    10.0 * layout.zoom
 
 
 
--- Zoom
--- Zoom is the number of Pixels per Tenth
+-- the margins around where notes are placed on staff
 
 
-type alias Zoom =
-    Float
-
-
-layout : Zoom -> Pitch -> Time -> Layout
-layout zoom basePitch time =
+margins : Layout -> Margins
+margins layout =
     let
-        beats =
-            time.beats
-
-        spacing =
-            zoom * 10.0
-
-        beatSpacing =
-            zoom * 40.0
-
         vmargin =
-            2.0 * spacing
+            2.0 * spacing layout
 
         hmargin =
-            spacing
+            spacing layout
+    in
+        Margins vmargin hmargin vmargin hmargin
 
-        margins =
-            Margins vmargin hmargin vmargin hmargin
 
-        w =
-            margins.left
-                + margins.right
-                + (toFloat beats)
-                * beatSpacing
+beatSpacing : Layout -> Pixels
+beatSpacing layout =
+    layout.zoom * 40.0
 
-        h =
-            margins.top + margins.bottom + 4 * spacing
+
+
+-- width of the layout
+
+
+width : Layout -> Pixels
+width layout =
+    let
+        m =
+            margins layout
+
+        b =
+            toFloat layout.time.beats
+
+        bs =
+            beatSpacing layout
+    in
+        m.left + m.right + b * bs
+
+
+
+-- height of the layout
+
+
+height : Layout -> Pixels
+height layout =
+    let
+        m =
+            margins layout
+
+        s =
+            spacing layout
+    in
+        m.top + m.bottom + 4 * s
+
+
+
+-- location the top of the note on staff
+
+
+scalePitch : Layout -> Pitch -> Pixels
+scalePitch layout p =
+    let
+        m =
+            margins layout
+
+        s =
+            spacing layout
 
         base =
-            Pitch.stepNumber basePitch
+            Pitch.stepNumber layout.basePitch
 
-        -- scalePitch locates the top of the note on staff
-        scalePitch p =
-            let
-                n =
-                    (Pitch.stepNumber p) - base
-            in
-                margins.top
-                    + 3.0
-                    * spacing
-                    - (toFloat n)
-                    / 2.0
-                    * spacing
-
-        -- unscalePitch returns the pitch, given Y pixels
-        unscalePitch y =
-            let
-                ybase =
-                    margins.top + 3.5 * spacing
-
-                n =
-                    round (2.0 * (ybase - y) / spacing)
-
-                sn =
-                    base + n
-            in
-                Pitch.fromStepNumber sn
-
-        -- scaleBeat locates the center of the beat on staff
-        scaleBeat b =
-            margins.left + ((toFloat b) + 0.5) * beatSpacing
+        n =
+            (Pitch.stepNumber p) - base
     in
-        Layout zoom spacing margins w h scalePitch scaleBeat unscalePitch
+        m.top + (3.0 - toFloat n / 2.0) * s
+
+
+
+-- return the pitch, given Y pixels
+
+
+unscalePitch : Layout -> Pixels -> Pitch
+unscalePitch layout y =
+    let
+        m =
+            margins layout
+
+        s =
+            spacing layout
+
+        ybase =
+            m.top + 3.5 * s
+
+        n =
+            round (2.0 * (ybase - y) / s)
+
+        base =
+            Pitch.stepNumber layout.basePitch
+
+        sn =
+            base + n
+    in
+        Pitch.fromStepNumber sn
+
+
+
+-- location of the center of the note on the staff
+
+
+scaleBeat : Layout -> Beat -> Pixels
+scaleBeat layout b =
+    let
+        m =
+            margins layout
+
+        bs =
+            beatSpacing layout
+    in
+        m.left + bs * (0.5 + toFloat b)
+
+
+
+-- return the beat, given X pixels
+
+
+unscaleBeat : Layout -> Pixels -> Beat
+unscaleBeat layout x =
+    let
+        m =
+            margins layout
+
+        bs =
+            beatSpacing layout
+    in
+        round ((x - m.left) / bs)
+
+
+
+-- layout for standard (zoom level)
 
 
 standard : Pitch -> Time -> Layout
 standard =
-    layout 2.0
+    Layout 2.0

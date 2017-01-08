@@ -9,7 +9,13 @@ module Music.Note
 import Music.Time as Time exposing (Time, Beat)
 import Music.Duration as Duration exposing (Duration)
 import Music.Pitch as Pitch exposing (Pitch)
-import Music.Layout exposing (Layout)
+import Music.Layout
+    exposing
+        ( Layout
+        , spacing
+        , scalePitch
+        , scaleBeat
+        )
 import Svg
     exposing
         ( Svg
@@ -70,16 +76,16 @@ draw layout beat note =
                 ""
 
         noteHeight =
-            layout.spacing
+            spacing layout
 
         noteWidth =
-            1.5 * layout.spacing
+            1.5 * noteHeight
 
         ypos =
-            layout.scalePitch note.pitch
+            (scalePitch layout) note.pitch
 
         xpos =
-            layout.scaleBeat beat - noteWidth / 2.0
+            (scaleBeat layout) beat - noteWidth / 2.0
 
         position =
             String.join ","
