@@ -58,11 +58,27 @@ beats time note =
     Duration.beats time note.duration
 
 
+symbol : Time -> Note -> String
+symbol time note =
+    let
+        b =
+            beats time note
+    in
+        if b == 1 then
+            "#quarter-note-stem-up"
+        else if b == 2 then
+            "#half-note-stem-up"
+        else if b == 4 then
+            "#whole-note"
+        else
+            "#unknown-note"
+
+
 draw : Layout -> Beat -> Note -> Svg msg
 draw layout beat note =
     let
         noteSymbol =
-            "#quarter-note-stem-up"
+            symbol layout.time note
 
         p =
             note.pitch

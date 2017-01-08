@@ -17,7 +17,7 @@ import Music.Pitch
         , doubleSharp
         , doubleFlat
         )
-import Music.Duration exposing (quarter, half, dotted)
+import Music.Duration exposing (quarter, half, whole)
 import Music.Note exposing (heldFor)
 
 
@@ -30,18 +30,18 @@ example =
             [ measure
                 [ f 4 |> heldFor quarter
                 , a 4 |> heldFor quarter
-                , c 5 |> heldFor quarter
-                , f 5 |> heldFor quarter
+                , c 5 |> heldFor half
                 ]
             , measure
-                [ (flat e_) 4 |> heldFor quarter
-                , g 4 |> heldFor quarter
-                , (flat b) 4 |> heldFor quarter
-                , (flat e_) 5 |> heldFor quarter
+                [ (flat e_) 4 |> heldFor half
+                , g 4 |> heldFor half
+                ]
+            , measure
+                [ (flat b) 4 |> heldFor whole
                 ]
             , measure
                 [ d 4 |> heldFor quarter
-                , (sharp f) 4 |> heldFor quarter
+                , (sharp f) 4 |> heldFor half
                 , a 4 |> heldFor quarter
                 , d 5 |> heldFor quarter
                 ]
