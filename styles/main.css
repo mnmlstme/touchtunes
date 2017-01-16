@@ -1,11 +1,16 @@
+/* Reset */
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-weight: inherit;
 }
 
 body {
-    font-family: Didot, 'Didot LT STD', 'Hoefler Text', Garamond, 'Times New Roman', serif;
+    font-family: Kalam, Verdana, Tahoma, sans-serif;
+    font-variant-caps: small-caps;
+    font-weight: 400;
 }
 
 /* Music Symbols is an SVG sprite */
@@ -37,6 +42,11 @@ body {
 
 /* Score */
 
+.score-title {
+    font-weight: 700;
+    text-align: center;
+}
+
 .score-parts {
     justify-content: center;
 }
@@ -45,7 +55,7 @@ dl.score-stats > * {
     display: inline-block;
 }
 
-dl.score-stats > dt {
+dl.score-stats > dd {
     font-weight: bold;
 }
 

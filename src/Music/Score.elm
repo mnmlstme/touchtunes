@@ -92,7 +92,8 @@ view s =
         article
             [ class "score frame" ]
             [ header [ class "frame-header" ]
-                [ h1 [] [ text s.title ]
+                [ h1 [ class "score-title" ]
+                    [ text s.title ]
                 ]
             , div [ class "frame-body score-parts" ]
                 (Array.toList <| Array.indexedMap partView s.parts)
