@@ -14,8 +14,8 @@ import Music.Time as Time exposing (Time, Beat)
 import Music.Note as Note exposing (Note, heldFor)
 import Music.Staff as Staff
 import Music.Layout as Layout exposing (Layout)
-import Html exposing (Html, div)
-import Html.Attributes
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (style)
 import Html.Events exposing (on)
 import Json.Decode as Decode exposing (Decoder, field, int)
 import Mouse
@@ -117,14 +117,23 @@ fitTime time measure =
 view : Measure -> Html Action
 view measure =
     let
+        givenTime =
+            Time.common
+
         time =
-            fitTime Time.common measure
+            fitTime givenTime measure
+
+        overflowBeats =
+            time.beats - givenTime.beats
 
         staff =
             Staff.treble
 
+        layoutForTime =
+            Layout.standard staff.basePitch
+
         layout =
-            Layout.standard staff.basePitch time
+            layoutForTime time
 
         w =
             Layout.width layout
@@ -134,6 +143,9 @@ view measure =
 
         vb =
             [ 0.0, 0.0, w, h ]
+
+        overflowWidth =
+            w - Layout.width (layoutForTime givenTime)
 
         drawNote =
             \( beat, note ) -> Note.draw layout beat note
@@ -149,7 +161,16 @@ view measure =
                 Decode.map insertAt mouseOffset
     in
         div [ Html.Attributes.class "measure" ]
-            [ svg
+            [ if overflowBeats > 0 then
+                div
+                    [ class "measure-overflow"
+                    , style
+                        [ ( "width", toString overflowWidth ++ "px" ) ]
+                    ]
+                    []
+              else
+                text ""
+            , svg
                 [ class "measure-staff"
                 , height (toString h)
                 , width (toString w)

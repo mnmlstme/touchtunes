@@ -81,12 +81,27 @@ dl.score-stats > * + dt {
 
 /* Measure */
 
+.measure {
+    position: relative;
+}
+
 svg.measure-staff {
     overflow: visible;
     stroke: none;
     fill: #333;
     cursor: cell;
 }
+
+.measure-overflow {
+    height: 100%;
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: rgba(255,48,0,0.25);
+    z-index: -1;
+}
+
+/* Staff */
 
 .staff {
     stroke-width: 2px;
