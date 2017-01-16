@@ -76,6 +76,7 @@ dl.score-stats > * + dt {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
+    overflow-x: auto;
 }
 
 /* Measure */
@@ -93,3 +94,9 @@ svg.measure-staff {
 }
 
 /* Note */
+
+.note-stem {
+    stroke-width: 2px;
+    stroke: #333;
+    stroke-linecap: round;
+}

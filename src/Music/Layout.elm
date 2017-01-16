@@ -6,6 +6,7 @@ module Music.Layout
         , width
         , height
         , margins
+        , positionOnStaff
         , scalePitch
         , unscalePitch
         , scaleBeat
@@ -106,6 +107,19 @@ height layout =
 
 
 
+-- distance (in steps) above base pitch of staff
+
+
+positionOnStaff : Layout -> Pitch -> Int
+positionOnStaff layout p =
+    let
+        base =
+            Pitch.stepNumber layout.basePitch
+    in
+        (Pitch.stepNumber p) - base
+
+
+
 -- location the top of the note on staff
 
 
@@ -118,11 +132,8 @@ scalePitch layout p =
         s =
             spacing layout
 
-        base =
-            Pitch.stepNumber layout.basePitch
-
         n =
-            (Pitch.stepNumber p) - base
+            positionOnStaff layout p
     in
         m.top + (3.0 - toFloat n / 2.0) * s
 

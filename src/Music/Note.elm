@@ -15,6 +15,7 @@ import Music.Layout
         , spacing
         , scalePitch
         , scaleBeat
+        , positionOnStaff
         )
 import Svg
     exposing
@@ -48,6 +49,11 @@ type alias Note =
     }
 
 
+type StemOrientation
+    = StemUp
+    | StemDown
+
+
 heldFor : Duration -> Pitch -> Note
 heldFor d p =
     Note p d
@@ -58,27 +64,35 @@ beats time note =
     Duration.beats time note.duration
 
 
-symbol : Time -> Note -> String
-symbol time note =
+notehead : Time -> Note -> String
+notehead time note =
     let
         b =
             beats time note
     in
-        if b == 1 then
-            "#quarter-note-stem-up"
-        else if b == 2 then
-            "#half-note-stem-up"
-        else if b == 4 then
-            "#whole-note"
+        if b < 2 then
+            "#tt-notehead-closed"
         else
-            "#unknown-note"
+            "#tt-notehead-open"
+
+
+stemOrientation : Layout -> Pitch -> StemOrientation
+stemOrientation layout p =
+    let
+        n =
+            positionOnStaff layout p
+    in
+        if n > 3 then
+            StemDown
+        else
+            StemUp
 
 
 draw : Layout -> Beat -> Note -> Svg msg
 draw layout beat note =
     let
         noteSymbol =
-            symbol layout.time note
+            notehead layout.time note
 
         p =
             note.pitch
@@ -106,8 +120,44 @@ draw layout beat note =
         position =
             String.join ","
                 (List.map toString [ xpos, ypos ])
+
+        isWhole =
+            Duration.isWhole layout.time note.duration
+
+        stemLength =
+            3.0 * noteHeight
+
+        stemDir =
+            stemOrientation layout p
+
+        xstem =
+            case stemDir of
+                StemUp ->
+                    noteWidth
+
+                StemDown ->
+                    0
+
+        y1stem =
+            case stemDir of
+                StemUp ->
+                    0.25 * noteHeight
+
+                StemDown ->
+                    0.75 * noteHeight
+
+        y2stem =
+            case stemDir of
+                StemUp ->
+                    y1stem - stemLength
+
+                StemDown ->
+                    y1stem + stemLength
     in
-        g [ transform ("translate(" ++ position ++ ")") ]
+        g
+            [ class "note"
+            , transform ("translate(" ++ position ++ ")")
+            ]
             [ use
                 [ xlinkHref noteSymbol
                 , x "0"
@@ -116,6 +166,17 @@ draw layout beat note =
                 , width <| toString noteWidth
                 ]
                 []
+            , if isWhole then
+                text ""
+              else
+                line
+                    [ class "note-stem"
+                    , x1 <| toString xstem
+                    , y1 <| toString y1stem
+                    , x2 <| toString xstem
+                    , y2 <| toString y2stem
+                    ]
+                    []
             , if altSymbol == "" then
                 text ""
               else

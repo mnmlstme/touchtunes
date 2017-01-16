@@ -11,6 +11,7 @@ module Music.Duration
         , sixtyfourth
         , dotted
         , beats
+        , isWhole
         )
 
 import Music.Time exposing (Time, Beat)
@@ -76,3 +77,12 @@ dotted d =
 beats : Time -> Duration -> Beat
 beats time d =
     d.count * (time.divisor // d.divisor)
+
+
+isWhole : Time -> Duration -> Bool
+isWhole time d =
+    let
+        b =
+            beats time d
+    in
+        b >= time.beats
