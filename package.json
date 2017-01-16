@@ -1,0 +1,28 @@
+{
+  "name": "touchtunes",
+  "version": "0.9.0",
+  "description": "In-browser musical notation editor with touch interface.",
+  "main": "src/Main.elm",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mnmlstme/touchtunes.git"
+  },
+  "keywords": [
+    "Elm",
+    "music",
+    "notation",
+    "touch"
+  ],
+  "author": "Ken Kubiak",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/mnmlstme/touchtunes/issues"
+  },
+  "homepage": "https://github.com/mnmlstme/touchtunes#readme"
+}

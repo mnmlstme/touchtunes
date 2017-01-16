@@ -1,7 +1,8 @@
 {
     "version": "1.0.0",
-    "summary": "helpful summary of your project, less than 80 characters",
-    "repository": "https://github.com/user/project.git",
+    "summary": "In-browser musical notation editor with touch interface.
+",
+    "repository": "https://github.com/mnmlstme/touchtunes.git",
     "license": "BSD3",
     "source-directories": [
         "src",
