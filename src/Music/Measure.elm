@@ -53,8 +53,18 @@ update : Action -> Measure -> Measure
 update action measure =
     case action of
         InsertNote note beat measure ->
-            -- TODO: use beat to find insertion point
-            { measure | notes = List.append measure.notes [ note ] }
+            let
+                time =
+                    Time.common
+
+                newSequence =
+                    addInSequence
+                        ( beat, note )
+                        (sequence time measure)
+            in
+                { measure
+                    | notes = List.map (\( b, n ) -> n) newSequence
+                }
 
 
 sequence : Time -> Measure -> List ( Beat, Note )
@@ -67,6 +77,15 @@ sequence time measure =
             List.scanl (+) 0 beats
     in
         List.map2 (,) startsAt measure.notes
+
+
+addInSequence : ( Beat, Note ) -> List ( Beat, Note ) -> List ( Beat, Note )
+addInSequence ( beat, note ) sequence =
+    let
+        ( before, after ) =
+            List.partition (\( b, n ) -> b < beat) sequence
+    in
+        List.concat [ before, [ ( beat, note ) ], after ]
 
 
 totalBeats : Time -> Measure -> Beat
@@ -93,10 +112,10 @@ insertOffset : Layout -> Measure -> Mouse.Position -> Action
 insertOffset layout measure offset =
     let
         beat =
-            offset.x % 4
+            Layout.unscaleBeat layout (toFloat offset.x)
 
         pitch =
-            (Layout.unscalePitch layout) (toFloat offset.y)
+            Layout.unscalePitch layout (toFloat offset.y)
     in
         InsertNote (pitch |> heldFor quarter) beat measure
 
