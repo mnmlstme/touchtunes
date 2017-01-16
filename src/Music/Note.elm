@@ -99,9 +99,9 @@ draw layout beat note =
 
         altSymbol =
             if p.alter > 0 then
-                "#sharp"
+                "#tt-sharp"
             else if p.alter < 0 then
-                "#flat"
+                "#tt-flat"
             else
                 ""
 
