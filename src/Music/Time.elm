@@ -4,6 +4,7 @@ module Music.Time
         , Beat
         , common
         , cut
+        , longer
         )
 
 
@@ -29,3 +30,12 @@ common =
 cut : Time
 cut =
     Time 2 2
+
+
+longer : Time -> Beat -> Time
+longer time beat =
+    let
+        b =
+            max time.beats beat
+    in
+        Time b time.divisor

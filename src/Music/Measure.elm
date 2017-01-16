@@ -8,9 +8,9 @@ module Music.Measure
         , view
         )
 
-import Debug exposing (log)
+-- import Debug exposing (log)
+
 import Music.Time as Time exposing (Time, Beat)
-import Music.Pitch as Pitch exposing (Pitch)
 import Music.Note as Note exposing (Note, heldFor)
 import Music.Staff as Staff
 import Music.Layout as Layout exposing (Layout)
@@ -27,7 +27,6 @@ import Svg.Attributes
         , width
         , viewBox
         )
-import Music.Pitch exposing (f)
 import Music.Duration exposing (quarter)
 
 
@@ -70,8 +69,17 @@ sequence time measure =
         List.map2 (,) startsAt measure.notes
 
 
+totalBeats : Time -> Measure -> Beat
+totalBeats time measure =
+    let
+        beats =
+            List.map (Note.beats time) measure.notes
+    in
+        List.sum beats
 
--- TODO: PR for adding this to elm-lang/mouse
+
+
+-- TODO: PR to add mouseOffset to elm-lang/mouse
 
 
 mouseOffset : Decoder Mouse.Position
@@ -93,11 +101,24 @@ insertOffset layout measure offset =
         InsertNote (pitch |> heldFor quarter) beat measure
 
 
+
+-- compute a new time signature that notes will fit in
+
+
+fitTime : Time -> Measure -> Time
+fitTime time measure =
+    let
+        beats =
+            totalBeats time measure
+    in
+        Time.longer time beats
+
+
 view : Measure -> Html Action
 view measure =
     let
         time =
-            Time.common
+            fitTime Time.common measure
 
         staff =
             Staff.treble
