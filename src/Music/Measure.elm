@@ -175,8 +175,8 @@ view measure =
         insertAt =
             insertOffset layout measure
 
-        onClickOffset =
-            on "click" <|
+        onMousedownInsert =
+            on "mousedown" <|
                 Decode.map insertAt mouseOffset
     in
         div [ Html.Attributes.class "measure" ]
@@ -194,7 +194,7 @@ view measure =
                 , height (toString h)
                 , width (toString w)
                 , viewBox (String.join " " (List.map toString vb))
-                , onClickOffset
+                , onMousedownInsert
                 ]
                 [ Staff.draw layout
                 , g [ class "measure-notes" ]
