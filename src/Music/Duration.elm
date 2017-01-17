@@ -11,6 +11,7 @@ module Music.Duration
         , sixtyfourth
         , dotted
         , beats
+        , setBeats
         , isWhole
         )
 
@@ -77,6 +78,15 @@ dotted d =
 beats : Time -> Duration -> Beat
 beats time d =
     d.count * (time.divisor // d.divisor)
+
+
+setBeats : Time -> Beat -> Duration -> Duration
+setBeats time b d =
+    let
+        count =
+            b * (d.divisor // time.divisor)
+    in
+        Duration count d.divisor
 
 
 isWhole : Time -> Duration -> Bool

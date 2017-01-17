@@ -8,8 +8,8 @@ module Music.Measure
         , view
         )
 
--- import Debug exposing (log)
-
+import Debug exposing (log)
+import Music.Duration as Duration
 import Music.Time as Time exposing (Time, Beat)
 import Music.Note as Note exposing (Note, heldFor)
 import Music.Staff as Staff
@@ -47,24 +47,47 @@ measure =
 
 type Action
     = InsertNote Note Beat Measure
+    | StretchNote Beat Measure
 
 
 update : Action -> Measure -> Measure
 update action measure =
-    case action of
-        InsertNote note beat measure ->
-            let
-                time =
-                    Time.common
+    let
+        -- TODO: get the current time signature for measure
+        time =
+            Time.common
 
-                newSequence =
-                    addInSequence
-                        ( beat, note )
-                        (sequence time measure)
-            in
-                { measure
-                    | notes = List.map (\( b, n ) -> n) newSequence
-                }
+        oldSequence =
+            sequence time measure
+
+        justNotes seq =
+            List.map (\( b, n ) -> n) seq
+    in
+        case action of
+            InsertNote note beat measure ->
+                let
+                    newSequence =
+                        addInSequence ( beat, note ) oldSequence
+                in
+                    { measure | notes = justNotes newSequence }
+
+            StretchNote beat measure ->
+                case (previousInSequence beat oldSequence) of
+                    Nothing ->
+                        measure
+
+                    Just ( b, note ) ->
+                        let
+                            newDuration =
+                                Duration.setBeats time (beat - b) note.duration
+
+                            newNote =
+                                Note note.pitch (log "newDuration" newDuration)
+
+                            newSequence =
+                                replaceInSequence ( b, newNote ) oldSequence
+                        in
+                            { measure | notes = justNotes newSequence }
 
 
 sequence : Time -> Measure -> List ( Beat, Note )
@@ -88,6 +111,32 @@ addInSequence ( beat, note ) sequence =
         List.concat [ before, [ ( beat, note ) ], after ]
 
 
+replaceInSequence : ( Beat, Note ) -> List ( Beat, Note ) -> List ( Beat, Note )
+replaceInSequence ( beat, note ) sequence =
+    let
+        ( before, after ) =
+            List.partition (\( b, n ) -> b < beat) sequence
+
+        rest =
+            case (List.tail after) of
+                Nothing ->
+                    []
+
+                Just list ->
+                    list
+    in
+        List.concat [ before, [ ( beat, note ) ], rest ]
+
+
+previousInSequence : Beat -> List ( Beat, Note ) -> Maybe ( Beat, Note )
+previousInSequence beat sequence =
+    let
+        before =
+            List.filter (\( b, n ) -> b < beat) sequence
+    in
+        List.head (List.reverse before)
+
+
 totalBeats : Time -> Measure -> Beat
 totalBeats time measure =
     let
@@ -108,8 +157,8 @@ mouseOffset =
         (field "offsetY" int)
 
 
-insertOffset : Layout -> Measure -> Mouse.Position -> Action
-insertOffset layout measure offset =
+insertAction : Layout -> Measure -> Mouse.Position -> Action
+insertAction layout measure offset =
     let
         beat =
             Layout.unscaleBeat layout (toFloat offset.x)
@@ -118,6 +167,15 @@ insertOffset layout measure offset =
             Layout.unscalePitch layout (toFloat offset.y)
     in
         InsertNote (pitch |> heldFor quarter) beat measure
+
+
+stretchAction : Layout -> Measure -> Mouse.Position -> Action
+stretchAction layout measure offset =
+    let
+        beat =
+            Layout.unscaleBeat layout (toFloat offset.x)
+    in
+        StretchNote beat measure
 
 
 
@@ -172,12 +230,13 @@ view measure =
         noteSequence =
             sequence time measure
 
-        insertAt =
-            insertOffset layout measure
-
         onMousedownInsert =
             on "mousedown" <|
-                Decode.map insertAt mouseOffset
+                Decode.map (insertAction layout measure) mouseOffset
+
+        onMousemoveStretch =
+            on "mousemove" <|
+                Decode.map (stretchAction layout measure) mouseOffset
     in
         div [ Html.Attributes.class "measure" ]
             [ if overflowBeats > 0 then
@@ -195,6 +254,7 @@ view measure =
                 , width (toString w)
                 , viewBox (String.join " " (List.map toString vb))
                 , onMousedownInsert
+                , onMousemoveStretch
                 ]
                 [ Staff.draw layout
                 , g [ class "measure-notes" ]
