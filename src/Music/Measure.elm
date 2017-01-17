@@ -46,8 +46,8 @@ measure =
 
 
 type Action
-    = InsertNote Note Beat Measure
-    | StretchNote Beat Measure
+    = InsertNote Note Beat
+    | StretchNote Beat
 
 
 update : Action -> Measure -> Measure
@@ -64,14 +64,14 @@ update action measure =
             List.map (\( b, n ) -> n) seq
     in
         case action of
-            InsertNote note beat measure ->
+            InsertNote note beat ->
                 let
                     newSequence =
                         addInSequence ( beat, note ) oldSequence
                 in
                     { measure | notes = justNotes newSequence }
 
-            StretchNote beat measure ->
+            StretchNote beat ->
                 case (previousInSequence beat oldSequence) of
                     Nothing ->
                         measure
@@ -157,8 +157,8 @@ mouseOffset =
         (field "offsetY" int)
 
 
-insertAction : Layout -> Measure -> Mouse.Position -> Action
-insertAction layout measure offset =
+insertAction : Layout -> Mouse.Position -> Action
+insertAction layout offset =
     let
         beat =
             Layout.unscaleBeat layout (toFloat offset.x)
@@ -166,16 +166,16 @@ insertAction layout measure offset =
         pitch =
             Layout.unscalePitch layout (toFloat offset.y)
     in
-        InsertNote (pitch |> heldFor quarter) beat measure
+        InsertNote (pitch |> heldFor quarter) beat
 
 
-stretchAction : Layout -> Measure -> Mouse.Position -> Action
-stretchAction layout measure offset =
+stretchAction : Layout -> Mouse.Position -> Action
+stretchAction layout offset =
     let
         beat =
             Layout.unscaleBeat layout (toFloat offset.x)
     in
-        StretchNote beat measure
+        StretchNote beat
 
 
 
@@ -232,11 +232,11 @@ view measure =
 
         onMousedownInsert =
             on "mousedown" <|
-                Decode.map (insertAction layout measure) mouseOffset
+                Decode.map (insertAction layout) mouseOffset
 
         onMousemoveStretch =
             on "mousemove" <|
-                Decode.map (stretchAction layout measure) mouseOffset
+                Decode.map (stretchAction layout) mouseOffset
     in
         div [ Html.Attributes.class "measure" ]
             [ if overflowBeats > 0 then
