@@ -99,7 +99,6 @@ svg.measure-staff {
     overflow: visible;
     stroke: none;
     fill: #333;
-    cursor: cell;
 }
 
 .measure-overflow {
@@ -111,11 +110,22 @@ svg.measure-staff {
     z-index: -1;
 }
 
+.measure-edit {
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: cell;
+}
+
 /* Staff */
 
 .staff {
+    stroke-width: 1px;
+    stroke: #646464;
+}
+
+.staff-barline {
     stroke-width: 2px;
-    stroke: #999;
 }
 
 /* Note */

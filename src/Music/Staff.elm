@@ -7,7 +7,7 @@ module Music.Staff
         )
 
 import Music.Pitch as Pitch exposing (Pitch)
-import Music.Layout as Layout exposing (Layout)
+import Music.Measure.Layout as Layout exposing (Layout)
 import Svg
     exposing
         ( Svg

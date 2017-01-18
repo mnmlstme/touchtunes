@@ -1,8 +1,8 @@
 module Example1 exposing (example)
 
-import Music.Score exposing (Score, score)
-import Music.Part exposing (part)
-import Music.Measure exposing (measure)
+import Music.Score exposing (Score)
+import Music.Part exposing (Part)
+import Music.Measure.Model exposing (Measure)
 import Music.Pitch
     exposing
         ( a
@@ -19,31 +19,35 @@ import Music.Pitch
         )
 import Music.Duration exposing (quarter, half, whole)
 import Music.Note exposing (heldFor)
+import Array
 
 
 example : Score
 example =
-    score "Example One"
-        [ part
-            "Piano"
-            "Pno."
-            [ measure
-                [ f 4 |> heldFor quarter
-                , a 4 |> heldFor quarter
-                , c 5 |> heldFor half
-                ]
-            , measure
-                [ (flat e_) 4 |> heldFor half
-                , g 4 |> heldFor half
-                ]
-            , measure
-                [ (flat b) 4 |> heldFor whole
-                ]
-            , measure
-                [ d 4 |> heldFor quarter
-                , (sharp f) 4 |> heldFor half
-                , a 4 |> heldFor quarter
-                , d 5 |> heldFor quarter
-                ]
+    Score "Example One" <|
+        Array.fromList
+            [ Part
+                "Piano"
+                "Pno."
+              <|
+                Array.fromList
+                    [ Measure
+                        [ f 4 |> heldFor quarter
+                        , a 4 |> heldFor quarter
+                        , c 5 |> heldFor half
+                        ]
+                    , Measure
+                        [ (flat e_) 4 |> heldFor half
+                        , g 4 |> heldFor half
+                        ]
+                    , Measure
+                        [ (flat b) 4 |> heldFor whole
+                        ]
+                    , Measure
+                        [ d 4 |> heldFor quarter
+                        , (sharp f) 4 |> heldFor half
+                        , a 4 |> heldFor quarter
+                        , d 5 |> heldFor quarter
+                        ]
+                    ]
             ]
-        ]

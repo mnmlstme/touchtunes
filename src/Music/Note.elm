@@ -9,7 +9,7 @@ module Music.Note
 import Music.Time as Time exposing (Time, Beat)
 import Music.Duration as Duration exposing (Duration)
 import Music.Pitch as Pitch exposing (Pitch)
-import Music.Layout
+import Music.Measure.Layout
     exposing
         ( Layout
         , spacing

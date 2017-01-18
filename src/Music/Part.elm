@@ -1,7 +1,7 @@
 module Music.Part
     exposing
         ( Part
-        , part
+        , empty
         , Action
         , update
         , countMeasures
@@ -19,7 +19,9 @@ import Html
         , text
         )
 import Html.Attributes exposing (class)
-import Music.Measure as Measure exposing (Measure)
+import Music.Measure.Model as Measure exposing (Measure)
+import Music.Measure.Action as MeasureAction
+import Music.Measure.View as MeasureView
 
 
 type alias Part =
@@ -29,19 +31,22 @@ type alias Part =
     }
 
 
-part : String -> String -> List Measure -> Part
-part n a list =
-    Part n a (Array.fromList list)
+empty : Part
+empty =
+    Part
+        "Piano"
+        "Pno."
+        (Array.repeat 4 Measure.empty)
 
 
 type Action
-    = MeasureAction Int Measure.Action
+    = OnMeasure Int MeasureAction.Action
 
 
 update : Action -> Part -> Part
 update msg part =
     case msg of
-        MeasureAction n action ->
+        OnMeasure n action ->
             case Array.get n part.measures of
                 Nothing ->
                     part
@@ -50,7 +55,7 @@ update msg part =
                     { part
                         | measures =
                             Array.set n
-                                (Measure.update action m)
+                                (MeasureAction.update action m)
                                 part.measures
                     }
 
@@ -64,7 +69,7 @@ view : Part -> Html Action
 view part =
     let
         measureView n measure =
-            Html.map (MeasureAction n) (Measure.view measure)
+            Html.map (OnMeasure n) (MeasureView.view measure)
     in
         section [ class "part" ]
             [ header [ class "part-header" ]

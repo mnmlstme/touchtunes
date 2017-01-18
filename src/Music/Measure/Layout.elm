@@ -1,4 +1,4 @@
-module Music.Layout
+module Music.Measure.Layout
     exposing
         ( Layout
         , Margins

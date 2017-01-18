@@ -26,7 +26,6 @@ import Html
         )
 import Html.Attributes exposing (class)
 import Music.Part as Part exposing (Part)
-import Music.Measure as Measure
 
 
 type alias Score =
@@ -36,17 +35,12 @@ type alias Score =
 
 
 type Action
-    = PartAction Int Part.Action
+    = OnPart Int Part.Action
 
 
 empty : Score
 empty =
-    score "New Score"
-        [ Part
-            "Piano"
-            "Pno."
-            (Array.repeat 4 Measure.empty)
-        ]
+    score "New Score" [ Part.empty ]
 
 
 score : String -> List Part -> Score
@@ -57,7 +51,7 @@ score t list =
 update : Action -> Score -> Score
 update msg score =
     case msg of
-        PartAction n action ->
+        OnPart n action ->
             case Array.get n score.parts of
                 Nothing ->
                     score
@@ -87,7 +81,7 @@ view s =
             countMeasures s
 
         partView n part =
-            Html.map (PartAction n) (Part.view part)
+            Html.map (OnPart n) (Part.view part)
     in
         article
             [ class "score frame" ]
