@@ -56,7 +56,16 @@ fitTime time measure =
 -- Sequences are lists of (Beat, Note) pairs
 
 
-sequence : Time -> Measure -> List ( Beat, Note )
+type alias Sequence =
+    List ( Beat, Note )
+
+
+precedes : Beat -> ( Beat, Note ) -> Bool
+precedes beat ( b, _ ) =
+    b < beat
+
+
+sequence : Time -> Measure -> Sequence
 sequence time measure =
     let
         beats =
@@ -68,20 +77,20 @@ sequence time measure =
         List.map2 (,) startsAt measure.notes
 
 
-addInSequence : ( Beat, Note ) -> List ( Beat, Note ) -> List ( Beat, Note )
+addInSequence : ( Beat, Note ) -> Sequence -> Sequence
 addInSequence ( beat, note ) sequence =
     let
         ( before, after ) =
-            List.partition (\( b, n ) -> b < beat) sequence
+            List.partition (precedes beat) sequence
     in
         List.concat [ before, [ ( beat, note ) ], after ]
 
 
-replaceInSequence : ( Beat, Note ) -> List ( Beat, Note ) -> List ( Beat, Note )
+replaceInSequence : ( Beat, Note ) -> Sequence -> Sequence
 replaceInSequence ( beat, note ) sequence =
     let
         ( before, after ) =
-            List.partition (\( b, n ) -> b < beat) sequence
+            List.partition (precedes beat) sequence
 
         rest =
             case (List.tail after) of
@@ -94,10 +103,10 @@ replaceInSequence ( beat, note ) sequence =
         List.concat [ before, [ ( beat, note ) ], rest ]
 
 
-previousInSequence : Beat -> List ( Beat, Note ) -> Maybe ( Beat, Note )
+previousInSequence : Beat -> Sequence -> Maybe ( Beat, Note )
 previousInSequence beat sequence =
     let
         before =
-            List.filter (\( b, n ) -> b < beat) sequence
+            List.filter (precedes beat) sequence
     in
         List.head (List.reverse before)
