@@ -12,6 +12,7 @@ import Html
         )
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
+import Music.Time exposing (Beat)
 import Music.Score as Score exposing (Score)
 import Example1
 
@@ -35,6 +36,7 @@ main =
 
 type alias Model =
     { score : Score
+    , cursor : Maybe ( Int, Int, Beat )
     }
 
 
@@ -42,7 +44,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         model =
-            Model Score.empty
+            Model Score.empty Nothing
     in
         ( model, Cmd.none )
 
@@ -61,10 +63,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Clear ->
-            ( { model | score = Score.empty }, Cmd.none )
+            ( Model Score.empty Nothing, Cmd.none )
 
         ShowExample1 ->
-            ( { model | score = Example1.example }, Cmd.none )
+            ( Model Example1.example Nothing, Cmd.none )
 
         ScoreAction action ->
             ( { model | score = Score.update action model.score }

@@ -7,7 +7,7 @@ module Music.Measure.Model
         , sequence
         , addInSequence
         , replaceInSequence
-        , previousInSequence
+        , findInSequence
         )
 
 -- import Debug exposing (log)
@@ -103,10 +103,10 @@ replaceInSequence ( beat, note ) sequence =
         List.concat [ before, [ ( beat, note ) ], rest ]
 
 
-previousInSequence : Beat -> Sequence -> Maybe ( Beat, Note )
-previousInSequence beat sequence =
+findInSequence : Beat -> Sequence -> Maybe ( Beat, Note )
+findInSequence beat sequence =
     let
-        before =
-            List.filter (precedes beat) sequence
+        ( before, after ) =
+            List.partition (precedes beat) sequence
     in
-        List.head (List.reverse before)
+        List.head after

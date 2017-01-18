@@ -25,7 +25,7 @@ import Svg.Attributes
 
 type alias Edit =
     { layout : Layout
-    , at : Maybe Beat
+    , cursor : Maybe Beat
     }
 
 
@@ -52,13 +52,13 @@ insertAction layout offset =
         InsertNote (pitch |> heldFor quarter) beat
 
 
-stretchAction : Layout -> Mouse.Position -> Action
-stretchAction layout offset =
+stretchAction : Layout -> Beat -> Mouse.Position -> Action
+stretchAction layout fromBeat offset =
     let
-        beat =
+        toBeat =
             Layout.unscaleBeat layout (toFloat offset.x)
     in
-        StretchNote beat
+        StretchNote fromBeat toBeat
 
 
 view : Edit -> Html Action
@@ -66,6 +66,9 @@ view edit =
     let
         lo =
             edit.layout
+
+        cursor =
+            edit.cursor
 
         w =
             Layout.width lo
@@ -76,20 +79,29 @@ view edit =
         vb =
             [ 0.0, 0.0, w, h ]
 
-        onMousedownInsert =
-            on "mousedown" <|
-                Decode.map (insertAction lo) mouseOffset
+        actions =
+            case cursor of
+                Nothing ->
+                    [ on "mousedown" <|
+                        Decode.map
+                            (insertAction lo)
+                            mouseOffset
+                    ]
 
-        onMousemoveStretch =
-            on "mousemove" <|
-                Decode.map (stretchAction lo) mouseOffset
+                Just beat ->
+                    [ on "mousemove" <|
+                        Decode.map
+                            (stretchAction lo beat)
+                            mouseOffset
+                    ]
     in
         svg
-            [ class "measure-edit"
-            , height (toString h)
-            , width (toString w)
-            , viewBox (String.join " " (List.map toString vb))
-            , onMousedownInsert
-            , onMousemoveStretch
-            ]
+            (List.append
+                [ class "measure-edit"
+                , height (toString h)
+                , width (toString w)
+                , viewBox (String.join " " (List.map toString vb))
+                ]
+                actions
+            )
             []

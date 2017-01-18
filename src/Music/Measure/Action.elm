@@ -13,7 +13,7 @@ import Music.Measure.Model exposing (..)
 
 type Action
     = InsertNote Note Beat
-    | StretchNote Beat
+    | StretchNote Beat Beat
 
 
 update : Action -> Measure -> Measure
@@ -37,15 +37,15 @@ update action measure =
                 in
                     { measure | notes = justNotes newSequence }
 
-            StretchNote beat ->
-                case (previousInSequence beat oldSequence) of
+            StretchNote fromBeat toBeat ->
+                case (findInSequence fromBeat oldSequence) of
                     Nothing ->
                         measure
 
                     Just ( b, note ) ->
                         let
                             newDuration =
-                                Duration.setBeats time (beat - b) note.duration
+                                Duration.setBeats time (toBeat - b) note.duration
 
                             newNote =
                                 Note note.pitch (log "newDuration" newDuration)
