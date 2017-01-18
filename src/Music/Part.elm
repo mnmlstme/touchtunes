@@ -19,6 +19,7 @@ import Html
         , text
         )
 import Html.Attributes exposing (class)
+import Music.Time exposing (Beat)
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.Action as MeasureAction
 import Music.Measure.View as MeasureView
@@ -65,11 +66,24 @@ countMeasures p =
     Array.length p.measures
 
 
-view : Part -> Html Action
-view part =
+view : Maybe ( Int, Beat ) -> Part -> Html Action
+view cursor part =
     let
-        measureView n measure =
-            Html.map (OnMeasure n) (MeasureView.view measure)
+        addr i =
+            case cursor of
+                Nothing ->
+                    Nothing
+
+                Just ( n, beat ) ->
+                    if i == n then
+                        Just beat
+                    else
+                        Nothing
+
+        measureView i measure =
+            Html.map
+                (OnMeasure i)
+                (MeasureView.view (addr i) measure)
     in
         section [ class "part" ]
             [ header [ class "part-header" ]

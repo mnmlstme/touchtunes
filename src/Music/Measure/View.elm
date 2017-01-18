@@ -1,6 +1,6 @@
 module Music.Measure.View exposing (view)
 
-import Music.Time as Time
+import Music.Time as Time exposing (Beat)
 import Music.Staff as Staff
 import Music.Note as Note
 import Music.Measure.Model exposing (..)
@@ -19,8 +19,8 @@ import Svg.Attributes
         )
 
 
-view : Measure -> Html Action
-view measure =
+view : Maybe Beat -> Measure -> Html Action
+view cursor measure =
     let
         givenTime =
             Time.common
@@ -59,7 +59,7 @@ view measure =
             sequence time measure
 
         edit =
-            Edit layout
+            Edit layout cursor
     in
         div [ Html.Attributes.class "measure" ]
             [ if overflowBeats > 0 then

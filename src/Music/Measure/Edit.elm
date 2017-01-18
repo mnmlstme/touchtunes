@@ -5,6 +5,7 @@ module Music.Measure.Edit
         )
 
 import Music.Duration exposing (quarter)
+import Music.Time exposing (Beat)
 import Music.Note as Note exposing (Note, heldFor)
 import Music.Measure.Layout as Layout exposing (Layout)
 import Music.Measure.Action exposing (Action(..))
@@ -24,6 +25,7 @@ import Svg.Attributes
 
 type alias Edit =
     { layout : Layout
+    , at : Maybe Beat
     }
 
 

@@ -81,12 +81,15 @@ view model =
     let
         score =
             model.score
+
+        cursor =
+            Nothing
     in
         section [ class "fullscreen- frame" ]
             [ div [ class "frame-body" ]
                 [ Html.map
                     ScoreAction
-                    (Score.view score)
+                    (Score.view cursor score)
                 ]
             , footer [ class "frame-footer" ]
                 [ button [ onClick Clear ] [ text "Clear" ]

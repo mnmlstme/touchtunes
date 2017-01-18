@@ -25,6 +25,7 @@ import Html
         , text
         )
 import Html.Attributes exposing (class)
+import Music.Time exposing (Beat)
 import Music.Part as Part exposing (Part)
 
 
@@ -71,8 +72,8 @@ countParts s =
     Array.length s.parts
 
 
-view : Score -> Html Action
-view s =
+view : Maybe ( Int, Int, Beat ) -> Score -> Html Action
+view cursor s =
     let
         nParts =
             countParts s
@@ -80,8 +81,19 @@ view s =
         nMeasures =
             countMeasures s
 
-        partView n part =
-            Html.map (OnPart n) (Part.view part)
+        addr i =
+            case cursor of
+                Nothing ->
+                    Nothing
+
+                Just ( n, m, beat ) ->
+                    if i == n then
+                        Just ( m, beat )
+                    else
+                        Nothing
+
+        partView i part =
+            Html.map (OnPart i) (Part.view (addr i) part)
     in
         article
             [ class "score frame" ]
