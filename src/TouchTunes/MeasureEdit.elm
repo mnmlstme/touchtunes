@@ -82,8 +82,11 @@ update action editor =
 
                     Just ( b, note ) ->
                         let
+                            beats =
+                                max (toBeat - b) 1
+
                             newDuration =
-                                Duration.setBeats time (toBeat - b) note.duration
+                                Duration.setBeats time beats note.duration
 
                             newNote =
                                 Note note.pitch newDuration

@@ -55,6 +55,28 @@ notehead time note =
             "#tt-notehead-open"
 
 
+dotted : Time -> Note -> String
+dotted time note =
+    let
+        b =
+            beats time note
+    in
+        if b == 3 then
+            "#tt-dot"
+        else
+            ""
+
+
+alteration : Pitch -> String
+alteration p =
+    if p.alter > 0 then
+        "#tt-sharp"
+    else if p.alter < 0 then
+        "#tt-flat"
+    else
+        ""
+
+
 stemOrientation : Layout -> Pitch -> StemOrientation
 stemOrientation layout p =
     let
@@ -70,41 +92,33 @@ stemOrientation layout p =
 view : Layout -> Beat -> Note -> Svg msg
 view layout beat note =
     let
-        noteSymbol =
-            notehead layout.time note
-
         p =
             note.pitch
 
-        altSymbol =
-            if p.alter > 0 then
-                "#tt-sharp"
-            else if p.alter < 0 then
-                "#tt-flat"
-            else
-                ""
+        d =
+            note.duration
 
-        noteHeight =
+        sp =
             spacing layout
 
-        noteWidth =
-            1.5 * noteHeight
+        w =
+            1.5 * sp
 
         ypos =
-            (scalePitch layout) note.pitch
+            (scalePitch layout) p
 
         xpos =
-            (scaleBeat layout) beat - noteWidth / 2.0
+            (scaleBeat layout) beat - w / 2.0
 
         position =
             String.join ","
                 (List.map toString [ xpos, ypos ])
 
         isWhole =
-            Duration.isWhole layout.time note.duration
+            Duration.isWhole layout.time d
 
         stemLength =
-            3.0 * noteHeight
+            3.0 * sp
 
         stemDir =
             stemOrientation layout p
@@ -112,7 +126,7 @@ view layout beat note =
         xstem =
             case stemDir of
                 StemUp ->
-                    noteWidth
+                    w
 
                 StemDown ->
                     0
@@ -120,10 +134,10 @@ view layout beat note =
         y1stem =
             case stemDir of
                 StemUp ->
-                    0.25 * noteHeight
+                    0.25 * sp
 
                 StemDown ->
-                    0.75 * noteHeight
+                    0.75 * sp
 
         y2stem =
             case stemDir of
@@ -132,6 +146,15 @@ view layout beat note =
 
                 StemDown ->
                     y1stem + stemLength
+
+        noteSymbol =
+            notehead layout.time note
+
+        dotSymbol =
+            dotted layout.time note
+
+        altSymbol =
+            alteration p
     in
         g
             [ class "note"
@@ -141,8 +164,8 @@ view layout beat note =
                 [ xlinkHref noteSymbol
                 , x "0"
                 , y "0"
-                , height <| toString noteHeight
-                , width <| toString noteWidth
+                , height <| toString sp
+                , width <| toString w
                 ]
                 []
             , if isWhole then
@@ -161,10 +184,21 @@ view layout beat note =
               else
                 use
                     [ xlinkHref altSymbol
-                    , x (toString -noteWidth)
+                    , x <| toString -w
                     , y "0"
-                    , height <| toString noteHeight
-                    , width <| toString noteWidth
+                    , height <| toString sp
+                    , width <| toString w
+                    ]
+                    []
+            , if dotSymbol == "" then
+                text ""
+              else
+                use
+                    [ xlinkHref dotSymbol
+                    , x <| toString w
+                    , y "0"
+                    , height <| toString sp
+                    , width <| toString sp
                     ]
                     []
             ]
