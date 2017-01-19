@@ -2,6 +2,7 @@ module TouchTunes.ScoreEdit
     exposing
         ( ScoreEdit
         , empty
+        , open
         , Action
         , update
         , view
@@ -27,13 +28,19 @@ import Html.Attributes exposing (class)
 
 
 type alias ScoreEdit =
-    { score : Score
+    { active : Maybe ( Int, PartEdit )
+    , score : Score
     }
 
 
 empty : ScoreEdit
 empty =
-    ScoreEdit Score.empty
+    ScoreEdit Nothing Score.empty
+
+
+open : Score -> ScoreEdit
+open score =
+    ScoreEdit Nothing score
 
 
 type Action
@@ -42,7 +49,19 @@ type Action
 
 children : ScoreEdit -> Array PartEdit
 children editor =
-    Array.map PartEdit editor.score.parts
+    let
+        edit i =
+            case editor.active of
+                Nothing ->
+                    PartEdit.open
+
+                Just ( n, active ) ->
+                    if i == n then
+                        \m -> active
+                    else
+                        PartEdit.open
+    in
+        Array.indexedMap edit editor.score.parts
 
 
 update : Action -> ScoreEdit -> ScoreEdit
@@ -65,7 +84,10 @@ update msg editor =
                             newScore =
                                 Score.set n updated.part editor.score
                         in
-                            { editor | score = newScore }
+                            { editor
+                                | active = Just ( n, updated )
+                                , score = newScore
+                            }
 
 
 view : ScoreEdit -> Html Action

@@ -1,12 +1,14 @@
 module TouchTunes.MeasureEdit
     exposing
         ( MeasureEdit
+        , open
         , view
         , Action
         , update
         )
 
-import Debug exposing (log)
+-- import Debug exposing (log)
+
 import Music.Duration as Duration exposing (quarter)
 import Music.Time as Time exposing (Beat)
 import Music.Note.Model as Note exposing (Note, heldFor)
@@ -14,7 +16,7 @@ import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.Layout as Layout exposing (Layout)
 import Music.Measure.View as MeasureView
 import Html exposing (Html, div, text)
-import Html.Events exposing (on)
+import Html.Events exposing (on, onMouseUp, onMouseLeave)
 import Json.Decode as Decode exposing (Decoder, field, int)
 import Mouse
 import Svg exposing (Svg, svg, g)
@@ -41,6 +43,12 @@ type alias Cursor =
 type Action
     = InsertNote Note Beat
     | StretchNote Beat Beat
+    | FinishAction
+
+
+open : Measure -> MeasureEdit
+open measure =
+    MeasureEdit Nothing measure
 
 
 update : Action -> MeasureEdit -> MeasureEdit
@@ -63,7 +71,8 @@ update action editor =
                         Measure.addInSequence ( beat, note ) sequence
                 in
                     { editor
-                        | measure = Measure.fromSequence newSequence
+                        | cursor = Just (Cursor beat)
+                        , measure = Measure.fromSequence newSequence
                     }
 
             StretchNote fromBeat toBeat ->
@@ -77,7 +86,7 @@ update action editor =
                                 Duration.setBeats time (toBeat - b) note.duration
 
                             newNote =
-                                Note note.pitch (log "newDuration" newDuration)
+                                Note note.pitch newDuration
 
                             newSequence =
                                 Measure.replaceInSequence ( b, newNote ) sequence
@@ -85,6 +94,9 @@ update action editor =
                             { editor
                                 | measure = Measure.fromSequence newSequence
                             }
+
+            FinishAction ->
+                { editor | cursor = Nothing }
 
 
 
@@ -154,6 +166,8 @@ view editor =
                         Decode.map
                             (stretchAction lo cur.beat)
                             mouseOffset
+                    , onMouseUp FinishAction
+                    , onMouseLeave FinishAction
                     ]
     in
         div

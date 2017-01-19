@@ -70,7 +70,7 @@ update msg model =
         ShowExample1 ->
             let
                 editor =
-                    ScoreEdit Example1.example
+                    ScoreEdit.open Example1.example
             in
                 ( Model editor, Cmd.none )
 

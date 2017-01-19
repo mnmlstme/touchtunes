@@ -1,13 +1,13 @@
 module TouchTunes.PartEdit
     exposing
         ( PartEdit
+        , open
         , view
         , Action
         , update
         )
 
 import TouchTunes.MeasureEdit as MeasureEdit exposing (MeasureEdit)
-import Music.Time exposing (Beat)
 import Music.Part as Part exposing (Part)
 import Array exposing (Array)
 import Html
@@ -23,7 +23,8 @@ import Html.Attributes exposing (class)
 
 
 type alias PartEdit =
-    { part : Part
+    { active : Maybe ( Int, MeasureEdit )
+    , part : Part
     }
 
 
@@ -31,9 +32,26 @@ type Action
     = OnMeasure Int MeasureEdit.Action
 
 
+open : Part -> PartEdit
+open part =
+    PartEdit Nothing part
+
+
 children : PartEdit -> Array MeasureEdit
 children editor =
-    Array.map (MeasureEdit Nothing) editor.part.measures
+    let
+        edit i =
+            case editor.active of
+                Nothing ->
+                    MeasureEdit.open
+
+                Just ( n, active ) ->
+                    if i == n then
+                        \m -> active
+                    else
+                        MeasureEdit.open
+    in
+        Array.indexedMap edit editor.part.measures
 
 
 update : Action -> PartEdit -> PartEdit
@@ -56,7 +74,10 @@ update msg editor =
                             newPart =
                                 Part.set n updated.measure editor.part
                         in
-                            { editor | part = newPart }
+                            { editor
+                                | active = Just ( n, updated )
+                                , part = newPart
+                            }
 
 
 view : PartEdit -> Html Action
