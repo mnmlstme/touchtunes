@@ -15,7 +15,7 @@ module Music.Measure.Layout
         )
 
 import Music.Pitch as Pitch exposing (Pitch)
-import Music.Time exposing (Time, Beat)
+import Music.Time as Time exposing (Time, Beat)
 
 
 -- Layout

@@ -110,12 +110,19 @@ svg.measure-staff {
     z-index: -1;
 }
 
-.measure-edit {
+/* MeasureEdit */
+
+.measure-editor {
+    position: relative;
+}
+
+.measure-hud {
     position: absolute;
     top: 0;
     right: 0;
     cursor: cell;
 }
+
 
 /* Staff */
 

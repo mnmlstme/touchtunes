@@ -18,7 +18,7 @@ import Music.Pitch
         , doubleFlat
         )
 import Music.Duration exposing (quarter, half, whole)
-import Music.Note exposing (heldFor)
+import Music.Note.Model exposing (heldFor)
 import Array
 
 

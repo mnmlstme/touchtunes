@@ -1,11 +1,14 @@
-module Music.Measure.View exposing (view)
+module Music.Measure.View
+    exposing
+        ( view
+        , layoutFor
+        , fixedLayoutFor
+        )
 
 import Music.Time as Time exposing (Beat)
 import Music.Staff as Staff
-import Music.Note as Note
+import Music.Note.View as NoteView
 import Music.Measure.Model exposing (..)
-import Music.Measure.Action exposing (Action)
-import Music.Measure.Edit as Edit exposing (Edit)
 import Music.Measure.Layout as Layout exposing (Layout)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
@@ -19,8 +22,38 @@ import Svg.Attributes
         )
 
 
-view : Maybe Beat -> Measure -> Html Action
-view cursor measure =
+-- compute a layout for a measure
+
+
+fixedLayoutFor : Measure -> Layout
+fixedLayoutFor measure =
+    let
+        time =
+            Time.common
+
+        staff =
+            Staff.treble
+    in
+        Layout.standard staff.basePitch time
+
+
+layoutFor : Measure -> Layout
+layoutFor measure =
+    let
+        givenTime =
+            Time.common
+
+        time =
+            fitTime givenTime measure
+
+        staff =
+            Staff.treble
+    in
+        Layout.standard staff.basePitch time
+
+
+view : Measure -> Html msg
+view measure =
     let
         givenTime =
             Time.common
@@ -31,14 +64,8 @@ view cursor measure =
         overflowBeats =
             time.beats - givenTime.beats
 
-        staff =
-            Staff.treble
-
-        layoutForTime =
-            Layout.standard staff.basePitch
-
         layout =
-            layoutForTime time
+            layoutFor measure
 
         w =
             Layout.width layout
@@ -50,16 +77,13 @@ view cursor measure =
             [ 0.0, 0.0, w, h ]
 
         overflowWidth =
-            w - Layout.width (layoutForTime givenTime)
+            w - Layout.width (fixedLayoutFor measure)
 
         drawNote =
-            \( beat, note ) -> Note.draw layout beat note
+            \( beat, note ) -> NoteView.view layout beat note
 
         noteSequence =
-            sequence time measure
-
-        edit =
-            Edit layout cursor
+            toSequence time measure
     in
         div [ Html.Attributes.class "measure" ]
             [ if overflowBeats > 0 then
@@ -81,5 +105,4 @@ view cursor measure =
                 , g [ class "measure-notes" ]
                     (List.map drawNote noteSequence)
                 ]
-            , Edit.view edit
             ]

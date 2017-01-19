@@ -1,14 +1,8 @@
-module Music.Note
-    exposing
-        ( Note
-        , heldFor
-        , beats
-        , draw
-        )
+module Music.Note.View exposing (view)
 
+import Music.Note.Model exposing (..)
 import Music.Time as Time exposing (Time, Beat)
-import Music.Duration as Duration exposing (Duration)
-import Music.Pitch as Pitch exposing (Pitch)
+import Music.Duration as Duration
 import Music.Measure.Layout
     exposing
         ( Layout
@@ -41,27 +35,12 @@ import Svg.Attributes
         , xlinkHref
         , transform
         )
-
-
-type alias Note =
-    { pitch : Pitch
-    , duration : Duration
-    }
+import Music.Pitch as Pitch exposing (Pitch)
 
 
 type StemOrientation
     = StemUp
     | StemDown
-
-
-heldFor : Duration -> Pitch -> Note
-heldFor d p =
-    Note p d
-
-
-beats : Time -> Note -> Beat
-beats time note =
-    Duration.beats time note.duration
 
 
 notehead : Time -> Note -> String
@@ -88,8 +67,8 @@ stemOrientation layout p =
             StemUp
 
 
-draw : Layout -> Beat -> Note -> Svg msg
-draw layout beat note =
+view : Layout -> Beat -> Note -> Svg msg
+view layout beat note =
     let
         noteSymbol =
             notehead layout.time note

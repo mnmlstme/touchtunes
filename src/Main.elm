@@ -12,8 +12,7 @@ import Html
         )
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
-import Music.Time exposing (Beat)
-import Music.Score as Score exposing (Score)
+import TouchTunes.ScoreEdit as ScoreEdit exposing (ScoreEdit)
 import Example1
 
 
@@ -35,8 +34,7 @@ main =
 
 
 type alias Model =
-    { score : Score
-    , cursor : Maybe ( Int, Int, Beat )
+    { editor : ScoreEdit
     }
 
 
@@ -44,7 +42,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         model =
-            Model Score.empty Nothing
+            Model ScoreEdit.empty
     in
         ( model, Cmd.none )
 
@@ -56,22 +54,32 @@ init =
 type Msg
     = Clear
     | ShowExample1
-    | ScoreAction Score.Action
+    | EditorAction ScoreEdit.Action
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Clear ->
-            ( Model Score.empty Nothing, Cmd.none )
+            let
+                editor =
+                    ScoreEdit.empty
+            in
+                ( Model editor, Cmd.none )
 
         ShowExample1 ->
-            ( Model Example1.example Nothing, Cmd.none )
+            let
+                editor =
+                    ScoreEdit Example1.example
+            in
+                ( Model editor, Cmd.none )
 
-        ScoreAction action ->
-            ( { model | score = Score.update action model.score }
-            , Cmd.none
-            )
+        EditorAction action ->
+            let
+                updated =
+                    ScoreEdit.update action model.editor
+            in
+                ( { model | editor = updated }, Cmd.none )
 
 
 
@@ -80,21 +88,14 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    let
-        score =
-            model.score
-
-        cursor =
-            Nothing
-    in
-        section [ class "fullscreen- frame" ]
-            [ div [ class "frame-body" ]
-                [ Html.map
-                    ScoreAction
-                    (Score.view cursor score)
-                ]
-            , footer [ class "frame-footer" ]
-                [ button [ onClick Clear ] [ text "Clear" ]
-                , button [ onClick ShowExample1 ] [ text "Example 1" ]
-                ]
+    section [ class "fullscreen- frame" ]
+        [ div [ class "frame-body" ]
+            [ Html.map
+                EditorAction
+                (ScoreEdit.view model.editor)
             ]
+        , footer [ class "frame-footer" ]
+            [ button [ onClick Clear ] [ text "Clear" ]
+            , button [ onClick ShowExample1 ] [ text "Example 1" ]
+            ]
+        ]

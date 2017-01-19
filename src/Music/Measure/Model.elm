@@ -4,7 +4,8 @@ module Music.Measure.Model
         , empty
         , totalBeats
         , fitTime
-        , sequence
+        , toSequence
+        , fromSequence
         , addInSequence
         , replaceInSequence
         , findInSequence
@@ -13,7 +14,7 @@ module Music.Measure.Model
 -- import Debug exposing (log)
 
 import Music.Time as Time exposing (Time, Beat)
-import Music.Note as Note exposing (Note)
+import Music.Note.Model as Note exposing (Note)
 
 
 type alias Measure =
@@ -65,8 +66,8 @@ precedes beat ( b, _ ) =
     b < beat
 
 
-sequence : Time -> Measure -> Sequence
-sequence time measure =
+toSequence : Time -> Measure -> Sequence
+toSequence time measure =
     let
         beats =
             List.map (Note.beats time) measure.notes
@@ -75,6 +76,15 @@ sequence time measure =
             List.scanl (+) 0 beats
     in
         List.map2 (,) startsAt measure.notes
+
+
+fromSequence : Sequence -> Measure
+fromSequence sequence =
+    let
+        justNotes seq =
+            List.map (\( b, n ) -> n) seq
+    in
+        Measure (justNotes sequence)
 
 
 addInSequence : ( Beat, Note ) -> Sequence -> Sequence
