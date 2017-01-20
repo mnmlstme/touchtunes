@@ -6,6 +6,15 @@ import Music.Duration as Duration
 import Music.Measure.Layout
     exposing
         ( Layout
+        , Pixels
+        , xPx
+        , x1Px
+        , x2Px
+        , yPx
+        , y1Px
+        , y2Px
+        , heightPx
+        , widthPx
         , spacing
         , scalePitch
         , scaleBeat
@@ -23,14 +32,6 @@ import Svg
 import Svg.Attributes
     exposing
         ( class
-        , height
-        , width
-        , x
-        , x1
-        , x2
-        , y
-        , y1
-        , y2
         , xlinkHref
         , transform
         )
@@ -101,23 +102,23 @@ view layout beat note =
             spacing layout
 
         w =
-            1.5 * sp
+            1.5 * sp.px |> Pixels
 
         ypos =
-            (scalePitch layout) p
+            scalePitch layout p
 
         xpos =
-            (scaleBeat layout) beat - w / 2.0
+            scaleBeat layout beat
 
         position =
             String.join ","
-                (List.map toString [ xpos, ypos ])
+                (List.map toString [ xpos.px - w.px / 2.0, ypos.px ])
 
         isWhole =
             Duration.isWhole layout.time d
 
         stemLength =
-            3.0 * sp
+            3.0 * sp.px |> Pixels
 
         stemDir =
             stemOrientation layout p
@@ -128,23 +129,23 @@ view layout beat note =
                     w
 
                 StemDown ->
-                    0
+                    Pixels 0
 
         y1stem =
             case stemDir of
                 StemUp ->
-                    0.25 * sp
+                    Pixels <| 0.25 * sp.px
 
                 StemDown ->
-                    0.75 * sp
+                    Pixels <| 0.75 * sp.px
 
         y2stem =
             case stemDir of
                 StemUp ->
-                    y1stem - stemLength
+                    Pixels <| y1stem.px - stemLength.px
 
                 StemDown ->
-                    y1stem + stemLength
+                    Pixels <| y1stem.px + stemLength.px
 
         noteSymbol =
             notehead layout.time note
@@ -161,10 +162,10 @@ view layout beat note =
             ]
             [ use
                 [ xlinkHref noteSymbol
-                , x "0"
-                , y "0"
-                , height <| toString sp
-                , width <| toString w
+                , xPx <| Pixels 0
+                , yPx <| Pixels 0
+                , heightPx sp
+                , widthPx w
                 ]
                 []
             , if isWhole then
@@ -172,10 +173,10 @@ view layout beat note =
               else
                 line
                     [ class "note-stem"
-                    , x1 <| toString xstem
-                    , y1 <| toString y1stem
-                    , x2 <| toString xstem
-                    , y2 <| toString y2stem
+                    , x1Px xstem
+                    , y1Px y1stem
+                    , x2Px xstem
+                    , y2Px y2stem
                     ]
                     []
             , if altSymbol == "" then
@@ -183,10 +184,10 @@ view layout beat note =
               else
                 use
                     [ xlinkHref altSymbol
-                    , x <| toString -w
-                    , y "0"
-                    , height <| toString sp
-                    , width <| toString w
+                    , xPx <| Pixels -w.px
+                    , yPx <| Pixels 0
+                    , heightPx sp
+                    , widthPx w
                     ]
                     []
             , if dotSymbol == "" then
@@ -194,10 +195,10 @@ view layout beat note =
               else
                 use
                     [ xlinkHref dotSymbol
-                    , x <| toString w
-                    , y "0"
-                    , height <| toString sp
-                    , width <| toString sp
+                    , xPx w
+                    , yPx <| Pixels 0
+                    , heightPx sp
+                    , widthPx sp
                     ]
                     []
             ]

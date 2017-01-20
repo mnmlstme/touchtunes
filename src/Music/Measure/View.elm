@@ -5,20 +5,20 @@ module Music.Measure.View
         , fixedLayoutFor
         )
 
-import Music.Time as Time exposing (Beat)
 import Music.Staff as Staff
 import Music.Note.View as NoteView
 import Music.Measure.Model exposing (..)
-import Music.Measure.Layout as Layout exposing (Layout)
+import Music.Measure.Layout as Layout
+    exposing
+        ( Layout
+        , Pixels
+        , heightPx
+        , widthPx
+        )
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
 import Svg exposing (Svg, svg, g)
-import Svg.Attributes
-    exposing
-        ( class
-        , height
-        , width
-        )
+import Svg.Attributes exposing (class)
 
 
 -- compute a layout for a measure
@@ -66,11 +66,14 @@ view measure =
         w =
             Layout.width layout
 
+        ow =
+            Layout.width (fixedLayoutFor measure)
+
         h =
             Layout.height layout
 
         overflowWidth =
-            w - Layout.width (fixedLayoutFor measure)
+            w.px - ow.px
 
         drawNote =
             \( beat, note ) -> NoteView.view layout beat note
@@ -90,8 +93,8 @@ view measure =
                 text ""
             , svg
                 [ class "measure-staff"
-                , height (toString h)
-                , width (toString w)
+                , heightPx h
+                , widthPx w
                 ]
                 [ Staff.draw layout
                 , g [ class "measure-notes" ]

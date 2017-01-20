@@ -2,7 +2,7 @@ module TouchTunes.Ruler exposing (view)
 
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.View exposing (layoutFor)
-import Music.Measure.Layout as Layout
+import Music.Measure.Layout as Layout exposing (Pixels, heightPx, widthPx, xPx, yPx)
 import Svg exposing (Svg, svg, g, rect)
 import Svg.Attributes
     exposing
@@ -30,7 +30,7 @@ view measure =
             Layout.width layout
 
         pad =
-            sp / 8.0
+            sp.px / 8.0
 
         beats =
             Measure.length measure
@@ -41,17 +41,17 @@ view measure =
                     Layout.scaleBeat layout b
             in
                 rect
-                    [ x <| toString (xmid - bsp / 2.0 + pad)
-                    , y <| toString 0
-                    , height <| toString (sp / 4.0)
-                    , width <| toString (bsp - 2.0 * pad)
+                    [ xPx <| Pixels (xmid.px - bsp.px / 2.0 + pad)
+                    , yPx <| Pixels 0
+                    , heightPx <| Pixels (sp.px / 4.0)
+                    , widthPx <| Pixels (bsp.px - 2.0 * pad)
                     ]
                     []
     in
         svg
             [ class "measure-ruler"
-            , height <| toString sp
-            , width <| toString w
+            , heightPx sp
+            , widthPx w
             ]
             (List.map
                 viewSegment

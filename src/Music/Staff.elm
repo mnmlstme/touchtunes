@@ -7,21 +7,22 @@ module Music.Staff
         )
 
 import Music.Pitch as Pitch exposing (Pitch)
-import Music.Measure.Layout as Layout exposing (Layout)
+import Music.Measure.Layout as Layout
+    exposing
+        ( Layout
+        , Pixels
+        , x1Px
+        , x2Px
+        , y1Px
+        , y2Px
+        )
 import Svg
     exposing
         ( Svg
         , g
         , line
         )
-import Svg.Attributes
-    exposing
-        ( class
-        , x1
-        , x2
-        , y1
-        , y2
-        )
+import Svg.Attributes exposing (class)
 
 
 type alias Staff =
@@ -63,13 +64,13 @@ drawStaffLine layout n =
             Layout.width layout
 
         y =
-            m.top + toFloat n * s
+            Pixels <| m.top.px + toFloat n * s.px
     in
         line
-            [ x1 "0"
-            , x2 <| toString width
-            , y1 <| toString y
-            , y2 <| toString y
+            [ x1Px <| Pixels 0
+            , x2Px width
+            , y1Px y
+            , y2Px y
             ]
             []
 
@@ -87,9 +88,9 @@ drawBarLine layout =
             Layout.height layout
     in
         line
-            [ x1 <| toString width
-            , y1 <| toString m.top
-            , x2 <| toString width
-            , y2 <| toString <| height - m.bottom
+            [ x1Px width
+            , y1Px m.top
+            , x2Px width
+            , y2Px <| Pixels <| height.px - m.bottom.px
             ]
             []

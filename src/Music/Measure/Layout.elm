@@ -1,7 +1,19 @@
 module Music.Measure.Layout
     exposing
         ( Layout
+        , Pixels
+        , Tenths
         , Margins
+        , toPixels
+        , toTenths
+        , heightPx
+        , widthPx
+        , xPx
+        , x1Px
+        , x2Px
+        , yPx
+        , y1Px
+        , y2Px
         , spacing
         , beatSpacing
         , width
@@ -17,6 +29,8 @@ module Music.Measure.Layout
 
 import Music.Pitch as Pitch exposing (Pitch)
 import Music.Time as Time exposing (Time, Beat)
+import Svg exposing (Attribute)
+import Svg.Attributes as Attributes
 
 
 -- Layout
@@ -31,7 +45,68 @@ type alias Layout =
 
 
 type alias Pixels =
-    Float
+    { px : Float
+    }
+
+
+type alias Tenths =
+    { ths : Float
+    }
+
+
+toPixels : Layout -> Tenths -> Pixels
+toPixels layout tenths =
+    Pixels <| layout.zoom * tenths.ths
+
+
+toTenths : Layout -> Pixels -> Tenths
+toTenths layout pixels =
+    Tenths <| pixels.px / layout.zoom
+
+
+pxAttribute : (String -> Attribute msg) -> (Pixels -> Attribute msg)
+pxAttribute strAttr =
+    .px >> toString >> strAttr
+
+
+heightPx : Pixels -> Attribute msg
+heightPx =
+    pxAttribute Attributes.height
+
+
+widthPx : Pixels -> Attribute msg
+widthPx =
+    pxAttribute Attributes.width
+
+
+xPx : Pixels -> Attribute msg
+xPx =
+    pxAttribute Attributes.x
+
+
+x1Px : Pixels -> Attribute msg
+x1Px =
+    pxAttribute Attributes.x1
+
+
+x2Px : Pixels -> Attribute msg
+x2Px =
+    pxAttribute Attributes.x2
+
+
+yPx : Pixels -> Attribute msg
+yPx =
+    pxAttribute Attributes.y
+
+
+y1Px : Pixels -> Attribute msg
+y1Px =
+    pxAttribute Attributes.y1
+
+
+y2Px : Pixels -> Attribute msg
+y2Px =
+    pxAttribute Attributes.y2
 
 
 type alias Margins =
@@ -48,7 +123,7 @@ type alias Margins =
 
 spacing : Layout -> Pixels
 spacing layout =
-    10.0 * layout.zoom
+    Tenths 10.0 |> toPixels layout
 
 
 
@@ -58,8 +133,11 @@ spacing layout =
 margins : Layout -> Margins
 margins layout =
     let
+        sp =
+            spacing layout |> .px
+
         vmargin =
-            2.0 * spacing layout
+            2.0 * sp |> Pixels
 
         hmargin =
             spacing layout
@@ -69,7 +147,7 @@ margins layout =
 
 beatSpacing : Layout -> Pixels
 beatSpacing layout =
-    layout.zoom * 40.0
+    Tenths 40.0 |> toPixels layout
 
 
 
@@ -88,7 +166,7 @@ width layout =
         bs =
             beatSpacing layout
     in
-        m.left + m.right + b * bs
+        m.left.px + m.right.px + b * bs.px |> Pixels
 
 
 
@@ -104,7 +182,7 @@ height layout =
         s =
             spacing layout
     in
-        m.top + m.bottom + 4 * s
+        m.top.px + m.bottom.px + 4 * s.px |> Pixels
 
 
 
@@ -136,7 +214,7 @@ scalePitch layout p =
         n =
             positionOnStaff layout p
     in
-        m.top + (3.0 - toFloat n / 2.0) * s
+        m.top.px + (3.0 - toFloat n / 2.0) * s.px |> Pixels
 
 
 
@@ -153,10 +231,10 @@ unscalePitch layout y =
             spacing layout
 
         ybase =
-            m.top + 3.5 * s
+            m.top.px + 3.5 * s.px
 
         n =
-            round (2.0 * (ybase - y) / s)
+            round (2.0 * (ybase - y.px) / s.px)
 
         base =
             Pitch.stepNumber layout.basePitch
@@ -180,7 +258,7 @@ scaleBeat layout b =
         bs =
             beatSpacing layout
     in
-        m.left + bs * (0.5 + toFloat b)
+        m.left.px + bs.px * (0.5 + toFloat b) |> Pixels
 
 
 
@@ -196,7 +274,7 @@ unscaleBeat layout x =
         bs =
             beatSpacing layout
     in
-        round ((x - m.left) / bs)
+        round ((x.px - m.left.px) / bs.px)
 
 
 

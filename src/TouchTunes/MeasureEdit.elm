@@ -14,19 +14,14 @@ import Music.Duration as Duration exposing (quarter)
 import Music.Time as Time exposing (Beat)
 import Music.Note.Model as Note exposing (Note, heldFor)
 import Music.Measure.Model as Measure exposing (Measure)
-import Music.Measure.Layout as Layout exposing (Layout)
+import Music.Measure.Layout as Layout exposing (Layout, Pixels, heightPx, widthPx)
 import Music.Measure.View as MeasureView
 import Html exposing (Html, div, text)
 import Html.Events exposing (on, onMouseUp, onMouseLeave)
 import Json.Decode as Decode exposing (Decoder, field, int)
 import Mouse
 import Svg exposing (Svg, svg, g)
-import Svg.Attributes
-    exposing
-        ( class
-        , height
-        , width
-        )
+import Svg.Attributes exposing (class)
 
 
 type alias MeasureEdit =
@@ -88,7 +83,7 @@ update action editor =
                                 Duration.setBeats time beats note.duration
 
                             newNote =
-                                Note note.pitch newDuration
+                                Note note.pitch newDuration []
 
                             newSequence =
                                 Measure.replaceInSequence ( b, newNote ) sequence
@@ -116,10 +111,10 @@ insertAction : Layout -> Mouse.Position -> Action
 insertAction layout offset =
     let
         beat =
-            Layout.unscaleBeat layout (toFloat offset.x)
+            Layout.unscaleBeat layout (toFloat offset.x |> Pixels)
 
         pitch =
-            Layout.unscalePitch layout (toFloat offset.y)
+            Layout.unscalePitch layout (toFloat offset.y |> Pixels)
     in
         InsertNote (pitch |> heldFor quarter) beat
 
@@ -128,7 +123,7 @@ stretchAction : Layout -> Beat -> Mouse.Position -> Action
 stretchAction layout fromBeat offset =
     let
         toBeat =
-            Layout.unscaleBeat layout (toFloat offset.x)
+            Layout.unscaleBeat layout (toFloat offset.x |> Pixels)
     in
         StretchNote fromBeat toBeat
 
@@ -176,8 +171,8 @@ view editor =
             , svg
                 (List.append
                     [ class "measure-hud"
-                    , height (toString h)
-                    , width (toString w)
+                    , heightPx h
+                    , widthPx w
                     ]
                     actions
                 )
