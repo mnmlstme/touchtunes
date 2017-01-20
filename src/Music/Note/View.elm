@@ -15,6 +15,7 @@ import Music.Measure.Layout
         , y2Px
         , heightPx
         , widthPx
+        , toPixels
         , spacing
         , scalePitch
         , scaleBeat
@@ -110,9 +111,21 @@ view layout beat note =
         xpos =
             scaleBeat layout beat
 
+        dx =
+            case getShiftX note of
+                Just tenths ->
+                    toPixels layout tenths
+
+                Nothing ->
+                    Pixels 0
+
         position =
             String.join ","
-                (List.map toString [ xpos.px - w.px / 2.0, ypos.px ])
+                (List.map toString
+                    [ xpos.px - w.px / 2.0 + dx.px
+                    , ypos.px
+                    ]
+                )
 
         isWhole =
             Duration.isWhole layout.time d

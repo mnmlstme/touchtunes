@@ -73,7 +73,9 @@ view measure =
             Layout.height layout
 
         overflowWidth =
-            w.px - ow.px
+            w.px
+                - ow.px
+                + (Layout.margins layout).right.px
 
         drawNote =
             \( beat, note ) -> NoteView.view layout beat note

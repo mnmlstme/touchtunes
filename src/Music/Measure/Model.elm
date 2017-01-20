@@ -5,6 +5,7 @@ module Music.Measure.Model
         , time
         , length
         , fitTime
+        , nextBeat
         , toSequence
         , fromSequence
         , addInSequence
@@ -73,6 +74,35 @@ fitTime measure =
         Time.longer t beats
 
 
+cumulativeBeats : Measure -> List Beat
+cumulativeBeats measure =
+    let
+        t =
+            time measure
+
+        beats =
+            List.map (Note.beats t) measure.notes
+    in
+        List.scanl (+) 0 beats
+
+
+nextBeat : Beat -> Measure -> Beat
+nextBeat fromBeat measure =
+    let
+        beatBoundaries =
+            cumulativeBeats measure
+
+        futureBeats =
+            List.filter (\b -> b >= fromBeat) beatBoundaries
+    in
+        case List.head futureBeats of
+            Just b ->
+                b
+
+            Nothing ->
+                fromBeat
+
+
 
 -- Sequences are lists of (Beat, Note) pairs
 
@@ -89,14 +119,8 @@ precedes beat ( b, _ ) =
 toSequence : Measure -> Sequence
 toSequence measure =
     let
-        t =
-            time measure
-
-        beats =
-            List.map (Note.beats t) measure.notes
-
         startsAt =
-            List.scanl (+) 0 beats
+            cumulativeBeats measure
     in
         List.map2 (,) startsAt measure.notes
 

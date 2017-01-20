@@ -12,7 +12,7 @@ module TouchTunes.MeasureEdit
 import TouchTunes.Ruler as Ruler
 import Music.Duration as Duration exposing (quarter)
 import Music.Time as Time exposing (Beat)
-import Music.Note.Model as Note exposing (Note, heldFor)
+import Music.Note.Model as Note exposing (Note, heldFor, shiftX)
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.Layout as Layout exposing (Layout, Pixels, heightPx, widthPx)
 import Music.Measure.View as MeasureView
@@ -36,9 +36,9 @@ type alias Cursor =
 
 
 type Action
-    = InsertNote Note Beat
-    | StretchNote Beat Beat
-    | FinishAction
+    = InsertNote Mouse.Position
+    | StretchNote Beat Mouse.Position
+    | FinishNote Beat
 
 
 open : Measure -> MeasureEdit
@@ -52,6 +52,9 @@ update action editor =
         measure =
             editor.measure
 
+        layout =
+            MeasureView.layoutFor measure
+
         time =
             Measure.time measure
 
@@ -59,8 +62,34 @@ update action editor =
             Measure.toSequence measure
     in
         case action of
-            InsertNote note beat ->
+            InsertNote offset ->
                 let
+                    x =
+                        Pixels <| toFloat offset.x
+
+                    y =
+                        Pixels <| toFloat offset.y
+
+                    clickBeat =
+                        Layout.unscaleBeat layout x
+
+                    beat =
+                        Measure.nextBeat clickBeat measure
+
+                    xb =
+                        Layout.scaleBeat layout beat
+
+                    dx =
+                        Pixels <| x.px - xb.px
+
+                    pitch =
+                        Layout.unscalePitch layout y
+
+                    note =
+                        pitch
+                            |> heldFor quarter
+                            |> shiftX (Layout.toTenths layout dx)
+
                     newSequence =
                         Measure.addInSequence ( beat, note ) sequence
                 in
@@ -69,13 +98,16 @@ update action editor =
                         , measure = Measure.fromSequence newSequence
                     }
 
-            StretchNote fromBeat toBeat ->
+            StretchNote fromBeat offset ->
                 case (Measure.findInSequence fromBeat sequence) of
                     Nothing ->
                         editor
 
                     Just ( b, note ) ->
                         let
+                            toBeat =
+                                Layout.unscaleBeat layout (toFloat offset.x |> Pixels)
+
                             beats =
                                 max (toBeat - b) 1
 
@@ -83,7 +115,7 @@ update action editor =
                                 Duration.setBeats time beats note.duration
 
                             newNote =
-                                Note note.pitch newDuration []
+                                { note | duration = newDuration }
 
                             newSequence =
                                 Measure.replaceInSequence ( b, newNote ) sequence
@@ -92,8 +124,23 @@ update action editor =
                                 | measure = Measure.fromSequence newSequence
                             }
 
-            FinishAction ->
-                { editor | cursor = Nothing }
+            FinishNote beat ->
+                case (Measure.findInSequence beat sequence) of
+                    Nothing ->
+                        editor
+
+                    Just ( b, note ) ->
+                        let
+                            newNote =
+                                Note.unshiftX note
+
+                            newSequence =
+                                Measure.replaceInSequence ( b, newNote ) sequence
+                        in
+                            { editor
+                                | measure = Measure.fromSequence newSequence
+                                , cursor = Nothing
+                            }
 
 
 
@@ -105,27 +152,6 @@ mouseOffset =
     Decode.map2 Mouse.Position
         (field "offsetX" int)
         (field "offsetY" int)
-
-
-insertAction : Layout -> Mouse.Position -> Action
-insertAction layout offset =
-    let
-        beat =
-            Layout.unscaleBeat layout (toFloat offset.x |> Pixels)
-
-        pitch =
-            Layout.unscalePitch layout (toFloat offset.y |> Pixels)
-    in
-        InsertNote (pitch |> heldFor quarter) beat
-
-
-stretchAction : Layout -> Beat -> Mouse.Position -> Action
-stretchAction layout fromBeat offset =
-    let
-        toBeat =
-            Layout.unscaleBeat layout (toFloat offset.x |> Pixels)
-    in
-        StretchNote fromBeat toBeat
 
 
 view : MeasureEdit -> Html Action
@@ -151,17 +177,19 @@ view editor =
                 Nothing ->
                     [ on "mousedown" <|
                         Decode.map
-                            (insertAction lo)
+                            InsertNote
                             mouseOffset
                     ]
 
                 Just cur ->
                     [ on "mousemove" <|
                         Decode.map
-                            (stretchAction lo cur.beat)
+                            (StretchNote cur.beat)
                             mouseOffset
-                    , onMouseUp FinishAction
-                    , onMouseLeave FinishAction
+                    , onMouseUp
+                        (FinishNote cur.beat)
+                    , onMouseLeave
+                        (FinishNote cur.beat)
                     ]
     in
         div

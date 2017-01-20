@@ -146,6 +146,10 @@ svg.measure-staff {
 
 /* Note */
 
+.note {
+    transition: transform 3s;
+}
+
 .note-stem {
     stroke-width: 2px;
     stroke: #333;
