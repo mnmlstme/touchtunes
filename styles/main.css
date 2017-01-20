@@ -116,13 +116,22 @@ svg.measure-staff {
     position: relative;
 }
 
+.measure-ruler {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+.measure-ruler rect {
+    fill: #d4e6f5;
+}
+
 .measure-hud {
     position: absolute;
     top: 0;
     right: 0;
     cursor: cell;
 }
-
 
 /* Staff */
 

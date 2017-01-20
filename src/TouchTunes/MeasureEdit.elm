@@ -9,6 +9,7 @@ module TouchTunes.MeasureEdit
 
 -- import Debug exposing (log)
 
+import TouchTunes.Ruler as Ruler
 import Music.Duration as Duration exposing (quarter)
 import Music.Time as Time exposing (Beat)
 import Music.Note.Model as Note exposing (Note, heldFor)
@@ -57,12 +58,11 @@ update action editor =
         measure =
             editor.measure
 
-        -- TODO: get the current time signature for measure
         time =
-            Time.common
+            Measure.time measure
 
         sequence =
-            Measure.toSequence time measure
+            Measure.toSequence measure
     in
         case action of
             InsertNote note beat ->
@@ -176,6 +176,7 @@ view editor =
         div
             [ class "measure-editor" ]
             [ MeasureView.view editor.measure
+            , Ruler.view editor.measure
             , svg
                 (List.append
                     [ class "measure-hud"

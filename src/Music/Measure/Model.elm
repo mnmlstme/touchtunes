@@ -2,7 +2,8 @@ module Music.Measure.Model
     exposing
         ( Measure
         , empty
-        , totalBeats
+        , time
+        , length
         , fitTime
         , toSequence
         , fromSequence
@@ -28,29 +29,48 @@ empty =
 
 
 
+-- the time (signature) for a measure
+
+
+time : Measure -> Time
+time measure =
+    -- TODO get from Timeline
+    Time.common
+
+
+
 -- count the total number of beats in a measure
 
 
-totalBeats : Time -> Measure -> Beat
-totalBeats time measure =
+length : Measure -> Beat
+length measure =
     let
+        t =
+            time measure
+
         beats =
-            List.map (Note.beats time) measure.notes
+            List.map (Note.beats t) measure.notes
+
+        total =
+            List.sum beats
     in
-        List.sum beats
+        max total t.beats
 
 
 
 -- compute a new time signature that notes will fit in
 
 
-fitTime : Time -> Measure -> Time
-fitTime time measure =
+fitTime : Measure -> Time
+fitTime measure =
     let
+        t =
+            time measure
+
         beats =
-            totalBeats time measure
+            length measure
     in
-        Time.longer time beats
+        Time.longer t beats
 
 
 
@@ -66,11 +86,14 @@ precedes beat ( b, _ ) =
     b < beat
 
 
-toSequence : Time -> Measure -> Sequence
-toSequence time measure =
+toSequence : Measure -> Sequence
+toSequence measure =
     let
+        t =
+            time measure
+
         beats =
-            List.map (Note.beats time) measure.notes
+            List.map (Note.beats t) measure.notes
 
         startsAt =
             List.scanl (+) 0 beats

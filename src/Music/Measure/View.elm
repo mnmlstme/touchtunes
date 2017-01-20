@@ -28,41 +28,38 @@ import Svg.Attributes
 fixedLayoutFor : Measure -> Layout
 fixedLayoutFor measure =
     let
-        time =
-            Time.common
+        t =
+            time measure
 
         staff =
             Staff.treble
     in
-        Layout.standard staff.basePitch time
+        Layout.standard staff.basePitch t
 
 
 layoutFor : Measure -> Layout
 layoutFor measure =
     let
-        givenTime =
-            Time.common
-
-        time =
-            fitTime givenTime measure
+        t =
+            fitTime measure
 
         staff =
             Staff.treble
     in
-        Layout.standard staff.basePitch time
+        Layout.standard staff.basePitch t
 
 
 view : Measure -> Html msg
 view measure =
     let
         givenTime =
-            Time.common
+            time measure
 
-        time =
-            fitTime givenTime measure
+        t =
+            fitTime measure
 
         overflowBeats =
-            time.beats - givenTime.beats
+            t.beats - givenTime.beats
 
         layout =
             layoutFor measure
@@ -83,7 +80,7 @@ view measure =
             \( beat, note ) -> NoteView.view layout beat note
 
         noteSequence =
-            toSequence time measure
+            toSequence measure
     in
         div [ Html.Attributes.class "measure" ]
             [ if overflowBeats > 0 then

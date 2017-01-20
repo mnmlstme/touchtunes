@@ -3,6 +3,7 @@ module Music.Measure.Layout
         ( Layout
         , Margins
         , spacing
+        , beatSpacing
         , width
         , height
         , margins
