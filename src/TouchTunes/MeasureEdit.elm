@@ -26,7 +26,6 @@ import Svg.Attributes
         ( class
         , height
         , width
-        , viewBox
         )
 
 
@@ -152,9 +151,6 @@ view editor =
         h =
             Layout.height lo
 
-        vb =
-            [ 0.0, 0.0, w, h ]
-
         actions =
             case cursor of
                 Nothing ->
@@ -182,7 +178,6 @@ view editor =
                     [ class "measure-hud"
                     , height (toString h)
                     , width (toString w)
-                    , viewBox (String.join " " (List.map toString vb))
                     ]
                     actions
                 )

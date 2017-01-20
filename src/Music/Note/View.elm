@@ -25,7 +25,6 @@ import Svg.Attributes
         ( class
         , height
         , width
-        , viewBox
         , x
         , x1
         , x2

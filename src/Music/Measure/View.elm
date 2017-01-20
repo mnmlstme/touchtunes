@@ -18,7 +18,6 @@ import Svg.Attributes
         ( class
         , height
         , width
-        , viewBox
         )
 
 
@@ -70,9 +69,6 @@ view measure =
         h =
             Layout.height layout
 
-        vb =
-            [ 0.0, 0.0, w, h ]
-
         overflowWidth =
             w - Layout.width (fixedLayoutFor measure)
 
@@ -96,7 +92,6 @@ view measure =
                 [ class "measure-staff"
                 , height (toString h)
                 , width (toString w)
-                , viewBox (String.join " " (List.map toString vb))
                 ]
                 [ Staff.draw layout
                 , g [ class "measure-notes" ]
