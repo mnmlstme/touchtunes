@@ -18,7 +18,7 @@ import Music.Pitch
         , doubleFlat
         )
 import Music.Duration exposing (quarter, half, whole)
-import Music.Note.Model exposing (heldFor)
+import Music.Note.Model exposing (heldFor, rest)
 import Array
 
 
@@ -32,22 +32,20 @@ example =
               <|
                 Array.fromList
                     [ Measure
-                        [ f 4 |> heldFor quarter
+                        [ rest quarter
+                        , f 4 |> heldFor quarter
                         , a 4 |> heldFor quarter
-                        , c 5 |> heldFor half
+                        , c 5 |> heldFor quarter
                         ]
                     , Measure
                         [ (flat e_) 4 |> heldFor half
-                        , g 4 |> heldFor half
+                        , rest half
                         ]
                     , Measure
-                        [ (flat b) 4 |> heldFor whole
+                        [ (sharp f) 4 |> heldFor whole
                         ]
                     , Measure
-                        [ d 4 |> heldFor quarter
-                        , (sharp f) 4 |> heldFor half
-                        , a 4 |> heldFor quarter
-                        , d 5 |> heldFor quarter
+                        [ rest whole
                         ]
                     ]
             ]

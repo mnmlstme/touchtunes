@@ -186,7 +186,7 @@ height layout =
 
 
 
--- distance (in steps) above base pitch of staff
+-- distance (in steps) above (below if negative) base pitch of staff
 
 
 positionOnStaff : Layout -> Pitch -> Int
@@ -199,22 +199,19 @@ positionOnStaff layout p =
 
 
 
--- location the top of the note on staff
+-- location the top of the note from the top of the staff
 
 
 scalePitch : Layout -> Pitch -> Pixels
 scalePitch layout p =
     let
-        m =
-            margins layout
-
         s =
             spacing layout
 
         n =
-            positionOnStaff layout p
+            0 - positionOnStaff layout p
     in
-        m.top.px + (3.0 - toFloat n / 2.0) * s.px |> Pixels
+        Pixels <| (toFloat n / 2.0) * s.px
 
 
 
@@ -224,23 +221,17 @@ scalePitch layout p =
 unscalePitch : Layout -> Pixels -> Pitch
 unscalePitch layout y =
     let
-        m =
-            margins layout
-
         s =
             spacing layout
 
-        ybase =
-            m.top.px + 3.5 * s.px
-
         n =
-            round (2.0 * (ybase - y.px) / s.px)
+            round (2.0 * y.px / s.px)
 
         base =
             Pitch.stepNumber layout.basePitch
 
         sn =
-            base + n
+            base - n
     in
         Pitch.fromStepNumber sn
 

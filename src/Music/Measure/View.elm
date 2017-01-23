@@ -18,7 +18,11 @@ import Music.Measure.Layout as Layout
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
 import Svg exposing (Svg, svg, g)
-import Svg.Attributes exposing (class)
+import Svg.Attributes
+    exposing
+        ( class
+        , transform
+        )
 
 
 -- compute a layout for a measure
@@ -63,14 +67,25 @@ view measure =
         layout =
             layoutFor measure
 
+        fixedLayout =
+            fixedLayoutFor measure
+
         w =
             Layout.width layout
 
         ow =
-            Layout.width (fixedLayoutFor measure)
+            Layout.width fixedLayout
 
         h =
             Layout.height layout
+
+        staffPosition =
+            String.join ","
+                (List.map toString
+                    [ 0
+                    , (Layout.margins layout).top.px
+                    ]
+                )
 
         overflowWidth =
             w.px
@@ -78,7 +93,7 @@ view measure =
                 + (Layout.margins layout).right.px
 
         drawNote =
-            \( beat, note ) -> NoteView.view layout beat note
+            \( beat, note ) -> NoteView.view fixedLayout beat note
 
         noteSequence =
             toSequence measure
@@ -98,8 +113,15 @@ view measure =
                 , heightPx h
                 , widthPx w
                 ]
-                [ Staff.draw layout
-                , g [ class "measure-notes" ]
-                    (List.map drawNote noteSequence)
+                [ g
+                    [ transform
+                        ("translate(" ++ staffPosition ++ ")")
+                    ]
+                    [ Staff.draw layout
+                    , g
+                        [ class "measure-notes"
+                        ]
+                        (List.map drawNote noteSequence)
+                    ]
                 ]
             ]

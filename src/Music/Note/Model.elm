@@ -1,29 +1,33 @@
 module Music.Note.Model
     exposing
         ( Note
+        , What(..)
+        , rest
         , heldFor
-        , beats
         , shiftX
         , unshiftX
         , getShiftX
         )
 
-import Music.Time as Time exposing (Time, Beat)
 import Music.Duration as Duration exposing (Duration)
 import Music.Pitch as Pitch exposing (Pitch)
 import Music.Measure.Layout exposing (Tenths)
 
 
 type alias Note =
-    { pitch : Pitch
+    { do : What
     , duration : Duration
     , modifiers : List Modifier
     }
 
 
-type StartStop
-    = Start
-    | Stop
+type What
+    = Play Pitch
+    | Rest
+
+
+
+-- TODO: | Strike for unpitched
 
 
 type Modifier
@@ -31,14 +35,19 @@ type Modifier
     | Tie StartStop
 
 
+type StartStop
+    = Start
+    | Stop
+
+
 heldFor : Duration -> Pitch -> Note
 heldFor d p =
-    Note p d []
+    Note (Play p) d []
 
 
-beats : Time -> Note -> Beat
-beats time note =
-    Duration.beats time note.duration
+rest : Duration -> Note
+rest d =
+    Note Rest d []
 
 
 mod : Modifier -> Note -> Note

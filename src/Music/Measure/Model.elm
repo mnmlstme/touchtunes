@@ -17,6 +17,7 @@ module Music.Measure.Model
 
 import Music.Time as Time exposing (Time, Beat)
 import Music.Note.Model as Note exposing (Note)
+import Music.Duration as Duration
 
 
 type alias Measure =
@@ -50,7 +51,7 @@ length measure =
             time measure
 
         beats =
-            List.map (Note.beats t) measure.notes
+            List.map (Duration.beats t << .duration) measure.notes
 
         total =
             List.sum beats
@@ -81,7 +82,7 @@ cumulativeBeats measure =
             time measure
 
         beats =
-            List.map (Note.beats t) measure.notes
+            List.map (Duration.beats t << .duration) measure.notes
     in
         List.scanl (+) 0 beats
 

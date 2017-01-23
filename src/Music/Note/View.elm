@@ -2,7 +2,7 @@ module Music.Note.View exposing (view)
 
 import Music.Note.Model exposing (..)
 import Music.Time as Time exposing (Time, Beat)
-import Music.Duration as Duration
+import Music.Duration as Duration exposing (Duration, isWhole)
 import Music.Measure.Layout
     exposing
         ( Layout
@@ -44,11 +44,11 @@ type StemOrientation
     | StemDown
 
 
-notehead : Time -> Note -> String
-notehead time note =
+notehead : Time -> Duration -> String
+notehead time d =
     let
         b =
-            beats time note
+            Duration.beats time d
     in
         if b < 2 then
             "#tt-notehead-closed"
@@ -56,11 +56,31 @@ notehead time note =
             "#tt-notehead-open"
 
 
-dotted : Time -> Note -> String
-dotted time note =
+restSymbol : Time -> Duration -> String
+restSymbol time d =
     let
         b =
-            beats time note
+            Duration.beats time d
+    in
+        if isWhole time d then
+            "#tt-rest-whole"
+        else
+            case b of
+                1 ->
+                    "#tt-rest-quarter"
+
+                2 ->
+                    "#tt-rest-half"
+
+                _ ->
+                    "UNIMPLEMENTED: odd rest"
+
+
+dotted : Time -> Duration -> String
+dotted time d =
+    let
+        b =
+            Duration.beats time d
     in
         if b == 3 then
             "#tt-dot"
@@ -84,7 +104,7 @@ stemOrientation layout p =
         n =
             positionOnStaff layout p
     in
-        if n > 3 then
+        if n > -3 then
             StemDown
         else
             StemUp
@@ -93,20 +113,8 @@ stemOrientation layout p =
 view : Layout -> Beat -> Note -> Svg msg
 view layout beat note =
     let
-        p =
-            note.pitch
-
         d =
             note.duration
-
-        sp =
-            spacing layout
-
-        w =
-            1.5 * sp.px |> Pixels
-
-        ypos =
-            scalePitch layout p
 
         xpos =
             scaleBeat layout beat
@@ -122,7 +130,85 @@ view layout beat note =
         position =
             String.join ","
                 (List.map toString
-                    [ xpos.px - w.px / 2.0 + dx.px
+                    [ xpos.px + dx.px
+                    , 0
+                    ]
+                )
+
+        className =
+            case note.do of
+                Play _ ->
+                    "note"
+
+                Rest ->
+                    "rest"
+    in
+        g
+            [ class className
+            , transform ("translate(" ++ position ++ ")")
+            ]
+            [ case note.do of
+                Play p ->
+                    viewPitch layout beat d p
+
+                Rest ->
+                    viewRest layout beat d
+            ]
+
+
+viewRest : Layout -> Beat -> Duration -> Svg msg
+viewRest layout beat d =
+    let
+        sp =
+            spacing layout
+
+        w =
+            Pixels <| 1.5 * sp.px
+
+        h =
+            Pixels <| 4.0 * sp.px
+
+        position =
+            String.join ","
+                (List.map toString
+                    [ 0 - w.px / 2.0
+                    , 0
+                    ]
+                )
+
+        symbol =
+            restSymbol layout.time d
+    in
+        g
+            [ transform ("translate(" ++ position ++ ")")
+            ]
+            [ use
+                [ xlinkHref symbol
+                , xPx <| Pixels 0
+                , yPx <| Pixels 0
+                , heightPx h
+                , widthPx w
+                ]
+                []
+            ]
+
+
+viewPitch : Layout -> Beat -> Duration -> Pitch -> Svg msg
+viewPitch layout beat d p =
+    let
+        sp =
+            spacing layout
+
+        w =
+            1.5 * sp.px |> Pixels
+
+        ypos =
+            scalePitch layout p
+
+        position =
+            String.join ","
+                (List.map toString
+                    [ 0 - w.px / 2.0
                     , ypos.px
                     ]
                 )
@@ -161,17 +247,16 @@ view layout beat note =
                     Pixels <| y1stem.px + stemLength.px
 
         noteSymbol =
-            notehead layout.time note
+            notehead layout.time d
 
         dotSymbol =
-            dotted layout.time note
+            dotted layout.time d
 
         altSymbol =
             alteration p
     in
         g
-            [ class "note"
-            , transform ("translate(" ++ position ++ ")")
+            [ transform ("translate(" ++ position ++ ")")
             ]
             [ use
                 [ xlinkHref noteSymbol

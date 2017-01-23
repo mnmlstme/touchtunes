@@ -26,19 +26,19 @@ import Svg.Attributes exposing (class)
 
 
 type alias Staff =
-    { -- basePitch is the pitch of the lowest space on staff
+    { -- basePitch is the pitch of the top space on staff
       basePitch : Pitch
     }
 
 
 treble : Staff
 treble =
-    Staff (Pitch.f 4)
+    Staff (Pitch.e_ 5)
 
 
 bass : Staff
 bass =
-    Staff (Pitch.a 2)
+    Staff (Pitch.g 3)
 
 
 draw : Layout -> Svg msg
@@ -54,9 +54,6 @@ draw layout =
 drawStaffLine : Layout -> Int -> Svg msg
 drawStaffLine layout n =
     let
-        m =
-            Layout.margins layout
-
         s =
             Layout.spacing layout
 
@@ -64,7 +61,7 @@ drawStaffLine layout n =
             Layout.width layout
 
         y =
-            Pixels <| m.top.px + toFloat n * s.px
+            Pixels <| toFloat n * s.px
     in
         line
             [ x1Px <| Pixels 0
@@ -78,19 +75,19 @@ drawStaffLine layout n =
 drawBarLine : Layout -> Svg msg
 drawBarLine layout =
     let
-        m =
-            Layout.margins layout
+        sp =
+            Layout.spacing layout
 
         width =
             Layout.width layout
 
         height =
-            Layout.height layout
+            Pixels <| 4.0 * sp.px
     in
         line
             [ x1Px width
-            , y1Px m.top
+            , y1Px <| Pixels 0
             , x2Px width
-            , y2Px <| Pixels <| height.px - m.bottom.px
+            , y2Px height
             ]
             []
