@@ -215,7 +215,7 @@ scalePitch layout p =
 
 
 
--- return the pitch, given Y pixels
+-- return the pitch, given Y pixels from top of layout
 
 
 unscalePitch : Layout -> Pixels -> Pitch
@@ -224,8 +224,11 @@ unscalePitch layout y =
         s =
             spacing layout
 
+        m =
+            margins layout
+
         n =
-            round (2.0 * y.px / s.px)
+            round (2.0 * (y.px - m.top.px - s.px / 2.0) / s.px)
 
         base =
             Pitch.stepNumber layout.basePitch
