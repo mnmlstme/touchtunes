@@ -256,7 +256,7 @@ scaleBeat layout b =
 
 
 
--- return the beat, given X pixels
+-- return the beat, given X pixels from left of layout
 
 
 unscaleBeat : Layout -> Pixels -> Beat
@@ -268,7 +268,7 @@ unscaleBeat layout x =
         bs =
             beatSpacing layout
     in
-        round ((x.px - m.left.px) / bs.px)
+        floor ((x.px - m.left.px) / bs.px)
 
 
 
