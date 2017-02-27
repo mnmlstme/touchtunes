@@ -6,14 +6,10 @@ module Music.Measure.Model
         , length
         , fitTime
         , nextBeat
+        , Sequence
         , toSequence
         , fromSequence
-        , addInSequence
-        , replaceInSequence
-        , findInSequence
         )
-
--- import Debug exposing (log)
 
 import Music.Time as Time exposing (Time, Beat)
 import Music.Note.Model as Note exposing (Note)
@@ -88,20 +84,21 @@ cumulativeBeats measure =
 
 
 nextBeat : Beat -> Measure -> Beat
-nextBeat fromBeat measure =
+nextBeat beforeBeat measure =
     let
         beatBoundaries =
             cumulativeBeats measure
 
-        futureBeats =
-            List.filter (\b -> b >= fromBeat) beatBoundaries
+        priorBeats =
+            List.reverse <|
+                List.filter (\b -> b <= beforeBeat) beatBoundaries
     in
-        case List.head futureBeats of
+        case List.head priorBeats of
             Just b ->
                 b
 
             Nothing ->
-                fromBeat
+                0
 
 
 
@@ -110,11 +107,6 @@ nextBeat fromBeat measure =
 
 type alias Sequence =
     List ( Beat, Note )
-
-
-precedes : Beat -> ( Beat, Note ) -> Bool
-precedes beat ( b, _ ) =
-    b < beat
 
 
 toSequence : Measure -> Sequence
@@ -133,38 +125,3 @@ fromSequence sequence =
             List.map (\( b, n ) -> n) seq
     in
         Measure (justNotes sequence)
-
-
-addInSequence : ( Beat, Note ) -> Sequence -> Sequence
-addInSequence ( beat, note ) sequence =
-    let
-        ( before, after ) =
-            List.partition (precedes beat) sequence
-    in
-        List.concat [ before, [ ( beat, note ) ], after ]
-
-
-replaceInSequence : ( Beat, Note ) -> Sequence -> Sequence
-replaceInSequence ( beat, note ) sequence =
-    let
-        ( before, after ) =
-            List.partition (precedes beat) sequence
-
-        rest =
-            case (List.tail after) of
-                Nothing ->
-                    []
-
-                Just list ->
-                    list
-    in
-        List.concat [ before, [ ( beat, note ) ], rest ]
-
-
-findInSequence : Beat -> Sequence -> Maybe ( Beat, Note )
-findInSequence beat sequence =
-    let
-        ( before, after ) =
-            List.partition (precedes beat) sequence
-    in
-        List.head after

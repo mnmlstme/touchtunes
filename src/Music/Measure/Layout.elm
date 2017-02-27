@@ -268,7 +268,7 @@ unscaleBeat layout x =
         bs =
             beatSpacing layout
     in
-        floor ((x.px - m.left.px) / bs.px)
+        floor (0.5 + (x.px - m.left.px) / bs.px)
 
 
 
