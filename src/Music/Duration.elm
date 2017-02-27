@@ -1,7 +1,7 @@
 module Music.Duration
     exposing
         ( Duration
-        , division
+        , fromTimeBeats
         , whole
         , half
         , quarter
@@ -28,6 +28,11 @@ type alias Duration =
     { count : Int
     , divisor : Int
     }
+
+
+fromTimeBeats : Time -> Beat -> Duration
+fromTimeBeats time beat =
+    Duration beat time.divisor
 
 
 division : Int -> Duration

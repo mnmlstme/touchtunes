@@ -69,6 +69,15 @@ open measure =
     MeasureEdit Nothing measure
 
 
+splitSequence : Beat -> Sequence -> ( Sequence, Sequence )
+splitSequence beat =
+    let
+        precedes beat ( b, _ ) =
+            b < beat
+    in
+        List.partition <| precedes beat
+
+
 insertNote : Note -> Beat -> MeasureEdit -> MeasureEdit
 insertNote note beat editor =
     let
@@ -78,8 +87,11 @@ insertNote note beat editor =
         sequence =
             Measure.toSequence measure
 
+        ( before, after ) =
+            splitSequence beat sequence
+
         newSequence =
-            addInSequence ( beat, note ) sequence
+            List.concat [ before, [ ( beat, note ) ], after ]
     in
         { editor
             | measure = Measure.fromSequence newSequence
@@ -95,35 +107,6 @@ replaceNote note beat editor =
         sequence =
             Measure.toSequence measure
 
-        newSequence =
-            replaceInSequence ( beat, note ) sequence
-    in
-        { editor
-            | measure = Measure.fromSequence newSequence
-        }
-
-
-splitSequence : Beat -> Sequence -> ( Sequence, Sequence )
-splitSequence beat =
-    let
-        precedes beat ( b, _ ) =
-            b < beat
-    in
-        List.partition <| precedes beat
-
-
-addInSequence : ( Beat, Note ) -> Sequence -> Sequence
-addInSequence ( beat, note ) sequence =
-    let
-        ( before, after ) =
-            splitSequence beat sequence
-    in
-        List.concat [ before, [ ( beat, note ) ], after ]
-
-
-replaceInSequence : ( Beat, Note ) -> Sequence -> Sequence
-replaceInSequence ( beat, note ) sequence =
-    let
         ( before, after ) =
             splitSequence beat sequence
 
@@ -134,8 +117,13 @@ replaceInSequence ( beat, note ) sequence =
 
                 Just list ->
                     list
+
+        newSequence =
+            List.concat [ before, [ ( beat, note ) ], rest ]
     in
-        List.concat [ before, [ ( beat, note ) ], rest ]
+        { editor
+            | measure = Measure.fromSequence newSequence
+        }
 
 
 findInSequence : Beat -> Sequence -> Maybe ( Beat, Note )
@@ -168,28 +156,10 @@ update action editor =
                 startNote offset editor
 
             StretchNote cursor offset ->
-                let
-                    beat =
-                        cursor.beat
-                in
-                    case findInSequence beat sequence of
-                        Nothing ->
-                            editor
-
-                        Just ( b, note ) ->
-                            stretchNote b note cursor offset editor
+                stretchNote cursor offset editor
 
             FinishNote cursor ->
-                let
-                    beat =
-                        cursor.beat
-                in
-                    case findInSequence beat sequence of
-                        Nothing ->
-                            editor
-
-                        Just ( b, note ) ->
-                            finishNote b note editor
+                finishNote cursor editor
 
 
 startNote : Mouse.Position -> MeasureEdit -> MeasureEdit
@@ -246,17 +216,23 @@ startNote offset editor =
             editor
 
 
-stretchNote : Beat -> Note -> Cursor -> Mouse.Position -> MeasureEdit -> MeasureEdit
-stretchNote b note cursor offset editor =
+stretchNote : Cursor -> Mouse.Position -> MeasureEdit -> MeasureEdit
+stretchNote cursor offset editor =
     let
         measure =
             editor.measure
+
+        sequence =
+            Measure.toSequence measure
 
         layout =
             MeasureView.layoutFor measure
 
         time =
             Measure.time measure
+
+        beat =
+            cursor.beat
 
         toBeat =
             Layout.unscaleBeat layout <|
@@ -265,35 +241,52 @@ stretchNote b note cursor offset editor =
                         - cursor.dx.px
 
         beats =
-            toBeat - b
+            toBeat - beat
 
         dur =
-            Duration.setBeats time (abs beats) note.duration
+            Duration.fromTimeBeats time (abs beats)
     in
-        if beats > 0 then
-            let
-                newNote =
-                    { note | duration = dur }
-            in
-                replaceNote newNote b editor
-        else if beats < 0 then
-            let
-                rest =
-                    Note.rest dur
-                        |> shiftX (Layout.toTenths layout cursor.dx)
-            in
-                replaceNote rest b editor
-        else
-            editor
+        case findInSequence beat sequence of
+            Nothing ->
+                editor
+
+            Just ( b, note ) ->
+                if beats > 0 then
+                    let
+                        newNote =
+                            { note | duration = dur }
+                    in
+                        replaceNote newNote b editor
+                else if beats < 0 then
+                    let
+                        rest =
+                            Note.rest dur
+                                |> shiftX (Layout.toTenths layout cursor.dx)
+                    in
+                        replaceNote rest b editor
+                else
+                    editor
 
 
-finishNote : Beat -> Note -> MeasureEdit -> MeasureEdit
-finishNote b note editor =
+finishNote : Cursor -> MeasureEdit -> MeasureEdit
+finishNote cursor editor =
     let
-        newNote =
-            Note.unshiftX note
+        beat =
+            cursor.beat
+
+        sequence =
+            Measure.toSequence editor.measure
     in
-        (release << replaceNote newNote b) editor
+        case findInSequence beat sequence of
+            Nothing ->
+                editor
+
+            Just ( b, note ) ->
+                let
+                    newNote =
+                        Note.unshiftX note
+                in
+                    (release << replaceNote newNote b) editor
 
 
 mouseOffset : Decoder Mouse.Position
