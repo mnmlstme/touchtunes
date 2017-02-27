@@ -117,27 +117,21 @@ type alias Margins =
     }
 
 
-
--- the interline staff spacing in pixels
-
-
 spacing : Layout -> Pixels
 spacing layout =
+    -- the interline staff spacing in pixels
     Tenths 10.0 |> toPixels layout
-
-
-
--- the margins around where notes are placed on staff
 
 
 margins : Layout -> Margins
 margins layout =
+    -- the margins around where notes are placed on staff
     let
         sp =
             spacing layout |> .px
 
         vmargin =
-            2.0 * sp |> Pixels
+            4.5 * sp |> Pixels
 
         hmargin =
             spacing layout
@@ -150,12 +144,9 @@ beatSpacing layout =
     Tenths 40.0 |> toPixels layout
 
 
-
--- width of the layout
-
-
 width : Layout -> Pixels
 width layout =
+    -- width of the layout
     let
         m =
             margins layout
@@ -169,12 +160,9 @@ width layout =
         m.left.px + m.right.px + b * bs.px |> Pixels
 
 
-
--- height of the layout
-
-
 height : Layout -> Pixels
 height layout =
+    -- height of the layout
     let
         m =
             margins layout
@@ -185,12 +173,9 @@ height layout =
         m.top.px + m.bottom.px + 4 * s.px |> Pixels
 
 
-
--- distance (in steps) above (below if negative) base pitch of staff
-
-
 positionOnStaff : Layout -> Pitch -> Int
 positionOnStaff layout p =
+    -- distance (in steps) above (below if negative) base pitch of staff
     let
         base =
             Pitch.stepNumber layout.basePitch
@@ -198,12 +183,9 @@ positionOnStaff layout p =
         (Pitch.stepNumber p) - base
 
 
-
--- location the top of the note from the top of the staff
-
-
 scalePitch : Layout -> Pitch -> Pixels
 scalePitch layout p =
+    -- location the top of the note from the top of the staff
     let
         s =
             spacing layout
@@ -214,12 +196,9 @@ scalePitch layout p =
         Pixels <| (toFloat n / 2.0) * s.px
 
 
-
--- return the pitch, given Y pixels from top of layout
-
-
 unscalePitch : Layout -> Pixels -> Pitch
 unscalePitch layout y =
+    -- return the pitch, given Y pixels from top of layout
     let
         s =
             spacing layout
@@ -239,12 +218,9 @@ unscalePitch layout y =
         Pitch.fromStepNumber sn
 
 
-
--- location of the center of the note on the staff
-
-
 scaleBeat : Layout -> Beat -> Pixels
 scaleBeat layout b =
+    -- location of the center of the note on the staff
     let
         m =
             margins layout
@@ -255,12 +231,9 @@ scaleBeat layout b =
         m.left.px + bs.px * (0.5 + toFloat b) |> Pixels
 
 
-
--- return the beat, given X pixels from left of layout
-
-
 unscaleBeat : Layout -> Pixels -> Beat
 unscaleBeat layout x =
+    -- return the beat, given X pixels from left of layout
     let
         m =
             margins layout
@@ -271,10 +244,7 @@ unscaleBeat layout x =
         floor (0.5 + (x.px - m.left.px) / bs.px)
 
 
-
--- layout for standard (zoom level)
-
-
 standard : Pitch -> Time -> Layout
 standard =
+    -- layout for standard (zoom level)
     Layout 2.0

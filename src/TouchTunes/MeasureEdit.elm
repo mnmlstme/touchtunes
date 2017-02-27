@@ -43,9 +43,6 @@ import Svg exposing (Svg, svg, g)
 import Svg.Attributes exposing (class)
 
 
--- import Debug exposing (log)
-
-
 type alias MeasureEdit =
     { cursor : Maybe Cursor
     , measure : Measure

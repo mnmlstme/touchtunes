@@ -104,6 +104,47 @@ stemOrientation layout p =
             StemUp
 
 
+ledgerLines : Layout -> Pitch -> List Pixels
+ledgerLines layout p =
+    let
+        sp =
+            spacing layout
+
+        n =
+            positionOnStaff layout p
+
+        isAbove =
+            n > 2
+
+        isBelow =
+            n < -8
+
+        lineOffset =
+            if isAbove then
+                2 - n % 2
+            else
+                n % 2
+
+        isEven n =
+            n % 2 == 0
+
+        steps =
+            if n > 2 then
+                List.range 0 (n - 3)
+            else if n < -8 then
+                List.range (n + 9) 0
+            else
+                []
+
+        spaces =
+            List.filter isEven steps
+
+        spaceToPixels i =
+            Pixels (toFloat (i + lineOffset) * sp.px / 2)
+    in
+        List.map spaceToPixels spaces
+
+
 view : Layout -> Beat -> Note -> Svg msg
 view layout beat note =
     let
@@ -217,6 +258,9 @@ viewPitch layout beat d p =
         stemDir =
             stemOrientation layout p
 
+        ledgers =
+            ledgerLines layout p
+
         xstem =
             case stemDir of
                 StemUp ->
@@ -246,6 +290,15 @@ viewPitch layout beat d p =
 
         altSymbol =
             alteration p
+
+        viewLedger y =
+            line
+                [ x1Px <| Pixels <| -0.35 * w.px
+                , x2Px <| Pixels <| 1.35 * w.px
+                , y1Px <| y
+                , y2Px <| y
+                ]
+                []
     in
         g
             [ transform ("translate(" ++ position ++ ")")
@@ -258,6 +311,8 @@ viewPitch layout beat d p =
                 , widthPx w
                 ]
                 []
+            , g [ class "note-ledger" ]
+                (List.map viewLedger ledgers)
             , if isWhole then
                 text ""
               else
