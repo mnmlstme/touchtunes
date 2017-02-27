@@ -3,9 +3,9 @@ module Music.Measure.Model
         ( Measure
         , empty
         , time
+        , notesLength
         , length
         , fitTime
-        , nextBeat
         , Sequence
         , toSequence
         , fromSequence
@@ -26,41 +26,39 @@ empty =
     Measure []
 
 
-
--- the time (signature) for a measure
-
-
 time : Measure -> Time
 time measure =
+    -- the time (signature) for a measure
     -- TODO get from Timeline
     Time.common
 
 
-
--- count the total number of beats in a measure
-
-
-length : Measure -> Beat
-length measure =
+notesLength : Measure -> Beat
+notesLength measure =
+    -- sum of the number of beats of all notes in measure
     let
         t =
             time measure
 
         beats =
             List.map (Duration.beats t << .duration) measure.notes
-
-        total =
-            List.sum beats
     in
-        max total t.beats
+        List.sum beats
 
 
-
--- compute a new time signature that notes will fit in
+length : Measure -> Beat
+length measure =
+    -- count the total number of beats in a measure
+    let
+        t =
+            time measure
+    in
+        max t.beats <| notesLength measure
 
 
 fitTime : Measure -> Time
 fitTime measure =
+    -- compute a new time signature that notes will fit in
     let
         t =
             time measure
@@ -73,6 +71,7 @@ fitTime measure =
 
 cumulativeBeats : Measure -> List Beat
 cumulativeBeats measure =
+    -- gives the start beat for each note in measure
     let
         t =
             time measure
@@ -83,29 +82,8 @@ cumulativeBeats measure =
         List.scanl (+) 0 beats
 
 
-nextBeat : Beat -> Measure -> Beat
-nextBeat beforeBeat measure =
-    let
-        beatBoundaries =
-            cumulativeBeats measure
-
-        priorBeats =
-            List.reverse <|
-                List.filter (\b -> b <= beforeBeat) beatBoundaries
-    in
-        case List.head priorBeats of
-            Just b ->
-                b
-
-            Nothing ->
-                0
-
-
-
--- Sequences are lists of (Beat, Note) pairs
-
-
 type alias Sequence =
+    -- lists of (Beat, Note) pairs
     List ( Beat, Note )
 
 

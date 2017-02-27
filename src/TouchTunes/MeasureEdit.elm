@@ -198,6 +198,9 @@ startNote offset editor =
         measure =
             editor.measure
 
+        sequence =
+            Measure.toSequence measure
+
         layout =
             MeasureView.layoutFor measure
 
@@ -210,8 +213,16 @@ startNote offset editor =
         clickBeat =
             Layout.unscaleBeat layout x
 
+        ( before, after ) =
+            splitSequence clickBeat sequence
+
         beat =
-            Measure.nextBeat clickBeat measure
+            case List.head after of
+                Nothing ->
+                    Measure.notesLength measure
+
+                Just ( b, _ ) ->
+                    b
 
         xb =
             Layout.scaleBeat layout beat
@@ -285,12 +296,9 @@ finishNote b note editor =
         (release << replaceNote newNote b) editor
 
 
-
--- TODO: PR to add mouseOffset to elm-lang/mouse
-
-
 mouseOffset : Decoder Mouse.Position
 mouseOffset =
+    -- TODO: submit PR to elm-lang/mouse to add mouseOffset
     Decode.map2 Mouse.Position
         (field "offsetX" int)
         (field "offsetY" int)
