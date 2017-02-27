@@ -64,16 +64,10 @@ restSymbol time d =
     in
         if isWhole time d then
             "#tt-rest-whole"
+        else if b < 2 then
+            "#tt-rest-quarter"
         else
-            case b of
-                1 ->
-                    "#tt-rest-quarter"
-
-                2 ->
-                    "#tt-rest-half"
-
-                _ ->
-                    "UNIMPLEMENTED: odd rest"
+            "#tt-rest-half"
 
 
 dotted : Time -> Duration -> String
@@ -172,7 +166,7 @@ viewRest layout beat d =
             String.join ","
                 (List.map toString
                     [ 0 - w.px / 2.0
-                    , 0
+                    , sp.px
                     ]
                 )
 
@@ -190,6 +184,7 @@ viewRest layout beat d =
                 , widthPx w
                 ]
                 []
+            , viewDot layout d
             ]
 
 
@@ -249,9 +244,6 @@ viewPitch layout beat d p =
         noteSymbol =
             notehead layout.time d
 
-        dotSymbol =
-            dotted layout.time d
-
         altSymbol =
             alteration p
     in
@@ -288,15 +280,30 @@ viewPitch layout beat d p =
                     , widthPx w
                     ]
                     []
-            , if dotSymbol == "" then
-                text ""
-              else
-                use
-                    [ xlinkHref dotSymbol
-                    , xPx w
-                    , yPx <| Pixels 0
-                    , heightPx sp
-                    , widthPx sp
-                    ]
-                    []
+            , viewDot layout d
             ]
+
+
+viewDot : Layout -> Duration -> Svg msg
+viewDot layout d =
+    let
+        sp =
+            spacing layout
+
+        w =
+            1.5 * sp.px |> Pixels
+
+        dotSymbol =
+            dotted layout.time d
+    in
+        if dotSymbol == "" then
+            text ""
+        else
+            use
+                [ xlinkHref dotSymbol
+                , xPx w
+                , yPx <| Pixels 0
+                , heightPx sp
+                , widthPx sp
+                ]
+                []
