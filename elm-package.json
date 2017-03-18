@@ -1,7 +1,6 @@
 {
     "version": "1.0.0",
-    "summary": "In-browser musical notation editor with touch interface.
-",
+    "summary": "In-browser musical notation editor with touch interface.\n",
     "repository": "https://github.com/mnmlstme/touchtunes.git",
     "license": "BSD3",
     "source-directories": [
@@ -13,7 +12,8 @@
         "elm-lang/core": "5.0.0 <= v < 6.0.0",
         "elm-lang/html": "2.0.0 <= v < 3.0.0",
         "elm-lang/mouse": "1.0.1 <= v < 2.0.0",
-        "elm-lang/svg": "2.0.0 <= v < 3.0.0"
+        "elm-lang/svg": "2.0.0 <= v < 3.0.0",
+        "mgold/elm-nonempty-list": "3.0.0 <= v < 4.0.0"
     },
     "elm-version": "0.18.0 <= v < 0.19.0"
 }

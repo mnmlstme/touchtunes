@@ -1,7 +1,8 @@
 module Music.Measure.Model
     exposing
         ( Measure
-        , empty
+        , new
+        , fromNotes
         , time
         , notesLength
         , length
@@ -11,19 +12,30 @@ module Music.Measure.Model
         , fromSequence
         )
 
+import List.Nonempty as Nonempty exposing (Nonempty, (:::))
 import Music.Time as Time exposing (Time, Beat)
-import Music.Note.Model as Note exposing (Note)
+import Music.Note.Model as Note exposing (Note, rest)
 import Music.Duration as Duration
 
 
 type alias Measure =
-    { notes : List Note
+    { notes : Nonempty Note
     }
 
 
-empty : Measure
-empty =
-    Measure []
+new : Measure
+new =
+    Measure <| Nonempty.fromElement <| rest Duration.whole
+
+
+fromNotes : List Note -> Measure
+fromNotes notes =
+    case Nonempty.fromList notes of
+        Nothing ->
+            new
+
+        Just nonempty ->
+            Measure nonempty
 
 
 time : Measure -> Time
@@ -41,9 +53,9 @@ notesLength measure =
             time measure
 
         beats =
-            List.map (Duration.beats t << .duration) measure.notes
+            Nonempty.map (Duration.beats t << .duration) measure.notes
     in
-        List.sum beats
+        Nonempty.foldl1 (+) beats
 
 
 length : Measure -> Beat
@@ -69,7 +81,7 @@ fitTime measure =
         Time.longer t beats
 
 
-cumulativeBeats : Measure -> List Beat
+cumulativeBeats : Measure -> Nonempty Beat
 cumulativeBeats measure =
     -- gives the start beat for each note in measure
     let
@@ -77,13 +89,13 @@ cumulativeBeats measure =
             time measure
 
         beats =
-            List.map (Duration.beats t << .duration) measure.notes
+            Nonempty.map (Duration.beats t << .duration) measure.notes
     in
-        List.scanl (+) 0 beats
+        Nonempty.scanl (+) 0 beats
 
 
 type alias Sequence =
-    -- lists of (Beat, Note) pairs
+    -- (possibly empty) lists of (Beat, Note) pairs
     List ( Beat, Note )
 
 
@@ -93,7 +105,8 @@ toSequence measure =
         startsAt =
             cumulativeBeats measure
     in
-        List.map2 (,) startsAt measure.notes
+        Nonempty.toList <|
+            Nonempty.map2 (,) startsAt measure.notes
 
 
 fromSequence : Sequence -> Measure
@@ -102,4 +115,4 @@ fromSequence sequence =
         justNotes seq =
             List.map (\( b, n ) -> n) seq
     in
-        Measure (justNotes sequence)
+        fromNotes <| justNotes sequence

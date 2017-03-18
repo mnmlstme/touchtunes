@@ -2,7 +2,7 @@ module Example1 exposing (example)
 
 import Music.Score exposing (Score)
 import Music.Part exposing (Part)
-import Music.Measure.Model exposing (Measure)
+import Music.Measure.Model as Measure
 import Music.Pitch
     exposing
         ( a
@@ -31,20 +31,20 @@ example =
                 "Pno."
               <|
                 Array.fromList
-                    [ Measure
+                    [ Measure.fromNotes
                         [ rest quarter
                         , f 4 |> heldFor quarter
                         , a 4 |> heldFor quarter
                         , c 5 |> heldFor quarter
                         ]
-                    , Measure
+                    , Measure.fromNotes
                         [ (flat e_) 4 |> heldFor half
                         , rest half
                         ]
-                    , Measure
+                    , Measure.fromNotes
                         [ (sharp f) 4 |> heldFor whole
                         ]
-                    , Measure
+                    , Measure.fromNotes
                         [ rest whole
                         ]
                     ]

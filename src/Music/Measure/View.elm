@@ -121,7 +121,8 @@ view measure =
                     , g
                         [ class "measure-notes"
                         ]
-                        (List.map drawNote noteSequence)
+                      <|
+                        List.map drawNote noteSequence
                     ]
                 ]
             ]

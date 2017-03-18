@@ -111,15 +111,15 @@ replaceNote note beat editor =
             splitSequence beat sequence
 
         rest =
-            case (List.tail after) of
+            case List.tail after of
                 Nothing ->
-                    []
+                    [ ( beat, note ) ]
 
-                Just list ->
-                    list
+                Just rest ->
+                    ( beat, note ) :: rest
 
         newSequence =
-            List.concat [ before, [ ( beat, note ) ], rest ]
+            List.concat [ before, rest ]
     in
         { editor
             | measure = Measure.fromSequence newSequence

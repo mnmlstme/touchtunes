@@ -22,7 +22,7 @@ empty =
     Part
         "Piano"
         "Pno."
-        (Array.repeat 4 Measure.empty)
+        (Array.repeat 4 Measure.new)
 
 
 length : Part -> Int
