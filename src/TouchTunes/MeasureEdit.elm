@@ -26,6 +26,7 @@ import Music.Measure.Layout as Layout
     exposing
         ( Layout
         , Pixels
+        , Tenths
         , heightPx
         , widthPx
         )
@@ -52,12 +53,14 @@ type alias MeasureEdit =
 type alias Cursor =
     { beat : Beat
     , dx : Pixels
+    , x : Pixels
+    , y : Pixels
     }
 
 
 type Action
     = StartNote Mouse.Position
-    | StretchNote Cursor Mouse.Position
+    | DragNote Cursor Mouse.Position
     | FinishNote Cursor
 
 
@@ -132,9 +135,18 @@ findInSequence beat sequence =
         List.head after
 
 
-capture : Beat -> Pixels -> MeasureEdit -> MeasureEdit
-capture beat tenths editor =
-    { editor | cursor = Just (Cursor beat tenths) }
+capture : Beat -> Pixels -> Mouse.Position -> MeasureEdit -> MeasureEdit
+capture beat dx position editor =
+    let
+        posx =
+            Pixels (toFloat position.x)
+
+        posy =
+            Pixels (toFloat position.y)
+    in
+        { editor
+            | cursor = Just (Cursor beat dx posx posy)
+        }
 
 
 release : MeasureEdit -> MeasureEdit
@@ -144,19 +156,25 @@ release editor =
 
 update : Action -> MeasureEdit -> MeasureEdit
 update action editor =
-    let
-        sequence =
-            Measure.toSequence editor.measure
-    in
-        case action of
-            StartNote offset ->
-                startNote offset editor
+    case action of
+        StartNote offset ->
+            startNote offset editor
 
-            StretchNote cursor offset ->
-                stretchNote cursor offset editor
+        DragNote cursor offset ->
+            let
+                dx =
+                    toFloat (offset.x) - cursor.x.px
 
-            FinishNote cursor ->
-                finishNote cursor editor
+                dy =
+                    toFloat (offset.y) - cursor.y.px
+            in
+                if (abs dx) > (abs dy) then
+                    stretchNote cursor offset editor
+                else
+                    bendNote cursor offset editor
+
+        FinishNote cursor ->
+            finishNote cursor editor
 
 
 startNote : Mouse.Position -> MeasureEdit -> MeasureEdit
@@ -207,10 +225,42 @@ startNote offset editor =
                 |> heldFor quarter
                 |> shiftX (Layout.toTenths layout dx)
     in
-        (capture beat dx
+        (capture beat dx offset
             << insertNote note beat
         )
             editor
+
+
+bendNote : Cursor -> Mouse.Position -> MeasureEdit -> MeasureEdit
+bendNote cursor offset editor =
+    let
+        measure =
+            editor.measure
+
+        sequence =
+            Measure.toSequence measure
+
+        layout =
+            MeasureView.layoutFor measure
+
+        beat =
+            cursor.beat
+
+        p =
+            Layout.unscalePitch layout <|
+                Pixels <|
+                    toFloat offset.y
+    in
+        case findInSequence beat sequence of
+            Nothing ->
+                editor
+
+            Just ( b, note ) ->
+                let
+                    newNote =
+                        { note | do = Note.Play p }
+                in
+                    replaceNote newNote b editor
 
 
 stretchNote : Cursor -> Mouse.Position -> MeasureEdit -> MeasureEdit
@@ -257,8 +307,7 @@ stretchNote cursor offset editor =
                 else if beats < 0 then
                     let
                         rest =
-                            Note.rest dur
-                                |> shiftX (Layout.toTenths layout cursor.dx)
+                            { note | do = Note.Rest }
                     in
                         replaceNote rest b editor
                 else
@@ -324,7 +373,7 @@ view editor =
                 Just cur ->
                     [ on "mousemove" <|
                         Decode.map
-                            (StretchNote cur)
+                            (DragNote cur)
                             mouseOffset
                     , onMouseUp
                         (FinishNote cur)
