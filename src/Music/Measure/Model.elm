@@ -14,7 +14,7 @@ module Music.Measure.Model
 
 import List.Nonempty as Nonempty exposing (Nonempty, (:::))
 import Music.Time as Time exposing (Time, Beat)
-import Music.Note.Model as Note exposing (Note, rest)
+import Music.Note.Model as Note exposing (Note)
 import Music.Duration as Duration
 
 
@@ -25,7 +25,9 @@ type alias Measure =
 
 new : Measure
 new =
-    Measure <| Nonempty.fromElement <| rest Duration.whole
+    Measure <|
+        Nonempty.fromElement <|
+            Note.blankFor Duration.whole
 
 
 fromNotes : List Note -> Measure

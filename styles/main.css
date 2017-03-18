@@ -161,3 +161,12 @@ svg.measure-staff {
     stroke: #333;
     stroke-linecap: round;
 }
+
+/* Blank */
+
+.blank {
+    fill: rgba(0,0,0,0.10);
+    stroke: #333;
+    stroke-linejoin: round;
+    stroke-width: 1px;
+}

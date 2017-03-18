@@ -13,8 +13,7 @@ import Music.Time as Time exposing (Beat)
 import Music.Note.Model as Note
     exposing
         ( Note
-        , rest
-        , heldFor
+        , playFor
         , shiftX
         )
 import Music.Measure.Model as Measure
@@ -222,7 +221,7 @@ startNote offset editor =
 
         note =
             pitch
-                |> heldFor quarter
+                |> playFor quarter
                 |> shiftX (Layout.toTenths layout dx)
     in
         (capture beat dx offset

@@ -2,8 +2,9 @@ module Music.Note.Model
     exposing
         ( Note
         , What(..)
-        , rest
-        , heldFor
+        , playFor
+        , restFor
+        , blankFor
         , shiftX
         , unshiftX
         , getShiftX
@@ -24,6 +25,7 @@ type alias Note =
 type What
     = Play Pitch
     | Rest
+    | Blank
 
 
 
@@ -40,14 +42,19 @@ type StartStop
     | Stop
 
 
-heldFor : Duration -> Pitch -> Note
-heldFor d p =
+playFor : Duration -> Pitch -> Note
+playFor d p =
     Note (Play p) d []
 
 
-rest : Duration -> Note
-rest d =
+restFor : Duration -> Note
+restFor d =
     Note Rest d []
+
+
+blankFor : Duration -> Note
+blankFor d =
+    Note Blank d []
 
 
 mod : Modifier -> Note -> Note

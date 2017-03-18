@@ -177,6 +177,9 @@ view layout beat note =
 
                 Rest ->
                     "rest"
+
+                Blank ->
+                    "blank"
     in
         g
             [ class className
@@ -188,6 +191,9 @@ view layout beat note =
 
                 Rest ->
                     viewRest layout beat d
+
+                Blank ->
+                    viewBlank layout beat d
             ]
 
 
@@ -227,6 +233,11 @@ viewRest layout beat d =
                 []
             , viewDot layout d
             ]
+
+
+viewBlank : Layout -> Beat -> Duration -> Svg msg
+viewBlank =
+    viewRest
 
 
 viewPitch : Layout -> Beat -> Duration -> Pitch -> Svg msg
