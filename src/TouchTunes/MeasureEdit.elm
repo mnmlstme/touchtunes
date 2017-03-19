@@ -19,7 +19,8 @@ import Music.Note.Model as Note
 import Music.Measure.Model as Measure
     exposing
         ( Measure
-        , Sequence
+        , insertNote
+        , modifyNote
         )
 import Music.Measure.Layout as Layout
     exposing
@@ -68,70 +69,22 @@ open measure =
     MeasureEdit Nothing measure
 
 
-splitSequence : Beat -> Sequence -> ( Sequence, Sequence )
-splitSequence beat =
-    let
-        precedes beat ( b, _ ) =
-            b < beat
-    in
-        List.partition <| precedes beat
-
-
 insertNote : Note -> Beat -> MeasureEdit -> MeasureEdit
 insertNote note beat editor =
+    { editor
+        | measure = Measure.insertNote note beat editor.measure
+    }
+
+
+modifyNote : (Note -> Note) -> Beat -> MeasureEdit -> MeasureEdit
+modifyNote f beat editor =
     let
         measure =
             editor.measure
-
-        sequence =
-            Measure.toSequence measure
-
-        ( before, after ) =
-            splitSequence beat sequence
-
-        newSequence =
-            List.concat [ before, [ ( beat, note ) ], after ]
     in
         { editor
-            | measure = Measure.fromSequence newSequence
+            | measure = Measure.modifyNote f beat measure
         }
-
-
-replaceNote : Note -> Beat -> MeasureEdit -> MeasureEdit
-replaceNote note beat editor =
-    let
-        measure =
-            editor.measure
-
-        sequence =
-            Measure.toSequence measure
-
-        ( before, after ) =
-            splitSequence beat sequence
-
-        rest =
-            case List.tail after of
-                Nothing ->
-                    [ ( beat, note ) ]
-
-                Just rest ->
-                    ( beat, note ) :: rest
-
-        newSequence =
-            List.concat [ before, rest ]
-    in
-        { editor
-            | measure = Measure.fromSequence newSequence
-        }
-
-
-findInSequence : Beat -> Sequence -> Maybe ( Beat, Note )
-findInSequence beat sequence =
-    let
-        ( before, after ) =
-            splitSequence beat sequence
-    in
-        List.head after
 
 
 capture : Beat -> Pixels -> Mouse.Position -> MeasureEdit -> MeasureEdit
@@ -182,9 +135,6 @@ startNote offset editor =
         measure =
             editor.measure
 
-        sequence =
-            Measure.toSequence measure
-
         layout =
             MeasureView.layoutFor measure
 
@@ -194,19 +144,8 @@ startNote offset editor =
         y =
             Pixels <| toFloat offset.y
 
-        clickBeat =
-            Layout.unscaleBeat layout x
-
-        ( before, after ) =
-            splitSequence clickBeat sequence
-
         beat =
-            case List.head after of
-                Nothing ->
-                    Measure.notesLength measure
-
-                Just ( b, _ ) ->
-                    b
+            Layout.unscaleBeat layout x
 
         xb =
             Layout.scaleBeat layout beat
@@ -236,9 +175,6 @@ bendNote cursor offset editor =
         measure =
             editor.measure
 
-        sequence =
-            Measure.toSequence measure
-
         layout =
             MeasureView.layoutFor measure
 
@@ -249,17 +185,11 @@ bendNote cursor offset editor =
             Layout.unscalePitch layout <|
                 Pixels <|
                     toFloat offset.y
-    in
-        case findInSequence beat sequence of
-            Nothing ->
-                editor
 
-            Just ( b, note ) ->
-                let
-                    newNote =
-                        { note | do = Note.Play p }
-                in
-                    replaceNote newNote b editor
+        modifier note =
+            { note | do = Note.Play p }
+    in
+        modifyNote modifier beat editor
 
 
 stretchNote : Cursor -> Mouse.Position -> MeasureEdit -> MeasureEdit
@@ -267,9 +197,6 @@ stretchNote cursor offset editor =
     let
         measure =
             editor.measure
-
-        sequence =
-            Measure.toSequence measure
 
         layout =
             MeasureView.layoutFor measure
@@ -291,47 +218,26 @@ stretchNote cursor offset editor =
 
         dur =
             Duration.fromTimeBeats time (abs beats)
-    in
-        case findInSequence beat sequence of
-            Nothing ->
-                editor
 
-            Just ( b, note ) ->
-                if beats > 0 then
-                    let
-                        newNote =
-                            { note | duration = dur }
-                    in
-                        replaceNote newNote b editor
-                else if beats < 0 then
-                    let
-                        rest =
-                            { note | do = Note.Rest }
-                    in
-                        replaceNote rest b editor
-                else
-                    editor
+        modifier note =
+            if beats > 0 then
+                { note | duration = dur }
+            else
+                { note | do = Note.Rest }
+    in
+        modifyNote modifier beat editor
 
 
 finishNote : Cursor -> MeasureEdit -> MeasureEdit
-finishNote cursor editor =
+finishNote cursor =
     let
         beat =
             cursor.beat
 
-        sequence =
-            Measure.toSequence editor.measure
+        modifier note =
+            Note.unshiftX note
     in
-        case findInSequence beat sequence of
-            Nothing ->
-                editor
-
-            Just ( b, note ) ->
-                let
-                    newNote =
-                        Note.unshiftX note
-                in
-                    (release << replaceNote newNote b) editor
+        release << modifyNote modifier beat
 
 
 mouseOffset : Decoder Mouse.Position

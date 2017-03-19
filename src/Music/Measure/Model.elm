@@ -7,6 +7,8 @@ module Music.Measure.Model
         , notesLength
         , length
         , fitTime
+        , insertNote
+        , modifyNote
         , Sequence
         , toSequence
         , fromSequence
@@ -118,3 +120,71 @@ fromSequence sequence =
             List.map (\( b, n ) -> n) seq
     in
         fromNotes <| justNotes sequence
+
+
+splitSequence : Beat -> Sequence -> ( Sequence, Sequence )
+splitSequence beat =
+    let
+        precedes beat ( b, _ ) =
+            b < beat
+    in
+        List.partition <| precedes beat
+
+
+findInSequence : Beat -> Sequence -> Maybe ( Beat, Note )
+findInSequence beat sequence =
+    let
+        ( before, after ) =
+            splitSequence beat sequence
+    in
+        List.head after
+
+
+insertNote : Note -> Beat -> Measure -> Measure
+insertNote note beat measure =
+    let
+        sequence =
+            toSequence measure
+
+        ( before, after ) =
+            splitSequence beat sequence
+
+        newSequence =
+            List.concat [ before, [ ( beat, note ) ], after ]
+    in
+        fromSequence newSequence
+
+
+modifyNote : (Note -> Note) -> Beat -> Measure -> Measure
+modifyNote f beat measure =
+    let
+        sequence =
+            toSequence measure
+
+        ( before, rest ) =
+            splitSequence beat sequence
+
+        oldNote =
+            List.head rest
+
+        after =
+            case List.tail rest of
+                Nothing ->
+                    []
+
+                Just list ->
+                    list
+
+        newSequence =
+            case oldNote of
+                Nothing ->
+                    sequence
+
+                Just ( beat, note ) ->
+                    List.concat
+                        [ before
+                        , [ ( beat, f note ) ]
+                        , after
+                        ]
+    in
+        fromSequence newSequence
