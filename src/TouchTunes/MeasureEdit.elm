@@ -19,7 +19,6 @@ import Music.Note.Model as Note
 import Music.Measure.Model as Measure
     exposing
         ( Measure
-        , insertNote
         , modifyNote
         )
 import Music.Measure.Layout as Layout
@@ -69,11 +68,12 @@ open measure =
     MeasureEdit Nothing measure
 
 
-insertNote : Note -> Beat -> MeasureEdit -> MeasureEdit
-insertNote note beat editor =
-    { editor
-        | measure = Measure.insertNote note beat editor.measure
-    }
+
+-- insertNote : Note -> Beat -> MeasureEdit -> MeasureEdit
+-- insertNote note beat editor =
+--     { editor
+--         | measure = Measure.insertNote note beat editor.measure
+--     }
 
 
 modifyNote : (Note -> Note) -> Beat -> MeasureEdit -> MeasureEdit
@@ -158,13 +158,13 @@ startNote offset editor =
         pitch =
             Layout.unscalePitch layout y
 
-        note =
+        modifier _ =
             pitch
                 |> playFor quarter
                 |> shiftX (Layout.toTenths layout dx)
     in
         (capture beat dx offset
-            << insertNote note beat
+            << modifyNote modifier beat
         )
             editor
 

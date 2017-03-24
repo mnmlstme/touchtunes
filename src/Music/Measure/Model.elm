@@ -7,7 +7,7 @@ module Music.Measure.Model
         , notesLength
         , length
         , fitTime
-        , insertNote
+          -- , insertNote
         , modifyNote
         , Sequence
         , toSequence
@@ -134,38 +134,28 @@ splitSequence beat =
 findInSequence : Beat -> Sequence -> Maybe ( Beat, Note )
 findInSequence beat sequence =
     let
-        ( before, after ) =
+        ( before, rest ) =
             splitSequence beat sequence
     in
-        List.head after
+        List.head rest
 
 
-insertNote : Note -> Beat -> Measure -> Measure
-insertNote note beat measure =
+openSequence : Beat -> Sequence -> ( Sequence, Note, Sequence )
+openSequence beat sequence =
     let
-        sequence =
-            toSequence measure
-
-        ( before, after ) =
-            splitSequence beat sequence
-
-        newSequence =
-            List.concat [ before, [ ( beat, note ) ], after ]
-    in
-        fromSequence newSequence
-
-
-modifyNote : (Note -> Note) -> Beat -> Measure -> Measure
-modifyNote f beat measure =
-    let
-        sequence =
-            toSequence measure
-
         ( before, rest ) =
             splitSequence beat sequence
 
-        oldNote =
-            List.head rest
+        note =
+            case List.head rest of
+                Nothing ->
+                    Note.blankFor Duration.quarter
+
+                Just ( nextBeat, nextNote ) ->
+                    if nextBeat == beat then
+                        nextNote
+                    else
+                        Note.blankFor Duration.quarter
 
         after =
             case List.tail rest of
@@ -174,17 +164,40 @@ modifyNote f beat measure =
 
                 Just list ->
                     list
+    in
+        ( before, note, after )
+
+
+
+-- insertNote : Note -> Beat -> Measure -> Measure
+-- insertNote note beat measure =
+--     let
+--         sequence =
+--             toSequence measure
+--
+--         ( before, after ) =
+--             splitSequence beat sequence
+--
+--         newSequence =
+--             List.concat [ before, [ ( beat, note ) ], after ]
+--     in
+--         fromSequence newSequence
+
+
+modifyNote : (Note -> Note) -> Beat -> Measure -> Measure
+modifyNote f beat measure =
+    let
+        sequence =
+            toSequence measure
+
+        ( before, note, after ) =
+            openSequence beat sequence
 
         newSequence =
-            case oldNote of
-                Nothing ->
-                    sequence
-
-                Just ( beat, note ) ->
-                    List.concat
-                        [ before
-                        , [ ( beat, f note ) ]
-                        , after
-                        ]
+            List.concat
+                [ before
+                , [ ( beat, f note ) ]
+                , after
+                ]
     in
         fromSequence newSequence
