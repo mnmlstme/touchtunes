@@ -147,6 +147,9 @@ openSequence beat sequence =
         time =
             Time.common
 
+        blank =
+            Note.blankFor Duration.quarter
+
         ( before, rest ) =
             splitSequence beat sequence
 
@@ -190,41 +193,19 @@ openSequence beat sequence =
                            )
 
         ( note, later ) =
-            let
-                insertion =
-                    ( Note.blankFor Duration.quarter
-                    , rest
-                    )
-            in
-                case List.head rest of
-                    Nothing ->
-                        insertion
+            case List.head rest of
+                Nothing ->
+                    ( blank, rest )
 
-                    Just ( nextBeat, nextNote ) ->
-                        if nextBeat == beat then
-                            ( nextNote
-                            , Maybe.withDefault [] <| List.tail rest
-                            )
-                        else
-                            insertion
+                Just ( nextBeat, nextNote ) ->
+                    if nextBeat == beat then
+                        ( nextNote
+                        , Maybe.withDefault [] <| List.tail rest
+                        )
+                    else
+                        ( blank, rest )
     in
         ( earlier, note, later )
-
-
-
--- insertNote : Note -> Beat -> Measure -> Measure
--- insertNote note beat measure =
---     let
---         sequence =
---             toSequence measure
---
---         ( before, after ) =
---             splitSequence beat sequence
---
---         newSequence =
---             List.concat [ before, [ ( beat, note ) ], after ]
---     in
---         fromSequence newSequence
 
 
 modifyNote : (Note -> Note) -> Beat -> Measure -> Measure
