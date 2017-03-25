@@ -168,6 +168,17 @@ openSequence beat sequence =
 
                         requiredBeats =
                             beat - prevBeat
+
+                        dur =
+                            Duration.fromTimeBeats time beat
+
+                        action =
+                            case prevNote.do of
+                                Note.Blank ->
+                                    Note.Rest
+
+                                _ ->
+                                    prevNote.do
                     in
                         if prevNoteBeats == requiredBeats then
                             Nothing
@@ -175,8 +186,8 @@ openSequence beat sequence =
                             Just
                                 ( prevBeat
                                 , { prevNote
-                                    | duration =
-                                        Duration.fromTimeBeats time beat
+                                    | duration = dur
+                                    , do = action
                                   }
                                 )
 
