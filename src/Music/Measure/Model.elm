@@ -7,7 +7,6 @@ module Music.Measure.Model
         , notesLength
         , length
         , fitTime
-          -- , insertNote
         , modifyNote
         , Sequence
         , toSequence
@@ -153,57 +152,7 @@ openSequence beat sequence =
         ( before, rest ) =
             splitSequence beat sequence
 
-        erofeb =
-            List.reverse before
-
-        prevNote =
-            case List.head erofeb of
-                Nothing ->
-                    Nothing
-
-                Just ( prevBeat, prevNote ) ->
-                    let
-                        prevNoteBeats =
-                            Duration.beats time prevNote.duration
-
-                        requiredBeats =
-                            beat - prevBeat
-
-                        dur =
-                            Duration.fromTimeBeats time beat
-
-                        action =
-                            case prevNote.do of
-                                Note.Blank ->
-                                    Note.Rest
-
-                                _ ->
-                                    prevNote.do
-                    in
-                        if prevNoteBeats == requiredBeats then
-                            Nothing
-                        else
-                            Just
-                                ( prevBeat
-                                , { prevNote
-                                    | duration = dur
-                                    , do = action
-                                  }
-                                )
-
-        earlier =
-            case prevNote of
-                Nothing ->
-                    before
-
-                Just beatnote ->
-                    beatnote
-                        :: (List.reverse <|
-                                Maybe.withDefault [] <|
-                                    List.tail erofeb
-                           )
-
-        ( note, later ) =
+        ( note, after ) =
             case List.head rest of
                 Nothing ->
                     ( blank, rest )
@@ -215,6 +164,80 @@ openSequence beat sequence =
                         )
                     else
                         ( blank, rest )
+
+        erofeb =
+            List.reverse before
+
+        ( prevNote, nextNote ) =
+            case List.head erofeb of
+                Nothing ->
+                    ( Nothing, Nothing )
+
+                Just ( b, n ) ->
+                    let
+                        beats =
+                            Duration.beats time n.duration
+                    in
+                        if b + beats == beat then
+                            ( Nothing, Nothing )
+                        else
+                            let
+                                noteBeats =
+                                    Duration.beats time note.duration
+
+                                pre =
+                                    beat - b
+
+                                post =
+                                    beats - pre - noteBeats
+
+                                what =
+                                    case n.do of
+                                        Note.Blank ->
+                                            Note.Rest
+
+                                        _ ->
+                                            n.do
+                            in
+                                ( if pre /= 0 then
+                                    Just
+                                        ( b
+                                        , { n
+                                            | duration = Duration.fromTimeBeats time pre
+                                            , do = what
+                                          }
+                                        )
+                                  else
+                                    Nothing
+                                , if post /= 0 then
+                                    Just
+                                        ( beat + noteBeats
+                                        , { n
+                                            | duration = Duration.fromTimeBeats time post
+                                          }
+                                        )
+                                  else
+                                    Nothing
+                                )
+
+        earlier =
+            case prevNote of
+                Nothing ->
+                    before
+
+                Just beatnote ->
+                    List.reverse <|
+                        (::) beatnote <|
+                            Maybe.withDefault [] <|
+                                List.tail erofeb
+
+        later =
+            case nextNote of
+                Nothing ->
+                    after
+
+                Just beatnote ->
+                    beatnote :: after
     in
         ( earlier, note, later )
 
