@@ -159,9 +159,20 @@ startNote offset editor =
             Layout.unscalePitch layout y
 
         modifier note =
-            pitch
-                |> playFor note.duration
-                |> shiftX (Layout.toTenths layout dx)
+            let
+                action =
+                    case note.do of
+                        Note.Blank ->
+                            Note.Play pitch
+
+                        Note.Play _ ->
+                            Note.Play pitch
+
+                        _ ->
+                            note.do
+            in
+                { note | do = action }
+                    |> shiftX (Layout.toTenths layout dx)
     in
         (capture beat dx offset
             << modifyNote modifier beat
