@@ -13,6 +13,9 @@ module Music.Duration
         , beats
         , setBeats
         , isWhole
+        , longerThan
+        , shorterThan
+        , equal
         )
 
 import Music.Time exposing (Time, Beat)
@@ -101,3 +104,21 @@ isWhole time d =
             beats time d
     in
         b >= time.beats
+
+
+longerThan : Duration -> Duration -> Bool
+longerThan a b =
+    -- TODO: check divisor
+    a.count > b.count
+
+
+shorterThan : Duration -> Duration -> Bool
+shorterThan a b =
+    -- TODO: check divisor
+    a.count < b.count
+
+
+equal : Duration -> Duration -> Bool
+equal a b =
+    -- TODO: check divisor
+    a.count == b.count

@@ -241,7 +241,7 @@ unscaleBeat layout x =
         bs =
             beatSpacing layout
     in
-        floor (0.5 + (x.px - m.left.px) / bs.px)
+        floor ((x.px - m.left.px) / bs.px)
 
 
 standard : Pitch -> Time -> Layout

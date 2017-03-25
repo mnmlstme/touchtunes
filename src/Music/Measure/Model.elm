@@ -143,29 +143,72 @@ findInSequence beat sequence =
 openSequence : Beat -> Sequence -> ( Sequence, Note, Sequence )
 openSequence beat sequence =
     let
+        -- TODO: need to get time tfrom measure:
+        time =
+            Time.common
+
         ( before, rest ) =
             splitSequence beat sequence
 
-        note =
-            case List.head rest of
+        erofeb =
+            List.reverse before
+
+        prevNote =
+            case List.head erofeb of
                 Nothing ->
-                    Note.blankFor Duration.quarter
+                    Nothing
 
-                Just ( nextBeat, nextNote ) ->
-                    if nextBeat == beat then
-                        nextNote
-                    else
-                        Note.blankFor Duration.quarter
+                Just ( prevBeat, prevNote ) ->
+                    let
+                        prevNoteBeats =
+                            Duration.beats time prevNote.duration
 
-        after =
-            case List.tail rest of
+                        requiredBeats =
+                            beat - prevBeat
+                    in
+                        if prevNoteBeats == requiredBeats then
+                            Nothing
+                        else
+                            Just
+                                ( prevBeat
+                                , { prevNote
+                                    | duration =
+                                        Duration.fromTimeBeats time beat
+                                  }
+                                )
+
+        earlier =
+            case prevNote of
                 Nothing ->
-                    []
+                    before
 
-                Just list ->
-                    list
+                Just beatnote ->
+                    beatnote
+                        :: (List.reverse <|
+                                Maybe.withDefault [] <|
+                                    List.tail erofeb
+                           )
+
+        ( note, later ) =
+            let
+                insertion =
+                    ( Note.blankFor Duration.quarter
+                    , rest
+                    )
+            in
+                case List.head rest of
+                    Nothing ->
+                        insertion
+
+                    Just ( nextBeat, nextNote ) ->
+                        if nextBeat == beat then
+                            ( nextNote
+                            , Maybe.withDefault [] <| List.tail rest
+                            )
+                        else
+                            insertion
     in
-        ( before, note, after )
+        ( earlier, note, later )
 
 
 

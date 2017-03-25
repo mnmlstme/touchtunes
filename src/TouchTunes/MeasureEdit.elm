@@ -220,10 +220,17 @@ stretchNote cursor offset editor =
             Duration.fromTimeBeats time (abs beats)
 
         modifier note =
-            if beats > 0 then
-                { note | duration = dur }
-            else
-                { note | do = Note.Rest }
+            let
+                newNote =
+                    if beats < 0 then
+                        { note | do = Note.Rest }
+                    else
+                        note
+            in
+                if Duration.longerThan dur note.duration then
+                    { newNote | duration = dur }
+                else
+                    newNote
     in
         modifyNote modifier beat editor
 
