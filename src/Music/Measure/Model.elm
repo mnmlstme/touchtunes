@@ -152,18 +152,46 @@ openSequence beat sequence =
         ( before, rest ) =
             splitSequence beat sequence
 
-        ( note, after ) =
+        ( note, after, insertion ) =
             case List.head rest of
                 Nothing ->
-                    ( blank, rest )
+                    ( blank, rest, Nothing )
 
-                Just ( nextBeat, nextNote ) ->
-                    if nextBeat == beat then
-                        ( nextNote
-                        , Maybe.withDefault [] <| List.tail rest
-                        )
+                Just ( b, n ) ->
+                    if b == beat then
+                        case n.do of
+                            Note.Blank ->
+                                let
+                                    beats =
+                                        Duration.beats time n.duration
+
+                                    bbeats =
+                                        Duration.beats time blank.duration
+
+                                    remainder =
+                                        beats - bbeats
+
+                                    insertion =
+                                        if remainder > 0 then
+                                            Just
+                                                ( b + bbeats
+                                                , { n | duration = Duration.fromTimeBeats time remainder }
+                                                )
+                                        else
+                                            Nothing
+                                in
+                                    ( blank
+                                    , Maybe.withDefault [] <| List.tail rest
+                                    , insertion
+                                    )
+
+                            _ ->
+                                ( n
+                                , Maybe.withDefault [] <| List.tail rest
+                                , Nothing
+                                )
                     else
-                        ( blank, rest )
+                        ( blank, rest, Nothing )
 
         erofeb =
             List.reverse before
@@ -171,7 +199,7 @@ openSequence beat sequence =
         ( prevNote, nextNote ) =
             case List.head erofeb of
                 Nothing ->
-                    ( Nothing, Nothing )
+                    ( Nothing, insertion )
 
                 Just ( b, n ) ->
                     let
@@ -179,7 +207,7 @@ openSequence beat sequence =
                             Duration.beats time n.duration
                     in
                         if b + beats == beat then
-                            ( Nothing, Nothing )
+                            ( Nothing, insertion )
                         else
                             let
                                 noteBeats =

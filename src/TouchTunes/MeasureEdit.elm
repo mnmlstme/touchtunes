@@ -160,7 +160,7 @@ startNote offset editor =
 
         modifier note =
             let
-                action =
+                what =
                     case note.do of
                         Note.Blank ->
                             Note.Play pitch
@@ -171,7 +171,7 @@ startNote offset editor =
                         _ ->
                             note.do
             in
-                { note | do = action }
+                { note | do = what }
                     |> shiftX (Layout.toTenths layout dx)
     in
         (capture beat dx offset

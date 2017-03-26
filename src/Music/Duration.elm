@@ -16,6 +16,7 @@ module Music.Duration
         , longerThan
         , shorterThan
         , equal
+        , shortenBy
         )
 
 import Music.Time exposing (Time, Beat)
@@ -122,3 +123,8 @@ equal : Duration -> Duration -> Bool
 equal a b =
     -- TODO: check divisor
     a.count == b.count
+
+
+shortenBy : Beat -> Duration -> Duration
+shortenBy n d =
+    { d | count = d.count - n }
