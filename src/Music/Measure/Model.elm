@@ -276,14 +276,58 @@ modifyNote f beat measure =
         sequence =
             toSequence measure
 
+        t =
+            time measure
+
         ( before, note, after ) =
             openSequence beat sequence
+
+        noteBeats =
+            Duration.beats t note.duration
+
+        newNote =
+            f note
+
+        newBeats =
+            Duration.beats t newNote.duration
+
+        delta =
+            newBeats - noteBeats
+
+        nowAfter =
+            let
+                tail =
+                    case List.tail after of
+                        Nothing ->
+                            []
+
+                        Just list ->
+                            list
+            in
+                case List.head after of
+                    Nothing ->
+                        after
+
+                    Just ( nextBeat, nextNote ) ->
+                        let
+                            b =
+                                Duration.beats t nextNote.duration
+
+                            n =
+                                { nextNote
+                                    | duration = Duration.fromTimeBeats t (b - delta)
+                                }
+                        in
+                            if b == delta then
+                                tail
+                            else
+                                ( nextBeat + delta, n ) :: tail
 
         newSequence =
             List.concat
                 [ before
                 , [ ( beat, f note ) ]
-                , after
+                , nowAfter
                 ]
     in
         fromSequence newSequence
