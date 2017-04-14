@@ -82,13 +82,7 @@ update action ed =
                         modify note =
                             shiftX from.shiftx <|
                                 { note
-                                    | do =
-                                        case note.do of
-                                            Note.Play _ ->
-                                                Note.Play pitch
-
-                                            _ ->
-                                                note.do
+                                    | do = Note.Play pitch
                                 }
                     in
                         modifyNote modify from.beat ed.measure
@@ -138,10 +132,7 @@ update action ed =
                                         else
                                             note
                                 in
-                                    if Duration.longerThan dur note.duration then
-                                        { newNote | duration = dur }
-                                    else
-                                        newNote
+                                    { newNote | duration = dur }
                             else
                                 let
                                     pitch =
