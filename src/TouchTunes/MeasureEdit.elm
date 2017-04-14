@@ -84,9 +84,6 @@ update action ed =
                                 { note
                                     | do =
                                         case note.do of
-                                            Note.Blank ->
-                                                Note.Play pitch
-
                                             Note.Play _ ->
                                                 Note.Play pitch
 

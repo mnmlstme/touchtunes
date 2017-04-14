@@ -4,7 +4,6 @@ module Music.Note.Model
         , What(..)
         , playFor
         , restFor
-        , blankFor
         , shiftX
         , unshiftX
         , getShiftX
@@ -25,7 +24,6 @@ type alias Note =
 type What
     = Play Pitch
     | Rest
-    | Blank
 
 
 
@@ -50,11 +48,6 @@ playFor d p =
 restFor : Duration -> Note
 restFor d =
     Note Rest d []
-
-
-blankFor : Duration -> Note
-blankFor d =
-    Note Blank d []
 
 
 mod : Modifier -> Note -> Note

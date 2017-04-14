@@ -28,7 +28,7 @@ new : Measure
 new =
     Measure <|
         Nonempty.fromElement <|
-            Note.blankFor Duration.whole
+            Note.restFor Duration.whole
 
 
 fromNotes : List Note -> Measure
@@ -147,7 +147,7 @@ openSequence beat sequence =
             Time.common
 
         blank =
-            Note.blankFor Duration.quarter
+            Note.restFor Duration.quarter
 
         ( before, rest ) =
             splitSequence beat sequence
@@ -159,39 +159,15 @@ openSequence beat sequence =
 
                 Just ( b, n ) ->
                     if b == beat then
-                        case n.do of
-                            Note.Blank ->
-                                let
-                                    beats =
-                                        Duration.beats time n.duration
-
-                                    bbeats =
-                                        Duration.beats time blank.duration
-
-                                    remainder =
-                                        beats - bbeats
-
-                                    insertion =
-                                        if remainder > 0 then
-                                            Just
-                                                ( b + bbeats
-                                                , { n | duration = Duration.fromTimeBeats time remainder }
-                                                )
-                                        else
-                                            Nothing
-                                in
-                                    ( blank
-                                    , Maybe.withDefault [] <| List.tail rest
-                                    , insertion
-                                    )
-
-                            _ ->
-                                ( n
-                                , Maybe.withDefault [] <| List.tail rest
-                                , Nothing
-                                )
+                        ( n
+                        , Maybe.withDefault [] <| List.tail rest
+                        , Nothing
+                        )
                     else
-                        ( blank, rest, Nothing )
+                        ( blank
+                        , rest
+                        , Nothing
+                        )
 
         erofeb =
             List.reverse before
@@ -218,21 +194,12 @@ openSequence beat sequence =
 
                                 post =
                                     beats - pre - noteBeats
-
-                                what =
-                                    case n.do of
-                                        Note.Blank ->
-                                            Note.Rest
-
-                                        _ ->
-                                            n.do
                             in
                                 ( if pre /= 0 then
                                     Just
                                         ( b
                                         , { n
                                             | duration = Duration.fromTimeBeats time pre
-                                            , do = what
                                           }
                                         )
                                   else
