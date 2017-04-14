@@ -14,6 +14,8 @@ module Music.Measure.Layout
         , yPx
         , y1Px
         , y2Px
+        , Location
+        , positionToLocation
         , spacing
         , beatSpacing
         , width
@@ -27,10 +29,11 @@ module Music.Measure.Layout
         , standard
         )
 
-import Music.Pitch as Pitch exposing (Pitch)
+import Music.Pitch as Pitch exposing (Pitch, StepNumber)
 import Music.Time as Time exposing (Time, Beat)
 import Svg exposing (Attribute)
 import Svg.Attributes as Attributes
+import Mouse
 
 
 -- Layout
@@ -109,6 +112,42 @@ y2Px =
     pxAttribute Attributes.y2
 
 
+type alias Location =
+    { step : StepNumber
+    , beat : Beat
+    , shiftx : Tenths
+    , shifty : Tenths
+    }
+
+
+positionToLocation : Layout -> Mouse.Position -> Location
+positionToLocation layout offset =
+    let
+        x =
+            Pixels <| toFloat offset.x
+
+        beat =
+            unscaleBeat layout x
+
+        xb =
+            scaleBeat layout beat
+
+        y =
+            Pixels <| toFloat offset.y
+
+        step =
+            unscaleStep layout y
+
+        ys =
+            scaleStep layout step
+    in
+        { step = step
+        , beat = beat
+        , shiftx = toTenths layout <| Pixels <| x.px - xb.px
+        , shifty = toTenths layout <| Pixels <| y.px - ys.px
+        }
+
+
 type alias Margins =
     { top : Pixels
     , right : Pixels
@@ -176,29 +215,23 @@ height layout =
 positionOnStaff : Layout -> Pitch -> Int
 positionOnStaff layout p =
     -- distance (in steps) above (below if negative) base pitch of staff
-    let
-        base =
-            Pitch.stepNumber layout.basePitch
-    in
-        (Pitch.stepNumber p) - base
+    (Pitch.stepNumber p)
+        - (Pitch.stepNumber layout.basePitch)
 
 
-scalePitch : Layout -> Pitch -> Pixels
-scalePitch layout p =
-    -- location the top of the note from the top of the staff
+scaleStep : Layout -> StepNumber -> Pixels
+scaleStep layout sn =
+    -- location the top of the step from the top of the staff
     let
         s =
             spacing layout
-
-        n =
-            0 - positionOnStaff layout p
     in
-        Pixels <| (toFloat n / 2.0) * s.px
+        Pixels <| (toFloat sn / 2.0) * s.px
 
 
-unscalePitch : Layout -> Pixels -> Pitch
-unscalePitch layout y =
-    -- return the pitch, given Y pixels from top of layout
+unscaleStep : Layout -> Pixels -> StepNumber
+unscaleStep layout y =
+    -- return the stepNumber, given Y pixels from top of layout
     let
         s =
             spacing layout
@@ -208,14 +241,23 @@ unscalePitch layout y =
 
         n =
             round (2.0 * (y.px - m.top.px - s.px / 2.0) / s.px)
-
-        base =
-            Pitch.stepNumber layout.basePitch
-
-        sn =
-            base - n
     in
-        Pitch.fromStepNumber sn
+        Pitch.stepNumber layout.basePitch - n
+
+
+scalePitch : Layout -> Pitch -> Pixels
+scalePitch layout p =
+    -- location the top of the note from the top of the staff
+    scaleStep layout <|
+        0
+            - positionOnStaff layout p
+
+
+unscalePitch : Layout -> Pixels -> Pitch
+unscalePitch layout y =
+    -- return the pitch, given Y pixels from top of layout
+    Pitch.fromStepNumber <|
+        unscaleStep layout y
 
 
 scaleBeat : Layout -> Beat -> Pixels

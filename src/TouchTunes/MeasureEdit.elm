@@ -10,6 +10,7 @@ module TouchTunes.MeasureEdit
 import TouchTunes.Ruler as Ruler
 import Music.Duration as Duration exposing (quarter)
 import Music.Time as Time exposing (Beat)
+import Music.Pitch as Pitch
 import Music.Note.Model as Note
     exposing
         ( Note
@@ -26,6 +27,7 @@ import Music.Measure.Layout as Layout
         ( Layout
         , Pixels
         , Tenths
+        , Location
         , heightPx
         , widthPx
         )
@@ -44,218 +46,141 @@ import Svg.Attributes exposing (class)
 
 
 type alias MeasureEdit =
-    { cursor : Maybe Cursor
+    { gesture : Gesture
     , measure : Measure
     }
 
 
-type alias Cursor =
-    { beat : Beat
-    , dx : Pixels
-    , x : Pixels
-    , y : Pixels
-    }
+type Gesture
+    = Idle
+    | Touch Location
+    | Drag Location Location
 
 
 type Action
-    = StartNote Mouse.Position
-    | DragNote Cursor Mouse.Position
-    | FinishNote Cursor
+    = StartGesture Location
+    | ContinueGesture Location
+    | FinishGesture
 
 
 open : Measure -> MeasureEdit
 open measure =
-    MeasureEdit Nothing measure
-
-
-
--- insertNote : Note -> Beat -> MeasureEdit -> MeasureEdit
--- insertNote note beat editor =
---     { editor
---         | measure = Measure.insertNote note beat editor.measure
---     }
-
-
-modifyNote : (Note -> Note) -> Beat -> MeasureEdit -> MeasureEdit
-modifyNote f beat editor =
-    let
-        measure =
-            editor.measure
-    in
-        { editor
-            | measure = Measure.modifyNote f beat measure
-        }
-
-
-capture : Beat -> Pixels -> Mouse.Position -> MeasureEdit -> MeasureEdit
-capture beat dx position editor =
-    let
-        posx =
-            Pixels (toFloat position.x)
-
-        posy =
-            Pixels (toFloat position.y)
-    in
-        { editor
-            | cursor = Just (Cursor beat dx posx posy)
-        }
-
-
-release : MeasureEdit -> MeasureEdit
-release editor =
-    { editor | cursor = Nothing }
+    MeasureEdit Idle measure
 
 
 update : Action -> MeasureEdit -> MeasureEdit
-update action editor =
+update action ed =
     case action of
-        StartNote offset ->
-            startNote offset editor
+        StartGesture from ->
+            { ed
+                | gesture = Touch from
+                , measure =
+                    let
+                        pitch =
+                            Pitch.fromStepNumber from.step
 
-        DragNote cursor offset ->
-            let
-                dx =
-                    toFloat (offset.x) - cursor.x.px
+                        modify note =
+                            shiftX from.shiftx <|
+                                { note
+                                    | do =
+                                        case note.do of
+                                            Note.Blank ->
+                                                Note.Play pitch
 
-                dy =
-                    toFloat (offset.y) - cursor.y.px
-            in
-                if (abs dx) > (abs dy) then
-                    stretchNote cursor offset editor
-                else
-                    bendNote cursor offset editor
+                                            Note.Play _ ->
+                                                Note.Play pitch
 
-        FinishNote cursor ->
-            finishNote cursor editor
+                                            _ ->
+                                                note.do
+                                }
+                    in
+                        modifyNote modify from.beat ed.measure
+            }
 
+        ContinueGesture to ->
+            { ed
+                | gesture =
+                    case ed.gesture of
+                        Idle ->
+                            ed.gesture
 
-startNote : Mouse.Position -> MeasureEdit -> MeasureEdit
-startNote offset editor =
-    let
-        measure =
-            editor.measure
+                        Touch from ->
+                            Drag from to
 
-        layout =
-            MeasureView.layoutFor measure
+                        Drag from _ ->
+                            Drag from to
+                , measure =
+                    let
+                        from =
+                            case ed.gesture of
+                                Idle ->
+                                    to
 
-        x =
-            Pixels <| toFloat offset.x
+                                Touch from ->
+                                    from
 
-        y =
-            Pixels <| toFloat offset.y
+                                Drag from _ ->
+                                    from
 
-        beat =
-            Layout.unscaleBeat layout x
+                        modify note =
+                            if to.beat /= from.beat then
+                                let
+                                    -- TODO: get time from measure
+                                    time =
+                                        Time.common
 
-        xb =
-            Layout.scaleBeat layout beat
+                                    beats =
+                                        to.beat - from.beat
 
-        dx =
-            Pixels <|
-                x.px
-                    - xb.px
+                                    dur =
+                                        Duration.fromTimeBeats time (abs beats)
 
-        pitch =
-            Layout.unscalePitch layout y
+                                    newNote =
+                                        if beats < 0 then
+                                            { note | do = Note.Rest }
+                                        else
+                                            note
+                                in
+                                    if Duration.longerThan dur note.duration then
+                                        { newNote | duration = dur }
+                                    else
+                                        newNote
+                            else
+                                let
+                                    pitch =
+                                        Pitch.fromStepNumber to.step
+                                in
+                                    { note | do = Note.Play pitch }
+                    in
+                        case ed.gesture of
+                            Idle ->
+                                ed.measure
 
-        modifier note =
-            let
-                what =
-                    case note.do of
-                        Note.Blank ->
-                            Note.Play pitch
+                            Touch from ->
+                                modifyNote modify from.beat ed.measure
 
-                        Note.Play _ ->
-                            Note.Play pitch
+                            Drag from _ ->
+                                modifyNote modify from.beat ed.measure
+            }
 
-                        _ ->
-                            note.do
-            in
-                { note | do = what }
-                    |> shiftX (Layout.toTenths layout dx)
-    in
-        (capture beat dx offset
-            << modifyNote modifier beat
-        )
-            editor
+        FinishGesture ->
+            { ed
+                | gesture = Idle
+                , measure =
+                    let
+                        modify =
+                            Note.unshiftX
+                    in
+                        case ed.gesture of
+                            Idle ->
+                                ed.measure
 
+                            Touch from ->
+                                modifyNote modify from.beat ed.measure
 
-bendNote : Cursor -> Mouse.Position -> MeasureEdit -> MeasureEdit
-bendNote cursor offset editor =
-    let
-        measure =
-            editor.measure
-
-        layout =
-            MeasureView.layoutFor measure
-
-        beat =
-            cursor.beat
-
-        p =
-            Layout.unscalePitch layout <|
-                Pixels <|
-                    toFloat offset.y
-
-        modifier note =
-            { note | do = Note.Play p }
-    in
-        modifyNote modifier beat editor
-
-
-stretchNote : Cursor -> Mouse.Position -> MeasureEdit -> MeasureEdit
-stretchNote cursor offset editor =
-    let
-        measure =
-            editor.measure
-
-        layout =
-            MeasureView.layoutFor measure
-
-        time =
-            Measure.time measure
-
-        beat =
-            cursor.beat
-
-        toBeat =
-            Layout.unscaleBeat layout <|
-                Pixels <|
-                    toFloat offset.x
-                        - cursor.dx.px
-
-        beats =
-            toBeat - beat
-
-        dur =
-            Duration.fromTimeBeats time (abs beats)
-
-        modifier note =
-            let
-                newNote =
-                    if beats < 0 then
-                        { note | do = Note.Rest }
-                    else
-                        note
-            in
-                if Duration.longerThan dur note.duration then
-                    { newNote | duration = dur }
-                else
-                    newNote
-    in
-        modifyNote modifier beat editor
-
-
-finishNote : Cursor -> MeasureEdit -> MeasureEdit
-finishNote cursor =
-    let
-        beat =
-            cursor.beat
-
-        modifier note =
-            Note.unshiftX note
-    in
-        release << modifyNote modifier beat
+                            Drag from _ ->
+                                modifyNote modify from.beat ed.measure
+            }
 
 
 mouseOffset : Decoder Mouse.Position
@@ -275,8 +200,8 @@ view editor =
         lo =
             MeasureView.layoutFor measure
 
-        cursor =
-            editor.cursor
+        gesture =
+            editor.gesture
 
         w =
             Layout.width lo
@@ -284,24 +209,39 @@ view editor =
         h =
             Layout.height lo
 
+        toLocation =
+            Layout.positionToLocation lo
+
+        down =
+            on "mousedown" <|
+                Decode.map StartGesture <|
+                    Decode.map toLocation mouseOffset
+
+        move from =
+            on "mousemove" <|
+                Decode.map ContinueGesture <|
+                    Decode.map toLocation mouseOffset
+
+        up from =
+            onMouseUp FinishGesture
+
+        out from =
+            onMouseOut FinishGesture
+
         actions =
-            case cursor of
-                Nothing ->
-                    [ on "mousedown" <|
-                        Decode.map
-                            StartNote
-                            mouseOffset
+            case gesture of
+                Idle ->
+                    [ down ]
+
+                Touch from ->
+                    [ move from
+                    , up from
                     ]
 
-                Just cur ->
-                    [ on "mousemove" <|
-                        Decode.map
-                            (DragNote cur)
-                            mouseOffset
-                    , onMouseUp
-                        (FinishNote cur)
-                    , onMouseOut
-                        (FinishNote cur)
+                Drag from to ->
+                    [ move from
+                    , up from
+                    , out from
                     ]
     in
         div

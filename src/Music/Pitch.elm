@@ -17,6 +17,7 @@ module Music.Pitch
         , stepNumber
         , fromStepNumber
         , toString
+        , StepNumber
         )
 
 import Array
