@@ -3,11 +3,11 @@ module TouchTunes.MeasureEdit
         ( MeasureEdit
         , open
         , view
-        , Action
         , update
         )
 
 import TouchTunes.Ruler as Ruler
+import TouchTunes.Gesture as Gesture exposing (Gesture)
 import Music.Duration as Duration exposing (quarter)
 import Music.Time as Time exposing (Beat)
 import Music.Pitch as Pitch
@@ -51,30 +51,20 @@ type alias MeasureEdit =
     }
 
 
-type Gesture
-    = Idle
-    | Touch Location
-    | Drag Location Location
-
-
-type Action
-    = StartGesture Location
-    | ContinueGesture Location
-    | FinishGesture
-
-
 open : Measure -> MeasureEdit
 open measure =
-    MeasureEdit Idle measure
+    MeasureEdit Gesture.Idle measure
 
 
-update : Action -> MeasureEdit -> MeasureEdit
+update : Gesture.Action -> MeasureEdit -> MeasureEdit
 update action ed =
-    case action of
-        StartGesture from ->
-            { ed
-                | gesture = Touch from
-                , measure =
+    let
+        gesture =
+            Gesture.update action ed.gesture
+
+        measure =
+            case gesture of
+                Gesture.Touch from ->
                     let
                         pitch =
                             Pitch.fromStepNumber from.step
@@ -86,33 +76,9 @@ update action ed =
                                 }
                     in
                         modifyNote modify from.beat ed.measure
-            }
 
-        ContinueGesture to ->
-            { ed
-                | gesture =
-                    case ed.gesture of
-                        Idle ->
-                            ed.gesture
-
-                        Touch from ->
-                            Drag from to
-
-                        Drag from _ ->
-                            Drag from to
-                , measure =
+                Gesture.Drag from to ->
                     let
-                        from =
-                            case ed.gesture of
-                                Idle ->
-                                    to
-
-                                Touch from ->
-                                    from
-
-                                Drag from _ ->
-                                    from
-
                         modify note =
                             if to.beat /= from.beat then
                                 let
@@ -140,35 +106,26 @@ update action ed =
                                 in
                                     { note | do = Note.Play pitch }
                     in
-                        case ed.gesture of
-                            Idle ->
-                                ed.measure
+                        modifyNote modify from.beat ed.measure
 
-                            Touch from ->
-                                modifyNote modify from.beat ed.measure
-
-                            Drag from _ ->
-                                modifyNote modify from.beat ed.measure
-            }
-
-        FinishGesture ->
-            { ed
-                | gesture = Idle
-                , measure =
+                Gesture.Idle ->
                     let
                         modify =
                             Note.unshiftX
                     in
                         case ed.gesture of
-                            Idle ->
+                            Gesture.Idle ->
                                 ed.measure
 
-                            Touch from ->
+                            Gesture.Touch from ->
                                 modifyNote modify from.beat ed.measure
 
-                            Drag from _ ->
+                            Gesture.Drag from _ ->
                                 modifyNote modify from.beat ed.measure
-            }
+    in
+        { gesture = gesture
+        , measure = measure
+        }
 
 
 mouseOffset : Decoder Mouse.Position
@@ -179,7 +136,7 @@ mouseOffset =
         (field "offsetY" int)
 
 
-view : MeasureEdit -> Html Action
+view : MeasureEdit -> Html Gesture.Action
 view editor =
     let
         measure =
@@ -202,31 +159,31 @@ view editor =
 
         down =
             on "mousedown" <|
-                Decode.map StartGesture <|
+                Decode.map Gesture.StartGesture <|
                     Decode.map toLocation mouseOffset
 
         move from =
             on "mousemove" <|
-                Decode.map ContinueGesture <|
+                Decode.map Gesture.ContinueGesture <|
                     Decode.map toLocation mouseOffset
 
         up from =
-            onMouseUp FinishGesture
+            onMouseUp Gesture.FinishGesture
 
         out from =
-            onMouseOut FinishGesture
+            onMouseOut Gesture.FinishGesture
 
         actions =
             case gesture of
-                Idle ->
+                Gesture.Idle ->
                     [ down ]
 
-                Touch from ->
+                Gesture.Touch from ->
                     [ move from
                     , up from
                     ]
 
-                Drag from to ->
+                Gesture.Drag from to ->
                     [ move from
                     , up from
                     , out from

@@ -8,6 +8,7 @@ module TouchTunes.PartEdit
         )
 
 import TouchTunes.MeasureEdit as MeasureEdit exposing (MeasureEdit)
+import TouchTunes.Gesture as Gesture
 import Music.Part as Part exposing (Part)
 import Array exposing (Array)
 import Html
@@ -29,7 +30,7 @@ type alias PartEdit =
 
 
 type Action
-    = OnMeasure Int MeasureEdit.Action
+    = OnMeasure Int Gesture.Action
 
 
 open : Part -> PartEdit
