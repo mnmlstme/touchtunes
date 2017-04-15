@@ -70,10 +70,20 @@ update action ed =
                             Pitch.fromStepNumber from.step
 
                         modify note =
-                            shiftX from.shiftx <|
-                                { note
-                                    | do = Note.Play pitch
-                                }
+                            let
+                                dur =
+                                    case note.do of
+                                        Note.Rest ->
+                                            Duration.quarter
+
+                                        _ ->
+                                            note.duration
+                            in
+                                shiftX from.shiftx <|
+                                    { note
+                                        | do = Note.Play pitch
+                                        , duration = dur
+                                    }
                     in
                         modifyNote modify from.beat ed.measure
 

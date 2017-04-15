@@ -121,116 +121,60 @@ fromSequence sequence =
         fromNotes <| justNotes sequence
 
 
-splitSequence : Beat -> Sequence -> ( Sequence, Sequence )
-splitSequence beat =
-    let
-        precedes beat ( b, _ ) =
-            b < beat
-    in
-        List.partition <| precedes beat
-
-
-findInSequence : Beat -> Sequence -> Maybe ( Beat, Note )
-findInSequence beat sequence =
-    let
-        ( before, rest ) =
-            splitSequence beat sequence
-    in
-        List.head rest
-
-
 openSequence : Beat -> Sequence -> ( Sequence, Note, Sequence )
 openSequence beat sequence =
     let
         -- TODO: need to get time tfrom measure:
-        time =
+        t =
             Time.common
 
-        blank =
-            Note.restFor Duration.quarter
+        precedes ( b, n ) =
+            b + Duration.beats t n.duration <= beat
 
-        ( before, rest ) =
-            splitSequence beat sequence
+        ( before, after ) =
+            List.partition precedes sequence
 
-        ( note, after ) =
-            case List.head rest of
+        ( maybeBefore, note ) =
+            case List.head after of
                 Nothing ->
-                    ( blank, rest )
+                    ( Nothing, Note.restFor Duration.quarter )
 
                 Just ( b, n ) ->
                     if b == beat then
-                        ( n
-                        , Maybe.withDefault [] <| List.tail rest
-                        )
+                        ( Nothing, n )
                     else
-                        ( blank, rest )
+                        let
+                            durBefore =
+                                Duration.fromTimeBeats t <|
+                                    beat
+                                        - b
 
-        erofeb =
-            List.reverse before
-
-        ( prevNote, nextNote ) =
-            case List.head erofeb of
-                Nothing ->
-                    ( Nothing, Nothing )
-
-                Just ( b, n ) ->
-                    let
-                        beats =
-                            Duration.beats time n.duration
-                    in
-                        if b + beats == beat then
-                            ( Nothing, Nothing )
-                        else
-                            let
-                                noteBeats =
-                                    Duration.beats time note.duration
-
-                                pre =
-                                    beat - b
-
-                                post =
-                                    beats - pre - noteBeats
-                            in
-                                ( if pre /= 0 then
-                                    Just
-                                        ( b
-                                        , { n
-                                            | duration = Duration.fromTimeBeats time pre
-                                          }
-                                        )
-                                  else
-                                    Nothing
-                                , if post /= 0 then
-                                    Just
-                                        ( beat + noteBeats
-                                        , { n
-                                            | duration = Duration.fromTimeBeats time post
-                                          }
-                                        )
-                                  else
-                                    Nothing
+                            durAfter =
+                                Duration.fromTimeBeats t <|
+                                    Duration.beats t n.duration
+                                        - (beat - b)
+                        in
+                            ( Just
+                                ( beat - b
+                                , { n | duration = durBefore }
                                 )
-
-        earlier =
-            case prevNote of
-                Nothing ->
-                    before
-
-                Just beatnote ->
-                    List.reverse <|
-                        (::) beatnote <|
-                            Maybe.withDefault [] <|
-                                List.tail erofeb
-
-        later =
-            case nextNote of
-                Nothing ->
-                    after
-
-                Just beatnote ->
-                    beatnote :: after
+                            , { n | duration = durAfter }
+                            )
     in
-        ( earlier, note, later )
+        ( case maybeBefore of
+            Nothing ->
+                before
+
+            Just tuple ->
+                List.append before [ tuple ]
+        , note
+        , case List.tail after of
+            Nothing ->
+                []
+
+            Just list ->
+                list
+        )
 
 
 modifyNote : (Note -> Note) -> Beat -> Measure -> Measure
@@ -245,11 +189,11 @@ modifyNote f beat measure =
         ( before, note, after ) =
             openSequence beat sequence
 
-        noteBeats =
-            Duration.beats t note.duration
-
         newNote =
             f note
+
+        noteBeats =
+            Duration.beats t note.duration
 
         newBeats =
             Duration.beats t newNote.duration
@@ -257,40 +201,67 @@ modifyNote f beat measure =
         delta =
             newBeats - noteBeats
 
-        nowAfter =
-            let
-                tail =
-                    case List.tail after of
-                        Nothing ->
-                            []
+        -- any duration remaining from original note
+        maybeRemainder =
+            if delta < 0 then
+                Just
+                    ( beat - newBeats
+                    , { note
+                        | duration =
+                            Duration.fromTimeBeats t (0 - delta)
+                      }
+                    )
+            else
+                Nothing
 
-                        Just list ->
-                            list
-            in
-                case List.head after of
-                    Nothing ->
-                        after
+        endBeat =
+            beat + newBeats
 
-                    Just ( nextBeat, nextNote ) ->
+        follows ( b, n ) =
+            b + Duration.beats t n.duration > endBeat
+
+        following =
+            List.filter follows after
+
+        -- the first note following may be clipped
+        maybeClipped =
+            case List.head following of
+                Just ( b, n ) ->
+                    if b < endBeat then
                         let
-                            b =
-                                Duration.beats t nextNote.duration
-
-                            n =
-                                { nextNote
-                                    | duration = Duration.fromTimeBeats t (b - delta)
-                                }
+                            d =
+                                Duration.fromTimeBeats t <|
+                                    Duration.beats t n.duration
+                                        - (endBeat - b)
                         in
-                            if b == delta then
-                                tail
-                            else
-                                ( nextBeat + delta, n ) :: tail
+                            Just ( endBeat, { n | duration = d } )
+                    else
+                        Nothing
+
+                Nothing ->
+                    Nothing
+
+        rest =
+            case maybeClipped of
+                Just bn ->
+                    bn
+                        :: (Maybe.withDefault [] <|
+                                List.tail following
+                           )
+
+                Nothing ->
+                    case maybeRemainder of
+                        Just bn ->
+                            bn :: following
+
+                        Nothing ->
+                            following
 
         newSequence =
             List.concat
                 [ before
-                , [ ( beat, f note ) ]
-                , nowAfter
+                , [ ( beat, f newNote ) ]
+                , rest
                 ]
     in
         fromSequence newSequence
