@@ -118,6 +118,33 @@ update action ed =
                     in
                         modifyNote modify from.beat ed.measure
 
+                Gesture.Reversal from to back ->
+                    let
+                        modify note =
+                            if back.beat /= to.beat then
+                                let
+                                    -- TODO: get time from measure
+                                    time =
+                                        Time.common
+
+                                    beats =
+                                        back.beat - from.beat
+
+                                    dur =
+                                        Duration.fromTimeBeats time (abs beats)
+
+                                    newNote =
+                                        if beats < 0 then
+                                            { note | do = Note.Rest }
+                                        else
+                                            note
+                                in
+                                    { newNote | duration = dur }
+                            else
+                                note
+                    in
+                        modifyNote modify from.beat ed.measure
+
                 Gesture.Idle ->
                     let
                         modify =
@@ -131,6 +158,9 @@ update action ed =
                                 modifyNote modify from.beat ed.measure
 
                             Gesture.Drag from _ ->
+                                modifyNote modify from.beat ed.measure
+
+                            Gesture.Reversal from _ _ ->
                                 modifyNote modify from.beat ed.measure
     in
         { gesture = gesture
@@ -172,15 +202,15 @@ view editor =
                 Decode.map Gesture.StartGesture <|
                     Decode.map toLocation mouseOffset
 
-        move from =
+        move =
             on "mousemove" <|
                 Decode.map Gesture.ContinueGesture <|
                     Decode.map toLocation mouseOffset
 
-        up from =
+        up =
             onMouseUp Gesture.FinishGesture
 
-        out from =
+        out =
             onMouseOut Gesture.FinishGesture
 
         actions =
@@ -188,15 +218,21 @@ view editor =
                 Gesture.Idle ->
                     [ down ]
 
-                Gesture.Touch from ->
-                    [ move from
-                    , up from
+                Gesture.Touch _ ->
+                    [ move
+                    , up
                     ]
 
-                Gesture.Drag from to ->
-                    [ move from
-                    , up from
-                    , out from
+                Gesture.Drag _ _ ->
+                    [ move
+                    , up
+                    , out
+                    ]
+
+                Gesture.Reversal _ _ _ ->
+                    [ move
+                    , up
+                    , out
                     ]
     in
         div

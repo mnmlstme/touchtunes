@@ -201,15 +201,13 @@ modifyNote f beat measure =
         delta =
             newBeats - noteBeats
 
-        -- any duration remaining from original note
+        -- any duration remaining from original note is filled with rest
         maybeRemainder =
             if delta < 0 then
                 Just
                     ( beat - newBeats
-                    , { note
-                        | duration =
-                            Duration.fromTimeBeats t (0 - delta)
-                      }
+                    , Note.restFor <|
+                        Duration.fromTimeBeats t (0 - delta)
                     )
             else
                 Nothing
@@ -260,7 +258,10 @@ modifyNote f beat measure =
         newSequence =
             List.concat
                 [ before
-                , [ ( beat, f newNote ) ]
+                , if newBeats == 0 then
+                    []
+                  else
+                    [ ( beat, newNote ) ]
                 , rest
                 ]
     in

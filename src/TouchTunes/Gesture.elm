@@ -16,6 +16,7 @@ type Gesture
     = Idle
     | Touch Location
     | Drag Location Location
+    | Reversal Location Location Location
 
 
 type Action
@@ -27,19 +28,28 @@ type Action
 update : Action -> Gesture -> Gesture
 update action gesture =
     case action of
-        StartGesture from ->
-            Touch from
+        StartGesture loc ->
+            Touch loc
 
-        ContinueGesture to ->
+        ContinueGesture loc ->
             case gesture of
                 Idle ->
                     gesture
 
                 Touch from ->
-                    Drag from to
+                    Drag from loc
 
-                Drag from _ ->
-                    Drag from to
+                Drag from to ->
+                    if abs (loc.beat - from.beat) < abs (to.beat - from.beat) then
+                        Reversal from to loc
+                    else
+                        Drag from loc
+
+                Reversal from to _ ->
+                    if abs (loc.beat - from.beat) < abs (to.beat - from.beat) then
+                        Reversal from to loc
+                    else
+                        Drag from loc
 
         FinishGesture ->
             Idle
