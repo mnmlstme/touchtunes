@@ -16,9 +16,11 @@ module Music.Duration
         , longerThan
         , shorterThan
         , equal
+        , add
         , shortenBy
         )
 
+import Arithmetic exposing (lcm)
 import Music.Time exposing (Time, Beat)
 
 
@@ -29,6 +31,7 @@ import Music.Time exposing (Time, Beat)
 
 
 type alias Duration =
+    -- TODO: reverse the order so count is last argument to constructor
     { count : Int
     , divisor : Int
     }
@@ -107,22 +110,59 @@ isWhole time d =
         b >= time.beats
 
 
+commonDivisor : Duration -> Duration -> Int
+commonDivisor a b =
+    lcm a.divisor b.divisor
+
+
+changeDivisor : Int -> Duration -> Duration
+changeDivisor div dur =
+    Duration (dur.count * div // dur.divisor) div
+
+
+makeCommon : ( Duration, Duration ) -> ( Duration, Duration )
+makeCommon ( a, b ) =
+    let
+        change =
+            changeDivisor <| commonDivisor a b
+    in
+        ( change a, change b )
+
+
 longerThan : Duration -> Duration -> Bool
 longerThan a b =
-    -- TODO: check divisor
-    a.count > b.count
+    let
+        ( ac, bc ) =
+            makeCommon ( a, b )
+    in
+        ac.count > bc.count
 
 
 shorterThan : Duration -> Duration -> Bool
 shorterThan a b =
-    -- TODO: check divisor
-    a.count < b.count
+    let
+        ( ac, bc ) =
+            makeCommon ( a, b )
+    in
+        ac.count < bc.count
 
 
 equal : Duration -> Duration -> Bool
 equal a b =
-    -- TODO: check divisor
-    a.count == b.count
+    let
+        ( ac, bc ) =
+            makeCommon ( a, b )
+    in
+        ac.count == bc.count
+
+
+add : Duration -> Duration -> Duration
+add a b =
+    let
+        ( ac, bc ) =
+            makeCommon ( a, b )
+    in
+        { bc | count = ac.count + bc.count }
 
 
 shortenBy : Beat -> Duration -> Duration

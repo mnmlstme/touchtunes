@@ -266,3 +266,35 @@ modifyNote f beat measure =
                 ]
     in
         fromSequence newSequence
+            |> aggregateRests
+
+
+aggregateRests : Measure -> Measure
+aggregateRests measure =
+    let
+        -- agg operates right to left so that previous note is head of list
+        agg : Nonempty Note -> Nonempty Note -> Nonempty Note
+        agg singleton sofar =
+            let
+                note =
+                    Nonempty.head singleton
+
+                prevNote =
+                    Nonempty.head sofar
+            in
+                case ( prevNote.do, note.do ) of
+                    ( Note.Rest, Note.Rest ) ->
+                        Nonempty.replaceHead
+                            { prevNote
+                                | duration =
+                                    Duration.add prevNote.duration note.duration
+                            }
+                            sofar
+
+                    _ ->
+                        note ::: sofar
+    in
+        Nonempty.map Nonempty.fromElement measure.notes
+            |> Nonempty.reverse
+            |> Nonempty.foldl1 agg
+            |> Measure
