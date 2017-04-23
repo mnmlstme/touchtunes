@@ -9,7 +9,6 @@ module TouchTunes.MeasureEdit
 import TouchTunes.Ruler as Ruler
 import TouchTunes.Gesture as Gesture exposing (Gesture)
 import Music.Duration as Duration exposing (quarter)
-import Music.Time as Time exposing (Beat)
 import Music.Pitch as Pitch
 import Music.Note.Model as Note
     exposing
@@ -92,9 +91,8 @@ update action ed =
                         modify note =
                             if to.beat /= from.beat then
                                 let
-                                    -- TODO: get time from measure
                                     time =
-                                        Time.common
+                                        Measure.time ed.measure
 
                                     beats =
                                         to.beat - from.beat
@@ -108,7 +106,10 @@ update action ed =
                                         else
                                             note
                                 in
-                                    { newNote | duration = dur }
+                                    if Duration.longerThan dur note.duration then
+                                        { newNote | duration = dur }
+                                    else
+                                        note
                             else
                                 let
                                     pitch =
@@ -123,9 +124,8 @@ update action ed =
                         modify note =
                             if back.beat /= to.beat then
                                 let
-                                    -- TODO: get time from measure
                                     time =
-                                        Time.common
+                                        Measure.time ed.measure
 
                                     beats =
                                         back.beat - from.beat
