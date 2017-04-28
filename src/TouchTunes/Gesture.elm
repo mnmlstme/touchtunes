@@ -88,7 +88,12 @@ update action gesture =
                     gesture
 
                 Touch from ->
-                    Drag from loc
+                    if from.beat /= loc.beat then
+                        Drag from loc
+                    else if from.step /= loc.step then
+                        Touch loc
+                    else
+                        gesture
 
                 Drag from to ->
                     if abs (loc.beat - from.beat) < abs (to.beat - from.beat) then
@@ -97,7 +102,9 @@ update action gesture =
                         Drag from loc
 
                 Reversal from to _ ->
-                    if abs (loc.beat - from.beat) < abs (to.beat - from.beat) then
+                    if from.beat == loc.beat && from.step /= loc.step then
+                        Touch loc
+                    else if abs (loc.beat - from.beat) < abs (to.beat - from.beat) then
                         Reversal from to loc
                     else
                         Drag from loc
