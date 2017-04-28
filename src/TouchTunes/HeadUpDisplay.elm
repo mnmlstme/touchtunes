@@ -15,12 +15,19 @@ import Music.Measure.Layout as Layout
         , Location
         , heightPx
         , widthPx
+        , cxPx
+        , cyPx
+        , rPx
+        , spacing
+        , halfSpacing
         , positionToLocation
+        , scaleStep
+        , scaleBeat
         )
 import Json.Decode as Decode exposing (Decoder, field, int)
 import Mouse
-import Svg exposing (Svg, svg, g)
-import Svg.Attributes exposing (class)
+import Svg exposing (Svg, svg, g, circle)
+import Svg.Attributes exposing (class, transform)
 import Html.Events
     exposing
         ( on
@@ -81,21 +88,13 @@ view hud =
                     [ down ]
 
                 Gesture.Touch _ ->
-                    [ move
-                    , up
-                    ]
+                    [ move, up ]
 
                 Gesture.Drag _ _ ->
-                    [ move
-                    , up
-                    , out
-                    ]
+                    [ move, up, out ]
 
                 Gesture.Reversal _ _ _ ->
-                    [ move
-                    , up
-                    , out
-                    ]
+                    [ move, up, out ]
     in
         svg
             (List.append
@@ -105,4 +104,57 @@ view hud =
                 ]
                 actions
             )
-            []
+            [ viewNoteDurations hud
+            , viewPitches hud
+            ]
+
+
+viewNoteDurations : HeadUpDisplay -> Svg msg
+viewNoteDurations hud =
+    case Gesture.start hud.gesture of
+        Nothing ->
+            g [] [ g [] [] ]
+
+        Just loc ->
+            let
+                t =
+                    hud.layout.time
+
+                b =
+                    loc.beat
+
+                beats =
+                    List.range (b + 1) (t.beats - 1)
+
+                position =
+                    String.join ","
+                        (List.map toString
+                            [ 0
+                            , .px (scaleStep hud.layout loc.step)
+                            ]
+                        )
+
+                hotspot beat =
+                    circle
+                        [ rPx <| spacing hud.layout
+                        , cxPx <| scaleBeat hud.layout beat
+                        , cyPx <| Pixels <| 0
+                        ]
+                        []
+            in
+                g
+                    [ transform
+                        ("translate(" ++ position ++ ")")
+                    ]
+                <|
+                    List.map hotspot beats
+
+
+viewRestDurations : HeadUpDisplay -> Svg msg
+viewRestDurations hud =
+    g [] []
+
+
+viewPitches : HeadUpDisplay -> Svg msg
+viewPitches hud =
+    g [] []

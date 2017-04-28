@@ -90,7 +90,8 @@ update action ed =
                                         to.beat - from.beat
 
                                     dur =
-                                        Duration.fromTimeBeats time (abs beats)
+                                        Duration.fromTimeBeats time <|
+                                            abs (beats + 1)
 
                                     newNote =
                                         if beats < 0 then
@@ -123,7 +124,8 @@ update action ed =
                                         back.beat - from.beat
 
                                     dur =
-                                        Duration.fromTimeBeats time (abs beats)
+                                        Duration.fromTimeBeats time <|
+                                            abs (beats + 1)
 
                                     newNote =
                                         if beats < 0 then

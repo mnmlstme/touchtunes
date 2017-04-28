@@ -17,6 +17,8 @@ import Music.Measure.Layout
         , widthPx
         , toPixels
         , spacing
+        , halfSpacing
+        , margins
         , scalePitch
         , scaleBeat
         , positionOnStaff
@@ -140,7 +142,7 @@ ledgerLines layout p =
             List.filter isEven steps
 
         spaceToPixels i =
-            Pixels (toFloat (i + lineOffset) * sp.px / 2)
+            Pixels (toFloat (i + lineOffset - 1) * sp.px / 2)
     in
         List.map spaceToPixels spaces
 
@@ -197,6 +199,9 @@ viewRest layout beat d =
         sp =
             spacing layout
 
+        m =
+            margins layout
+
         w =
             Pixels <| 1.5 * sp.px
 
@@ -207,7 +212,7 @@ viewRest layout beat d =
             String.join ","
                 (List.map toString
                     [ 0 - w.px / 2.0
-                    , sp.px
+                    , sp.px + m.top.px
                     ]
                 )
 
@@ -272,10 +277,10 @@ viewPitch layout beat d p =
         y1stem =
             case stemDir of
                 StemUp ->
-                    Pixels <| 0.25 * sp.px
+                    Pixels <| -0.25 * sp.px
 
                 StemDown ->
-                    Pixels <| 0.75 * sp.px
+                    Pixels <| 0.25 * sp.px
 
         y2stem =
             case stemDir of
@@ -306,7 +311,7 @@ viewPitch layout beat d p =
             [ use
                 [ xlinkHref noteSymbol
                 , xPx <| Pixels 0
-                , yPx <| Pixels 0
+                , yPx <| Pixels <| 0 - (halfSpacing layout).px
                 , heightPx sp
                 , widthPx w
                 ]
@@ -357,7 +362,7 @@ viewDot layout d =
             use
                 [ xlinkHref dotSymbol
                 , xPx w
-                , yPx <| Pixels 0
+                , yPx <| Pixels <| 0 - (halfSpacing layout).px
                 , heightPx sp
                 , widthPx sp
                 ]

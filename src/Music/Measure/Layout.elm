@@ -14,9 +14,13 @@ module Music.Measure.Layout
         , yPx
         , y1Px
         , y2Px
+        , cxPx
+        , cyPx
+        , rPx
         , Location
         , positionToLocation
         , spacing
+        , halfSpacing
         , beatSpacing
         , width
         , height
@@ -24,6 +28,8 @@ module Music.Measure.Layout
         , positionOnStaff
         , scalePitch
         , unscalePitch
+        , scaleStep
+        , unscaleStep
         , scaleBeat
         , unscaleBeat
         , standard
@@ -112,6 +118,21 @@ y2Px =
     pxAttribute Attributes.y2
 
 
+cxPx : Pixels -> Attribute msg
+cxPx =
+    pxAttribute Attributes.cx
+
+
+cyPx : Pixels -> Attribute msg
+cyPx =
+    pxAttribute Attributes.cy
+
+
+rPx : Pixels -> Attribute msg
+rPx =
+    pxAttribute Attributes.r
+
+
 type alias Location =
     { step : StepNumber
     , beat : Beat
@@ -160,6 +181,11 @@ spacing : Layout -> Pixels
 spacing layout =
     -- the interline staff spacing in pixels
     Tenths 10.0 |> toPixels layout
+
+
+halfSpacing : Layout -> Pixels
+halfSpacing layout =
+    Tenths 5.0 |> toPixels layout
 
 
 margins : Layout -> Margins
@@ -221,12 +247,23 @@ positionOnStaff layout p =
 
 scaleStep : Layout -> StepNumber -> Pixels
 scaleStep layout sn =
-    -- location the top of the step from the top of the staff
+    -- location of the middle of the step from the top of the layout
     let
         s =
             spacing layout
+
+        m =
+            margins layout
+
+        n =
+            Pitch.stepNumber layout.basePitch - sn
     in
-        Pixels <| (toFloat sn / 2.0) * s.px
+        Pixels <|
+            toFloat n
+                / 2.0
+                * s.px
+                + m.top.px
+                + (s.px / 2.0)
 
 
 unscaleStep : Layout -> Pixels -> StepNumber
@@ -242,22 +279,22 @@ unscaleStep layout y =
         n =
             round (2.0 * (y.px - m.top.px - s.px / 2.0) / s.px)
     in
-        Pitch.stepNumber layout.basePitch - n
+        Pitch.stepNumber layout.basePitch
+            - n
 
 
 scalePitch : Layout -> Pitch -> Pixels
 scalePitch layout p =
-    -- location the top of the note from the top of the staff
-    scaleStep layout <|
-        0
-            - positionOnStaff layout p
+    -- location the middle of the note from the top of the layout
+    Pitch.stepNumber p
+        |> scaleStep layout
 
 
 unscalePitch : Layout -> Pixels -> Pitch
 unscalePitch layout y =
     -- return the pitch, given Y pixels from top of layout
-    Pitch.fromStepNumber <|
-        unscaleStep layout y
+    unscaleStep layout y
+        |> Pitch.fromStepNumber
 
 
 scaleBeat : Layout -> Beat -> Pixels

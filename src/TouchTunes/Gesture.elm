@@ -3,6 +3,9 @@ module TouchTunes.Gesture
         ( Gesture
         , Gesture(..)
         , Action(..)
+        , start
+        , current
+        , furthest
         , update
         )
 
@@ -23,6 +26,54 @@ type Action
     = StartGesture Location
     | ContinueGesture Location
     | FinishGesture
+
+
+start : Gesture -> Maybe Location
+start g =
+    case g of
+        Idle ->
+            Nothing
+
+        Touch start ->
+            Just start
+
+        Drag start _ ->
+            Just start
+
+        Reversal start _ _ ->
+            Just start
+
+
+current : Gesture -> Maybe Location
+current g =
+    case g of
+        Idle ->
+            Nothing
+
+        Touch current ->
+            Just current
+
+        Drag _ current ->
+            Just current
+
+        Reversal _ _ current ->
+            Just current
+
+
+furthest : Gesture -> Maybe Location
+furthest g =
+    case g of
+        Idle ->
+            Nothing
+
+        Touch furthest ->
+            Just furthest
+
+        Drag _ furthest ->
+            Just furthest
+
+        Reversal _ furthest _ ->
+            Just furthest
 
 
 update : Action -> Gesture -> Gesture

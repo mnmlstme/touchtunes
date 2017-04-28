@@ -117,12 +117,10 @@ view measure =
                     [ transform
                         ("translate(" ++ staffPosition ++ ")")
                     ]
-                    [ Staff.draw layout
-                    , g
-                        [ class "measure-notes"
-                        ]
-                      <|
-                        List.map drawNote noteSequence
-                    ]
+                    [ Staff.draw layout ]
+                , g
+                    [ class "measure-notes" ]
+                  <|
+                    List.map drawNote noteSequence
                 ]
             ]
