@@ -15,7 +15,6 @@ import Music.Note.Model as Note
     exposing
         ( Note
         , playFor
-        , shiftX
         )
 import Music.Measure.Model as Measure
     exposing
@@ -70,11 +69,10 @@ update action ed =
                                         _ ->
                                             note.duration
                             in
-                                shiftX from.shiftx <|
-                                    { note
-                                        | do = Note.Play pitch
-                                        , duration = dur
-                                    }
+                                { note
+                                    | do = Note.Play pitch
+                                    , duration = dur
+                                }
                     in
                         modifyNote modify from.beat ed.measure
 
@@ -142,7 +140,7 @@ update action ed =
                 Gesture.Idle ->
                     let
                         modify =
-                            Note.unshiftX
+                            identity
                     in
                         case oldGesture of
                             Gesture.Idle ->
