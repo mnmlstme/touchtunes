@@ -24,6 +24,8 @@ module Music.Measure.Layout
         , beatSpacing
         , width
         , height
+        , topStep
+        , bottomStep
         , margins
         , positionOnStaff
         , scalePitch
@@ -236,6 +238,24 @@ height layout =
             spacing layout
     in
         m.top.px + m.bottom.px + 4 * s.px |> Pixels
+
+
+topStep : Layout -> StepNumber
+topStep layout =
+    unscaleStep layout <|
+        halfSpacing layout
+
+
+bottomStep : Layout -> StepNumber
+bottomStep layout =
+    let
+        h =
+            height layout
+
+        hs =
+            halfSpacing layout
+    in
+        unscaleStep layout <| Pixels <| h.px - hs.px
 
 
 positionOnStaff : Layout -> Pitch -> Int

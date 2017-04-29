@@ -127,12 +127,11 @@ viewNoteDurations hud =
                     List.range (b + 1) (t.beats - 1)
 
                 position =
-                    String.join ","
-                        (List.map toString
+                    String.join "," <|
+                        List.map toString
                             [ 0
-                            , .px (scaleStep hud.layout loc.step)
+                            , .px <| scaleStep hud.layout loc.step
                             ]
-                        )
 
                 hotspot beat =
                     circle
@@ -143,7 +142,8 @@ viewNoteDurations hud =
                         []
             in
                 g
-                    [ transform
+                    [ class "measure-hud-note-durations"
+                    , transform
                         ("translate(" ++ position ++ ")")
                     ]
                 <|
@@ -157,4 +157,51 @@ viewRestDurations hud =
 
 viewPitches : HeadUpDisplay -> Svg msg
 viewPitches hud =
-    g [] []
+    case Gesture.start hud.gesture of
+        Nothing ->
+            g [] []
+
+        Just loc ->
+            case Gesture.current hud.gesture of
+                Nothing ->
+                    g [] []
+
+                Just cloc ->
+                    if cloc.beat /= loc.beat then
+                        g [] []
+                    else
+                        let
+                            deltas =
+                                List.filter ((/=) 0) <|
+                                    List.map ((-) loc.step) <|
+                                        List.range
+                                            (Layout.bottomStep hud.layout)
+                                            (Layout.topStep hud.layout)
+
+                            position =
+                                String.join "," <|
+                                    List.map toString
+                                        [ .px <| scaleBeat hud.layout loc.beat
+                                        , .px <| scaleStep hud.layout loc.step
+                                        ]
+
+                            hotspot delta =
+                                circle
+                                    [ rPx <| Pixels <| 3
+                                    , cxPx <| Pixels <| 0
+                                    , cyPx <|
+                                        Pixels <|
+                                            (*) delta <|
+                                                .px <|
+                                                    halfSpacing hud.layout
+                                    ]
+                                    []
+                        in
+                            g
+                                [ class "measure-hud-pitches"
+                                , transform
+                                    ("translate(" ++ position ++ ")")
+                                ]
+                            <|
+                                List.map hotspot <|
+                                    List.map toFloat deltas
