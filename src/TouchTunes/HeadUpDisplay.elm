@@ -7,6 +7,8 @@ module TouchTunes.HeadUpDisplay
         )
 
 import TouchTunes.Gesture as Gesture exposing (Gesture)
+import Music.Measure.Model as Measure exposing (Measure)
+import Music.Measure.View exposing (layoutFor)
 import Music.Measure.Layout as Layout
     exposing
         ( Layout
@@ -37,14 +39,14 @@ import Html.Events
 
 
 type alias HeadUpDisplay =
-    { layout : Layout
+    { measure : Measure
     , gesture : Gesture
     }
 
 
-hud : Layout -> HeadUpDisplay
-hud layout =
-    HeadUpDisplay layout Gesture.Idle
+hud : Measure -> HeadUpDisplay
+hud measure =
+    HeadUpDisplay measure Gesture.Idle
 
 
 mouseOffset : Decoder Mouse.Position
@@ -63,8 +65,11 @@ update action hud =
 view : HeadUpDisplay -> Svg Gesture.Action
 view hud =
     let
+        layout =
+            layoutFor hud.measure
+
         toLocation =
-            positionToLocation hud.layout
+            positionToLocation layout
 
         down =
             on "mousedown" <|
@@ -99,8 +104,8 @@ view hud =
         svg
             (List.append
                 [ class "measure-hud"
-                , heightPx <| Layout.height hud.layout
-                , widthPx <| Layout.width hud.layout
+                , heightPx <| Layout.height layout
+                , widthPx <| Layout.width layout
                 ]
                 actions
             )
@@ -117,8 +122,11 @@ viewNoteDurations hud =
 
         Just loc ->
             let
+                layout =
+                    layoutFor hud.measure
+
                 t =
-                    hud.layout.time
+                    layout.time
 
                 b =
                     loc.beat
@@ -130,13 +138,13 @@ viewNoteDurations hud =
                     String.join "," <|
                         List.map toString
                             [ 0
-                            , .px <| scaleStep hud.layout loc.step
+                            , .px <| scaleStep layout loc.step
                             ]
 
                 hotspot beat =
                     circle
-                        [ rPx <| spacing hud.layout
-                        , cxPx <| scaleBeat hud.layout beat
+                        [ rPx <| spacing layout
+                        , cxPx <| scaleBeat layout beat
                         , cyPx <| Pixels <| 0
                         ]
                         []
@@ -171,18 +179,21 @@ viewPitches hud =
                         g [] []
                     else
                         let
+                            layout =
+                                layoutFor hud.measure
+
                             deltas =
                                 List.filter ((/=) 0) <|
                                     List.map ((-) loc.step) <|
                                         List.range
-                                            (Layout.bottomStep hud.layout)
-                                            (Layout.topStep hud.layout)
+                                            (Layout.bottomStep layout)
+                                            (Layout.topStep layout)
 
                             position =
                                 String.join "," <|
                                     List.map toString
-                                        [ .px <| scaleBeat hud.layout loc.beat
-                                        , .px <| scaleStep hud.layout loc.step
+                                        [ .px <| scaleBeat layout loc.beat
+                                        , .px <| scaleStep layout loc.step
                                         ]
 
                             hotspot delta =
@@ -193,7 +204,7 @@ viewPitches hud =
                                         Pixels <|
                                             (*) delta <|
                                                 .px <|
-                                                    halfSpacing hud.layout
+                                                    halfSpacing layout
                                     ]
                                     []
                         in

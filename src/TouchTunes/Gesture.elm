@@ -78,36 +78,49 @@ furthest g =
 
 update : Action -> Gesture -> Gesture
 update action gesture =
-    case action of
-        StartGesture loc ->
-            Touch loc
+    let
+        tolerance =
+            5
 
-        ContinueGesture loc ->
-            case gesture of
-                Idle ->
-                    gesture
+        xMotion a b =
+            a.beat
+                /= b.beat
+                || abs (a.shiftx.ths - b.shiftx.ths)
+                < tolerance
 
-                Touch from ->
-                    if from.beat /= loc.beat then
-                        Drag from loc
-                    else if from.step /= loc.step then
-                        Touch loc
-                    else
+        yMotion a b =
+            a.step /= b.step
+    in
+        case action of
+            StartGesture loc ->
+                Touch loc
+
+            ContinueGesture loc ->
+                case gesture of
+                    Idle ->
                         gesture
 
-                Drag from to ->
-                    if abs (loc.beat - from.beat) < abs (to.beat - from.beat) then
-                        Reversal from to loc
-                    else
-                        Drag from loc
+                    Touch from ->
+                        if xMotion from loc then
+                            Drag from loc
+                        else if yMotion from loc then
+                            Touch loc
+                        else
+                            gesture
 
-                Reversal from to _ ->
-                    if from.beat == loc.beat && from.step /= loc.step then
-                        Touch loc
-                    else if abs (loc.beat - from.beat) < abs (to.beat - from.beat) then
-                        Reversal from to loc
-                    else
-                        Drag from loc
+                    Drag from to ->
+                        if abs (loc.beat - from.beat) < abs (to.beat - from.beat) then
+                            Reversal from to loc
+                        else
+                            Drag from loc
 
-        FinishGesture ->
-            Idle
+                    Reversal from to _ ->
+                        if from.beat == loc.beat && from.step /= loc.step then
+                            Touch loc
+                        else if abs (loc.beat - from.beat) < abs (to.beat - from.beat) then
+                            Reversal from to loc
+                        else
+                            Drag from loc
+
+            FinishGesture ->
+                Idle

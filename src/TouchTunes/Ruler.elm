@@ -2,7 +2,14 @@ module TouchTunes.Ruler exposing (view)
 
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.View exposing (layoutFor)
-import Music.Measure.Layout as Layout exposing (Pixels, heightPx, widthPx, xPx, yPx)
+import Music.Measure.Layout as Layout
+    exposing
+        ( Pixels
+        , heightPx
+        , widthPx
+        , xPx
+        , yPx
+        )
 import Svg exposing (Svg, svg, g, rect)
 import Svg.Attributes
     exposing

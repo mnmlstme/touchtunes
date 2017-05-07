@@ -20,10 +20,12 @@ import Music.Measure.Model as Measure
     exposing
         ( Measure
         , modifyNote
+        , aggregateRests
         )
 import Music.Measure.View as MeasureView exposing (layoutFor)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class)
+import Debug exposing (log)
 
 
 type alias MeasureEdit =
@@ -34,13 +36,7 @@ type alias MeasureEdit =
 
 open : Measure -> MeasureEdit
 open measure =
-    let
-        layout =
-            layoutFor measure
-    in
-        MeasureEdit
-            (hud layout)
-            measure
+    MeasureEdit (hud measure) measure
 
 
 update : Gesture.Action -> MeasureEdit -> MeasureEdit
@@ -52,110 +48,95 @@ update action ed =
         oldGesture =
             ed.hud.gesture
 
-        measure =
-            case hud.gesture of
-                Gesture.Touch from ->
+        touchNote at note =
+            let
+                pitch =
+                    Pitch.fromStepNumber at.step
+
+                dur =
+                    case note.do of
+                        Note.Rest ->
+                            Duration.quarter
+
+                        _ ->
+                            note.duration
+            in
+                { note
+                    | do = Note.Play pitch
+                    , duration = dur
+                }
+
+        dragNote to from note =
+            let
+                time =
+                    Measure.time ed.measure
+
+                dbeats =
+                    to.beat - from.beat
+
+                dx =
+                    if dbeats == 0 then
+                        to.shiftx.ths - from.shiftx.ths
+                    else
+                        0
+
+                threshold =
+                    5
+            in
+                if dbeats > 0 || dx > threshold then
+                    let
+                        dur =
+                            Duration.fromTimeBeats time (1 + dbeats)
+                    in
+                        { note | duration = dur }
+                else if dbeats < 0 || dx < -threshold then
+                    let
+                        dur =
+                            Duration.fromTimeBeats time (1 - dbeats)
+                    in
+                        { note
+                            | do = Note.Rest
+                            , duration = dur
+                        }
+                else if to.step /= from.step then
                     let
                         pitch =
-                            Pitch.fromStepNumber from.step
-
-                        modify note =
-                            let
-                                dur =
-                                    case note.do of
-                                        Note.Rest ->
-                                            Duration.quarter
-
-                                        _ ->
-                                            note.duration
-                            in
-                                { note
-                                    | do = Note.Play pitch
-                                    , duration = dur
-                                }
+                            Pitch.fromStepNumber to.step
                     in
-                        modifyNote modify from.beat ed.measure
+                        { note | do = Note.Play pitch }
+                else
+                    note
+
+        measure =
+            case hud.gesture of
+                Gesture.Touch at ->
+                    let
+                        modify =
+                            touchNote at
+                    in
+                        modifyNote modify at.beat ed.measure
 
                 Gesture.Drag from to ->
                     let
-                        modify note =
-                            if to.beat /= from.beat then
-                                let
-                                    time =
-                                        Measure.time ed.measure
+                        earliestBeat =
+                            min from.beat to.beat
 
-                                    beats =
-                                        to.beat - from.beat
-
-                                    dur =
-                                        Duration.fromTimeBeats time <|
-                                            abs (beats + 1)
-
-                                    newNote =
-                                        if beats < 0 then
-                                            { note | do = Note.Rest }
-                                        else
-                                            note
-                                in
-                                    if Duration.longerThan dur note.duration then
-                                        { newNote | duration = dur }
-                                    else
-                                        note
-                            else
-                                let
-                                    pitch =
-                                        Pitch.fromStepNumber to.step
-                                in
-                                    { note | do = Note.Play pitch }
+                        modify =
+                            dragNote to from
                     in
-                        modifyNote modify from.beat ed.measure
+                        modifyNote modify earliestBeat ed.measure
 
                 Gesture.Reversal from to back ->
                     let
-                        modify note =
-                            if back.beat /= to.beat then
-                                let
-                                    time =
-                                        Measure.time ed.measure
-
-                                    beats =
-                                        back.beat - from.beat
-
-                                    dur =
-                                        Duration.fromTimeBeats time <|
-                                            abs (beats + 1)
-
-                                    newNote =
-                                        if beats < 0 then
-                                            { note | do = Note.Rest }
-                                        else
-                                            note
-                                in
-                                    { newNote | duration = dur }
-                            else
-                                note
+                        modify =
+                            dragNote back from
                     in
                         modifyNote modify from.beat ed.measure
 
                 Gesture.Idle ->
-                    let
-                        modify =
-                            identity
-                    in
-                        case oldGesture of
-                            Gesture.Idle ->
-                                ed.measure
-
-                            Gesture.Touch from ->
-                                modifyNote modify from.beat ed.measure
-
-                            Gesture.Drag from _ ->
-                                modifyNote modify from.beat ed.measure
-
-                            Gesture.Reversal from _ _ ->
-                                modifyNote modify from.beat ed.measure
+                    aggregateRests ed.measure
     in
-        { hud = hud
+        { hud = { hud | measure = measure }
         , measure = measure
         }
 

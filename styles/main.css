@@ -129,7 +129,7 @@ svg.measure-staff {
 .measure-hud {
     position: absolute;
     top: 0;
-    right: 0;
+    left: 0;
     cursor: cell;
     fill: rgba(150, 150, 150, 0.5);
 }

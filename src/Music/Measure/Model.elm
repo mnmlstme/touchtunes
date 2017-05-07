@@ -8,6 +8,7 @@ module Music.Measure.Model
         , length
         , fitTime
         , modifyNote
+        , aggregateRests
         , Sequence
         , toSequence
         , fromSequence
