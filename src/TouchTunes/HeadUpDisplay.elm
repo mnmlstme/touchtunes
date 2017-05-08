@@ -128,11 +128,20 @@ viewNoteDurations hud =
                 t =
                     layout.time
 
+                s =
+                    spacing layout
+
                 b =
                     loc.beat
 
+                x0 =
+                    Pixels <|
+                        (scaleBeat layout b).px
+                            + s.px
+                            + 5
+
                 beats =
-                    List.range (b + 1) (t.beats - 1)
+                    List.range b (t.beats - 1)
 
                 position =
                     String.join "," <|
@@ -143,8 +152,12 @@ viewNoteDurations hud =
 
                 hotspot beat =
                     circle
-                        [ rPx <| spacing layout
-                        , cxPx <| scaleBeat layout beat
+                        [ rPx s
+                        , cxPx <|
+                            if beat == b then
+                                x0
+                            else
+                                scaleBeat layout beat
                         , cyPx <| Pixels <| 0
                         ]
                         []
