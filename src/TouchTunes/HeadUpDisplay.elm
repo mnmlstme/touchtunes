@@ -110,6 +110,7 @@ view hud =
                 actions
             )
             [ viewNoteDurations hud
+            , viewRestDurations hud
             , viewPitches hud
             ]
 
@@ -173,7 +174,56 @@ viewNoteDurations hud =
 
 viewRestDurations : HeadUpDisplay -> Svg msg
 viewRestDurations hud =
-    g [] []
+    case Gesture.start hud.gesture of
+        Nothing ->
+            g [] [ g [] [] ]
+
+        Just loc ->
+            let
+                layout =
+                    layoutFor hud.measure
+
+                s =
+                    spacing layout
+
+                b =
+                    loc.beat
+
+                x0 =
+                    Pixels <|
+                        (scaleBeat layout b).px
+                            - s.px
+                            - 5
+
+                beats =
+                    List.range 0 b
+
+                position =
+                    String.join "," <|
+                        List.map toString
+                            [ 0
+                            , .px <| scaleStep layout loc.step
+                            ]
+
+                hotspot beat =
+                    circle
+                        [ rPx s
+                        , cxPx <|
+                            if beat == b then
+                                x0
+                            else
+                                scaleBeat layout beat
+                        , cyPx <| Pixels <| 0
+                        ]
+                        []
+            in
+                g
+                    [ class "measure-hud-rest-durations"
+                    , transform
+                        ("translate(" ++ position ++ ")")
+                    ]
+                <|
+                    List.map hotspot beats
 
 
 viewPitches : HeadUpDisplay -> Svg msg
