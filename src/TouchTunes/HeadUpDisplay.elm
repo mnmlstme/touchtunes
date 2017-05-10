@@ -121,7 +121,7 @@ viewNoteDurations hud =
         Nothing ->
             g [] [ g [] [] ]
 
-        Just loc ->
+        Just sloc ->
             let
                 layout =
                     layoutFor hud.measure
@@ -133,7 +133,7 @@ viewNoteDurations hud =
                     spacing layout
 
                 b =
-                    loc.beat
+                    sloc.beat
 
                 x0 =
                     Pixels <|
@@ -148,7 +148,7 @@ viewNoteDurations hud =
                     String.join "," <|
                         List.map toString
                             [ 0
-                            , .px <| scaleStep layout loc.step
+                            , .px <| scaleStep layout sloc.step
                             ]
 
                 hotspot beat =
@@ -178,7 +178,7 @@ viewRestDurations hud =
         Nothing ->
             g [] [ g [] [] ]
 
-        Just loc ->
+        Just sloc ->
             let
                 layout =
                     layoutFor hud.measure
@@ -187,7 +187,7 @@ viewRestDurations hud =
                     spacing layout
 
                 b =
-                    loc.beat
+                    sloc.beat
 
                 x0 =
                     Pixels <|
@@ -202,7 +202,7 @@ viewRestDurations hud =
                     String.join "," <|
                         List.map toString
                             [ 0
-                            , .px <| scaleStep layout loc.step
+                            , .px <| scaleStep layout sloc.step
                             ]
 
                 hotspot beat =

@@ -152,7 +152,7 @@ svg.measure-staff {
 /* Note */
 
 .note {
-    transition: transform 3s;
+    transition: transform .3s;
 }
 
 .note-stem {

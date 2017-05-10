@@ -86,7 +86,7 @@ update action gesture =
             a.beat
                 /= b.beat
                 || abs (a.shiftx.ths - b.shiftx.ths)
-                < tolerance
+                > tolerance
 
         yMotion a b =
             a.step /= b.step
@@ -115,7 +115,7 @@ update action gesture =
                             Drag from loc
 
                     Reversal from to _ ->
-                        if from.beat == loc.beat && from.step /= loc.step then
+                        if from.beat == loc.beat then
                             Touch loc
                         else if abs (loc.beat - from.beat) < abs (to.beat - from.beat) then
                             Reversal from to loc
