@@ -277,6 +277,9 @@ aggregateRests measure =
         agg : Nonempty Note -> Nonempty Note -> Nonempty Note
         agg singleton sofar =
             let
+                t =
+                    time measure
+
                 note =
                     Nonempty.head singleton
 
@@ -285,12 +288,18 @@ aggregateRests measure =
             in
                 case ( prevNote.do, note.do ) of
                     ( Note.Rest, Note.Rest ) ->
-                        Nonempty.replaceHead
-                            { prevNote
-                                | duration =
-                                    Duration.add prevNote.duration note.duration
-                            }
-                            sofar
+                        let
+                            newDuration =
+                                Duration.add prevNote.duration note.duration
+                        in
+                            if Duration.beats t newDuration <= t.beats then
+                                Nonempty.replaceHead
+                                    { prevNote
+                                        | duration = newDuration
+                                    }
+                                    sofar
+                            else
+                                note ::: sofar
 
                     _ ->
                         note ::: sofar
