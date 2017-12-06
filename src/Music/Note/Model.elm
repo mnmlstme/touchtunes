@@ -7,6 +7,7 @@ module Music.Note.Model
         , shiftX
         , unshiftX
         , getShiftX
+        , isPlayed
         )
 
 import Music.Duration as Duration exposing (Duration)
@@ -89,3 +90,13 @@ getShiftX n =
             List.filterMap check n.modifiers
     in
         List.head shifts
+
+
+isPlayed : Note -> Bool
+isPlayed n =
+    case n.do of
+        Play _ ->
+            True
+
+        Rest ->
+            False
