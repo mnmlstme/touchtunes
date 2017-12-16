@@ -1,4 +1,4 @@
-module TouchTunes.Ruler exposing (view)
+module TouchTunes.MeasureEdit.Ruler exposing (view)
 
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.View exposing (layoutFor)

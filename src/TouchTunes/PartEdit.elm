@@ -7,8 +7,10 @@ module TouchTunes.PartEdit
         , update
         )
 
-import TouchTunes.MeasureEdit as MeasureEdit exposing (MeasureEdit)
-import TouchTunes.Gesture as Gesture
+import TouchTunes.MeasureEdit.Model as MeasureEdit exposing (MeasureEdit)
+import TouchTunes.MeasureEdit.Action as MeasureEditAction
+import TouchTunes.MeasureEdit.View as MeasureEditView
+import TouchTunes.MeasureEdit.Update as MeasureEditUpdate
 import Music.Part as Part exposing (Part)
 import Array exposing (Array)
 import Html
@@ -30,7 +32,7 @@ type alias PartEdit =
 
 
 type Action
-    = OnMeasure Int Gesture.Action
+    = OnMeasure Int MeasureEditAction.Action
 
 
 open : Part -> PartEdit
@@ -70,7 +72,7 @@ update msg editor =
                     Just m ->
                         let
                             updated =
-                                MeasureEdit.update action m
+                                MeasureEditUpdate.update action m
 
                             newPart =
                                 Part.set n updated.measure editor.part
@@ -85,7 +87,7 @@ view : PartEdit -> Html Action
 view editor =
     let
         measureView i child =
-            Html.map (OnMeasure i) (MeasureEdit.view child)
+            Html.map (OnMeasure i) (MeasureEditView.view child)
     in
         section [ class "part" ]
             [ header [ class "part-header" ]

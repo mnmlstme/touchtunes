@@ -134,8 +134,8 @@ svg.measure-staff {
     fill: rgba(150, 150, 150, 0.5);
 }
 
-.measure-hud * {
-    pointer-events: none;
+.measure-hotspot:hover {
+    stroke: red;
 }
 
 /* Staff */
