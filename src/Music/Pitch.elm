@@ -1,6 +1,8 @@
 module Music.Pitch
     exposing
         ( Pitch
+        , StepNumber
+        , Semitones
         , a
         , b
         , c
@@ -17,7 +19,6 @@ module Music.Pitch
         , stepNumber
         , fromStepNumber
         , toString
-        , StepNumber
         )
 
 import Array

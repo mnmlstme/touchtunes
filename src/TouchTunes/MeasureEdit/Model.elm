@@ -14,14 +14,10 @@ import TouchTunes.MeasureEdit.HeadUpDisplay as HeadUpDisplay exposing (HeadUpDis
 type alias MeasureEdit =
     { saved : Measure
     , measure : Measure
-    , hud : HeadUpDisplay
+    , hud : Maybe HeadUpDisplay
     }
 
 
 open : Measure -> MeasureEdit
 open measure =
-    let
-        hud =
-            HeadUpDisplay measure Nothing
-    in
-        MeasureEdit measure measure hud
+    MeasureEdit measure measure Nothing

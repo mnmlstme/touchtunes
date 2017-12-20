@@ -23,40 +23,25 @@ import Music.Measure.Layout as Layout
         , rPx
         , spacing
         , halfSpacing
-        , positionToLocation
         , scaleStep
         , scaleBeat
         , scaleStartBeat
         , scaleEndBeat
         )
 import Music.Note.Model exposing (playFor, restFor)
-import Music.Pitch exposing (fromStepNumber)
+import Music.Pitch exposing (Pitch, stepNumber, fromStepNumber)
 import Music.Duration exposing (fromTimeBeats)
-import Json.Decode as Decode exposing (Decoder, field, int)
-import Mouse
+import Music.Time exposing (Beat)
 import Svg exposing (Svg, svg, g, circle, rect)
 import Svg.Attributes exposing (class, transform)
-import Html.Events
-    exposing
-        ( on
-        , onMouseUp
-        , onMouseOut
-        , onMouseEnter
-        )
+import Html.Events exposing (onMouseEnter, onMouseUp)
 
 
 type alias HeadUpDisplay =
     { measure : Measure
-    , cursor : Maybe Location
+    , beat : Beat
+    , pitch : Pitch
     }
-
-
-mouseOffset : Decoder Mouse.Position
-mouseOffset =
-    -- TODO: submit PR to elm-lang/mouse to add mouseOffset
-    Decode.map2 Mouse.Position
-        (field "offsetX" int)
-        (field "offsetY" int)
 
 
 view : HeadUpDisplay -> Svg Action
@@ -65,222 +50,249 @@ view hud =
         layout =
             layoutFor hud.measure
 
-        toLocation =
-            positionToLocation layout
-
-        down =
-            on "mousedown" <|
-                Decode.map Action.StartGesture <|
-                    Decode.map toLocation mouseOffset
-
         up =
             onMouseUp Action.FinishGesture
-
-        out =
-            onMouseOut Action.FinishGesture
-
-        actions =
-            case hud.cursor of
-                Nothing ->
-                    [ down ]
-
-                Just _ ->
-                    [ up ]
     in
         svg
-            (List.append
-                [ class "measure-hud"
-                , heightPx <| Layout.height layout
-                , widthPx <| Layout.width layout
-                ]
-                actions
-            )
+            [ class "measure-hud"
+            , heightPx <| Layout.height layout
+            , widthPx <| Layout.width layout
+            , up
+            ]
             [ Svg.map Action.MeasureAction <| viewNoteDurations hud
             , Svg.map Action.MeasureAction <| viewRestDurations hud
             , Svg.map Action.MeasureAction <| viewPitches hud
+            , Svg.map Action.MeasureAction <| viewAlterations hud
             ]
 
 
 viewNoteDurations : HeadUpDisplay -> Svg MeasureAction.Action
 viewNoteDurations hud =
-    case hud.cursor of
-        Nothing ->
-            g [] [ g [] [] ]
+    let
+        layout =
+            layoutFor hud.measure
 
-        Just loc ->
-            let
-                layout =
-                    layoutFor hud.measure
+        t =
+            layout.time
 
-                t =
-                    layout.time
+        s =
+            spacing layout
 
-                s =
-                    spacing layout
+        beats =
+            List.range hud.beat (t.beats - 1)
 
-                beats =
-                    List.range loc.beat (t.beats - 1)
-
-                position =
-                    String.join "," <|
-                        List.map toString
-                            [ 0
-                            , .px <| scaleStep layout loc.step
-                            ]
-
-                pitch =
-                    fromStepNumber loc.step
-
-                hotspot beat =
-                    let
-                        dur =
-                            fromTimeBeats t (beat - loc.beat + 1)
-
-                        note =
-                            playFor dur pitch
-
-                        action =
-                            onMouseEnter <| MeasureAction.ReplaceNote note loc.beat
-                    in
-                        rect
-                            [ class "measure-hotspot"
-                            , heightPx <| Pixels (2 * s.px)
-                            , widthPx <| Pixels 3
-                            , xPx <| scaleEndBeat layout beat
-                            , yPx <| Pixels (-1 * s.px)
-                            , action
-                            ]
-                            []
-            in
-                g
-                    [ class "measure-hud-note-hotspots"
-                    , transform
-                        ("translate(" ++ position ++ ")")
+        position =
+            String.join "," <|
+                List.map toString
+                    [ 0
+                    , .px <| scaleStep layout <| stepNumber hud.pitch
                     ]
-                <|
-                    List.map hotspot beats
+
+        pitch =
+            hud.pitch
+
+        hotspot beat =
+            let
+                dur =
+                    fromTimeBeats t (beat - hud.beat + 1)
+
+                note =
+                    playFor dur pitch
+
+                action =
+                    onMouseEnter <| MeasureAction.ReplaceNote note hud.beat
+            in
+                rect
+                    [ class "measure-hotspot"
+                    , heightPx <| Pixels (4 * s.px)
+                    , widthPx <| Pixels 3
+                    , xPx <| scaleEndBeat layout beat
+                    , yPx <| Pixels (-2 * s.px)
+                    , action
+                    ]
+                    []
+    in
+        g
+            [ class "measure-hud-note-hotspots"
+            , transform
+                ("translate(" ++ position ++ ")")
+            ]
+        <|
+            List.map hotspot beats
 
 
 viewRestDurations : HeadUpDisplay -> Svg MeasureAction.Action
 viewRestDurations hud =
-    case hud.cursor of
-        Nothing ->
-            g [] [ g [] [] ]
+    let
+        layout =
+            layoutFor hud.measure
 
-        Just loc ->
-            let
-                layout =
-                    layoutFor hud.measure
+        t =
+            layout.time
 
-                t =
-                    layout.time
+        s =
+            spacing layout
 
-                s =
-                    spacing layout
+        beats =
+            List.range 0 hud.beat
 
-                beats =
-                    List.range 0 loc.beat
-
-                position =
-                    String.join "," <|
-                        List.map toString
-                            [ 0
-                            , .px <| scaleStep layout loc.step
-                            ]
-
-                hotspot beat =
-                    let
-                        dur =
-                            fromTimeBeats t (loc.beat - beat + 1)
-
-                        rest =
-                            restFor dur
-
-                        action =
-                            onMouseEnter <|
-                                MeasureAction.ReplaceNote rest beat
-                    in
-                        rect
-                            [ class "measure-hotspot"
-                            , heightPx <| Pixels (2 * s.px)
-                            , widthPx <| Pixels 3
-                            , xPx <| scaleStartBeat layout beat
-                            , yPx <| Pixels (-1 * s.px)
-                            , action
-                            ]
-                            []
-            in
-                g
-                    [ class "measure-hud-rest-hotspots"
-                    , transform
-                        ("translate(" ++ position ++ ")")
+        position =
+            String.join "," <|
+                List.map toString
+                    [ 0
+                    , .px <| scaleStep layout <| stepNumber hud.pitch
                     ]
-                <|
-                    List.map hotspot beats
+
+        hotspot beat =
+            let
+                dur =
+                    fromTimeBeats t (hud.beat - beat + 1)
+
+                rest =
+                    restFor dur
+
+                action =
+                    onMouseEnter <|
+                        MeasureAction.ReplaceNote rest beat
+            in
+                rect
+                    [ class "measure-hotspot"
+                    , heightPx <| Pixels (4 * s.px)
+                    , widthPx <| Pixels 3
+                    , xPx <| scaleStartBeat layout beat
+                    , yPx <| Pixels (-2 * s.px)
+                    , action
+                    ]
+                    []
+    in
+        g
+            [ class "measure-hud-rest-hotspots"
+            , transform
+                ("translate(" ++ position ++ ")")
+            ]
+        <|
+            List.map hotspot beats
 
 
 viewPitches : HeadUpDisplay -> Svg MeasureAction.Action
 viewPitches hud =
-    case hud.cursor of
-        Nothing ->
-            g [] []
+    let
+        layout =
+            layoutFor hud.measure
 
-        Just loc ->
-            let
-                layout =
-                    layoutFor hud.measure
+        deltas =
+            List.map ((-) <| stepNumber hud.pitch) <|
+                List.range
+                    (Layout.bottomStep layout)
+                    (Layout.topStep layout)
 
-                deltas =
-                    List.map ((-) loc.step) <|
-                        List.range
-                            (Layout.bottomStep layout)
-                            (Layout.topStep layout)
-
-                position =
-                    String.join "," <|
-                        List.map toString
-                            [ .px <| scaleBeat layout loc.beat
-                            , .px <| scaleStep layout loc.step
-                            ]
-
-                hotspot : Int -> Svg MeasureAction.Action
-                hotspot delta =
-                    let
-                        pitch =
-                            fromStepNumber <| loc.step + delta
-
-                        action =
-                            onMouseEnter <|
-                                MeasureAction.RepitchNote pitch loc.beat
-
-                        sp2 =
-                            .px <| halfSpacing layout
-
-                        h =
-                            2
-
-                        w =
-                            20
-                    in
-                        rect
-                            [ class "measure-hotspot"
-                            , heightPx <| Pixels <| h
-                            , widthPx <| Pixels <| w
-                            , xPx <| Pixels <| -w / 2
-                            , yPx <|
-                                Pixels <|
-                                    (-) (-h / 2) <|
-                                        (*) (toFloat delta) <|
-                                            .px <|
-                                                halfSpacing layout
-                            , action
-                            ]
-                            []
-            in
-                g
-                    [ class "measure-hud-pitch-hotspots"
-                    , transform
-                        ("translate(" ++ position ++ ")")
+        position =
+            String.join "," <|
+                List.map toString
+                    [ .px <| scaleBeat layout hud.beat
+                    , .px <| scaleStep layout <| stepNumber hud.pitch
                     ]
-                <|
-                    List.map hotspot deltas
+
+        hotspot : Int -> Svg MeasureAction.Action
+        hotspot delta =
+            let
+                pitch =
+                    fromStepNumber <| (stepNumber hud.pitch) + delta
+
+                action =
+                    onMouseEnter <|
+                        MeasureAction.RepitchNote pitch hud.beat
+
+                sp2 =
+                    .px <| halfSpacing layout
+
+                h =
+                    2
+
+                w =
+                    20
+            in
+                rect
+                    [ class "measure-hotspot"
+                    , heightPx <| Pixels <| h
+                    , widthPx <| Pixels <| w
+                    , xPx <| Pixels <| -w / 2
+                    , yPx <|
+                        Pixels <|
+                            (-) (-h / 2) <|
+                                (*) (toFloat delta) <|
+                                    .px <|
+                                        halfSpacing layout
+                    , action
+                    ]
+                    []
+    in
+        g
+            [ class "measure-hud-pitch-hotspots"
+            , transform
+                ("translate(" ++ position ++ ")")
+            ]
+        <|
+            List.map hotspot deltas
+
+
+viewAlterations : HeadUpDisplay -> Svg MeasureAction.Action
+viewAlterations hud =
+    let
+        layout =
+            layoutFor hud.measure
+
+        s =
+            spacing layout
+
+        half =
+            halfSpacing layout
+
+        pitch =
+            hud.pitch
+
+        position =
+            String.join "," <|
+                List.map toString
+                    [ .px <| scaleBeat layout hud.beat
+                    , .px <| scaleStep layout <| stepNumber pitch
+                    ]
+
+        flatAction =
+            let
+                altered =
+                    { pitch | alter = -1 }
+            in
+                onMouseEnter <|
+                    MeasureAction.RepitchNote altered hud.beat
+
+        sharpAction =
+            let
+                altered =
+                    { pitch | alter = 1 }
+            in
+                onMouseEnter <|
+                    MeasureAction.RepitchNote altered hud.beat
+    in
+        g
+            [ class "measure-hud-alter-hotspots"
+            , transform
+                ("translate(" ++ position ++ ")")
+            ]
+            [ circle
+                [ class "measure-hotspot"
+                , rPx half
+                , cxPx s
+                , cyPx <| Pixels (1.5 * s.px)
+                , flatAction
+                ]
+                []
+            , circle
+                [ class "measure-hotspot"
+                , rPx half
+                , cxPx s
+                , cyPx <| Pixels (-1.5 * s.px)
+                , sharpAction
+                ]
+                []
+            ]

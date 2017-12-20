@@ -4,6 +4,7 @@ import TouchTunes.MeasureEdit.HeadUpDisplay as HeadUpDisplay exposing (HeadUpDis
 import TouchTunes.MeasureEdit.Action exposing (Action, Action(..))
 import TouchTunes.MeasureEdit.Model exposing (MeasureEdit)
 import Music.Measure.Update as MeasureUpdate
+import Music.Pitch exposing (Pitch, stepNumber, fromStepNumber)
 import Debug exposing (log)
 
 
@@ -11,15 +12,22 @@ update : Action -> MeasureEdit -> MeasureEdit
 update action ed =
     case (log "action" action) of
         StartGesture loc ->
-            { ed
-                | measure = ed.saved
-                , hud = HeadUpDisplay ed.saved <| Just loc
-            }
+            let
+                beat =
+                    loc.beat
+
+                pitch =
+                    fromStepNumber loc.step
+            in
+                { ed
+                    | measure = ed.saved
+                    , hud = Just <| HeadUpDisplay ed.saved beat pitch
+                }
 
         FinishGesture ->
             { ed
                 | saved = ed.measure
-                , hud = HeadUpDisplay ed.measure Nothing
+                , hud = Nothing
             }
 
         MeasureAction msg ->
