@@ -116,17 +116,14 @@ viewNoteDurations hud =
                 s =
                     spacing layout
 
-                b =
-                    loc.beat
-
                 x0 =
                     Pixels <|
-                        (scaleBeat layout b).px
+                        (scaleBeat layout loc.beat).px
                             + s.px
                             + 5
 
                 beats =
-                    List.range b (t.beats - 1)
+                    List.range loc.beat (t.beats - 1)
 
                 position =
                     String.join "," <|
@@ -141,19 +138,19 @@ viewNoteDurations hud =
                 hotspot beat =
                     let
                         dur =
-                            fromTimeBeats t (beat - b + 1)
+                            fromTimeBeats t (beat - loc.beat + 1)
 
                         note =
                             playFor dur pitch
 
                         action =
-                            onMouseEnter <| MeasureAction.InsertNote note beat
+                            onMouseEnter <| MeasureAction.ReplaceNote note loc.beat
                     in
                         circle
                             [ class "measure-hotspot"
                             , rPx s
                             , cxPx <|
-                                if beat == b then
+                                if beat == loc.beat then
                                     x0
                                 else
                                     scaleBeat layout beat
@@ -163,7 +160,7 @@ viewNoteDurations hud =
                             []
             in
                 g
-                    [ class "measure-hud-note-durations"
+                    [ class "measure-hud-note-hotspots"
                     , transform
                         ("translate(" ++ position ++ ")")
                     ]
@@ -188,17 +185,14 @@ viewRestDurations hud =
                 s =
                     spacing layout
 
-                b =
-                    loc.beat
-
                 x0 =
                     Pixels <|
-                        (scaleBeat layout b).px
+                        (scaleBeat layout loc.beat).px
                             - s.px
                             - 5
 
                 beats =
-                    List.range 0 b
+                    List.range 0 loc.beat
 
                 position =
                     String.join "," <|
@@ -210,20 +204,20 @@ viewRestDurations hud =
                 hotspot beat =
                     let
                         dur =
-                            fromTimeBeats t (b - beat + 1)
+                            fromTimeBeats t (loc.beat - beat + 1)
 
                         rest =
                             restFor dur
 
                         action =
                             onMouseEnter <|
-                                MeasureAction.InsertNote rest beat
+                                MeasureAction.ReplaceNote rest beat
                     in
                         circle
                             [ class "measure-hotspot"
                             , rPx s
                             , cxPx <|
-                                if beat == b then
+                                if beat == loc.beat then
                                     x0
                                 else
                                     scaleBeat layout beat
@@ -233,7 +227,7 @@ viewRestDurations hud =
                             []
             in
                 g
-                    [ class "measure-hud-rest-durations"
+                    [ class "measure-hud-rest-hotspots"
                     , transform
                         ("translate(" ++ position ++ ")")
                     ]
@@ -253,11 +247,10 @@ viewPitches hud =
                     layoutFor hud.measure
 
                 deltas =
-                    List.filter ((/=) 0) <|
-                        List.map ((-) loc.step) <|
-                            List.range
-                                (Layout.bottomStep layout)
-                                (Layout.topStep layout)
+                    List.map ((-) loc.step) <|
+                        List.range
+                            (Layout.bottomStep layout)
+                            (Layout.topStep layout)
 
                 position =
                     String.join "," <|
@@ -301,7 +294,7 @@ viewPitches hud =
                             []
             in
                 g
-                    [ class "measure-hud-pitches"
+                    [ class "measure-hud-pitch-hotspots"
                     , transform
                         ("translate(" ++ position ++ ")")
                     ]

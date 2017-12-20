@@ -8,7 +8,7 @@ import Music.Pitch exposing (Pitch)
 
 
 type Action
-    = InsertNote Note Beat
+    = ReplaceNote Note Beat
     | StretchNote Duration Beat
     | RepitchNote Pitch Beat
 
@@ -16,7 +16,7 @@ type Action
 update : Action -> Measure -> Measure
 update action m =
     case action of
-        InsertNote note at ->
+        ReplaceNote note at ->
             let
                 modifier _ =
                     note

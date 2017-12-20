@@ -11,10 +11,18 @@ update : Action -> MeasureEdit -> MeasureEdit
 update action ed =
     case (log "action" action) of
         StartGesture loc ->
-            { ed | hud = HeadUpDisplay ed.measure <| Just loc }
+            { ed
+                | measure = ed.saved
+                , hud = HeadUpDisplay ed.saved <| Just loc
+            }
 
         FinishGesture ->
-            { ed | hud = HeadUpDisplay ed.measure Nothing }
+            { ed
+                | saved = ed.measure
+                , hud = HeadUpDisplay ed.measure Nothing
+            }
 
         MeasureAction msg ->
-            { ed | measure = MeasureUpdate.update (log "msg" msg) ed.measure }
+            { ed
+                | measure = MeasureUpdate.update msg ed.saved
+            }
