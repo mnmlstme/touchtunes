@@ -26,6 +26,8 @@ import Music.Measure.Layout as Layout
         , positionToLocation
         , scaleStep
         , scaleBeat
+        , scaleStartBeat
+        , scaleEndBeat
         )
 import Music.Note.Model exposing (playFor, restFor)
 import Music.Pitch exposing (fromStepNumber)
@@ -116,12 +118,6 @@ viewNoteDurations hud =
                 s =
                     spacing layout
 
-                x0 =
-                    Pixels <|
-                        (scaleBeat layout loc.beat).px
-                            + s.px
-                            + 5
-
                 beats =
                     List.range loc.beat (t.beats - 1)
 
@@ -146,15 +142,12 @@ viewNoteDurations hud =
                         action =
                             onMouseEnter <| MeasureAction.ReplaceNote note loc.beat
                     in
-                        circle
+                        rect
                             [ class "measure-hotspot"
-                            , rPx s
-                            , cxPx <|
-                                if beat == loc.beat then
-                                    x0
-                                else
-                                    scaleBeat layout beat
-                            , cyPx <| Pixels <| 0
+                            , heightPx <| Pixels (2 * s.px)
+                            , widthPx <| Pixels 3
+                            , xPx <| scaleEndBeat layout beat
+                            , yPx <| Pixels (-1 * s.px)
                             , action
                             ]
                             []
@@ -185,12 +178,6 @@ viewRestDurations hud =
                 s =
                     spacing layout
 
-                x0 =
-                    Pixels <|
-                        (scaleBeat layout loc.beat).px
-                            - s.px
-                            - 5
-
                 beats =
                     List.range 0 loc.beat
 
@@ -213,15 +200,12 @@ viewRestDurations hud =
                             onMouseEnter <|
                                 MeasureAction.ReplaceNote rest beat
                     in
-                        circle
+                        rect
                             [ class "measure-hotspot"
-                            , rPx s
-                            , cxPx <|
-                                if beat == loc.beat then
-                                    x0
-                                else
-                                    scaleBeat layout beat
-                            , cyPx <| Pixels <| 0
+                            , heightPx <| Pixels (2 * s.px)
+                            , widthPx <| Pixels 3
+                            , xPx <| scaleStartBeat layout beat
+                            , yPx <| Pixels (-1 * s.px)
                             , action
                             ]
                             []

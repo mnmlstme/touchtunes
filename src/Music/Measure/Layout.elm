@@ -33,6 +33,9 @@ module Music.Measure.Layout
         , scaleStep
         , unscaleStep
         , scaleBeat
+        , scaleStartBeat
+        , scaleEndBeat
+        , scaleFractionalBeat
         , unscaleBeat
         , standard
         )
@@ -320,6 +323,24 @@ unscalePitch layout y =
 scaleBeat : Layout -> Beat -> Pixels
 scaleBeat layout b =
     -- location of the center of the note on the staff
+    scaleFractionalBeat layout <| 0.5 + toFloat b
+
+
+scaleStartBeat : Layout -> Beat -> Pixels
+scaleStartBeat layout b =
+    -- location of the left edge of the beat on the staff
+    scaleFractionalBeat layout <| toFloat b
+
+
+scaleEndBeat : Layout -> Beat -> Pixels
+scaleEndBeat layout b =
+    -- location of the right edge of the beat on the staff
+    scaleFractionalBeat layout <| toFloat (b + 1)
+
+
+scaleFractionalBeat : Layout -> Float -> Pixels
+scaleFractionalBeat layout x =
+    -- scaled location of a specific moment within the beat
     let
         m =
             margins layout
@@ -327,7 +348,7 @@ scaleBeat layout b =
         bs =
             beatSpacing layout
     in
-        m.left.px + bs.px * (0.5 + toFloat b) |> Pixels
+        m.left.px + bs.px * x |> Pixels
 
 
 unscaleBeat : Layout -> Pixels -> Beat
