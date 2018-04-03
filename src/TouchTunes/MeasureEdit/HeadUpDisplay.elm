@@ -6,7 +6,6 @@ module TouchTunes.MeasureEdit.HeadUpDisplay
 
 import TouchTunes.MeasureEdit.Action as Action exposing (Action)
 import Music.Measure.Model as Measure exposing (Measure)
-import Music.Measure.Update as MeasureAction
 import Music.Measure.View exposing (layoutFor)
 import Music.Measure.Layout as Layout
     exposing
@@ -23,6 +22,7 @@ import Music.Measure.Layout as Layout
         , rPx
         , spacing
         , halfSpacing
+        , beatSpacing
         , scaleStep
         , scaleBeat
         , scaleStartBeat
@@ -59,14 +59,14 @@ view hud =
             , widthPx <| Layout.width layout
             , up
             ]
-            [ Svg.map Action.MeasureAction <| viewNoteDurations hud
-            , Svg.map Action.MeasureAction <| viewRestDurations hud
-            , Svg.map Action.MeasureAction <| viewPitches hud
-            , Svg.map Action.MeasureAction <| viewAlterations hud
+            [ viewNoteDurations hud
+            , viewRestDurations hud
+            , viewPitches hud
+            , viewAlterations hud
             ]
 
 
-viewNoteDurations : HeadUpDisplay -> Svg MeasureAction.Action
+viewNoteDurations : HeadUpDisplay -> Svg Action
 viewNoteDurations hud =
     let
         layout =
@@ -100,14 +100,14 @@ viewNoteDurations hud =
                     playFor dur pitch
 
                 action =
-                    onMouseEnter <| MeasureAction.ReplaceNote note hud.beat
+                    onMouseEnter <| Action.ReplaceNote note hud.beat
             in
                 rect
                     [ class "measure-hotspot"
-                    , heightPx <| Pixels (4 * s.px)
-                    , widthPx <| Pixels 3
-                    , xPx <| scaleEndBeat layout beat
-                    , yPx <| Pixels (-2 * s.px)
+                    , heightPx <| Pixels (2 * s.px)
+                    , widthPx <| beatSpacing layout
+                    , xPx <| scaleStartBeat layout (beat + 1)
+                    , yPx <| Pixels (-1 * s.px)
                     , action
                     ]
                     []
@@ -121,7 +121,7 @@ viewNoteDurations hud =
             List.map hotspot beats
 
 
-viewRestDurations : HeadUpDisplay -> Svg MeasureAction.Action
+viewRestDurations : HeadUpDisplay -> Svg Action
 viewRestDurations hud =
     let
         layout =
@@ -153,7 +153,7 @@ viewRestDurations hud =
 
                 action =
                     onMouseEnter <|
-                        MeasureAction.ReplaceNote rest beat
+                        Action.ReplaceNote rest beat
             in
                 rect
                     [ class "measure-hotspot"
@@ -174,7 +174,7 @@ viewRestDurations hud =
             List.map hotspot beats
 
 
-viewPitches : HeadUpDisplay -> Svg MeasureAction.Action
+viewPitches : HeadUpDisplay -> Svg Action
 viewPitches hud =
     let
         layout =
@@ -193,7 +193,7 @@ viewPitches hud =
                     , .px <| scaleStep layout <| stepNumber hud.pitch
                     ]
 
-        hotspot : Int -> Svg MeasureAction.Action
+        hotspot : Int -> Svg Action
         hotspot delta =
             let
                 pitch =
@@ -201,7 +201,7 @@ viewPitches hud =
 
                 action =
                     onMouseEnter <|
-                        MeasureAction.RepitchNote pitch hud.beat
+                        Action.RepitchNote pitch hud.beat
 
                 sp2 =
                     .px <| halfSpacing layout
@@ -236,7 +236,7 @@ viewPitches hud =
             List.map hotspot deltas
 
 
-viewAlterations : HeadUpDisplay -> Svg MeasureAction.Action
+viewAlterations : HeadUpDisplay -> Svg Action
 viewAlterations hud =
     let
         layout =
@@ -264,7 +264,7 @@ viewAlterations hud =
                     { pitch | alter = -1 }
             in
                 onMouseEnter <|
-                    MeasureAction.RepitchNote altered hud.beat
+                    Action.RepitchNote altered hud.beat
 
         sharpAction =
             let
@@ -272,7 +272,7 @@ viewAlterations hud =
                     { pitch | alter = 1 }
             in
                 onMouseEnter <|
-                    MeasureAction.RepitchNote altered hud.beat
+                    Action.RepitchNote altered hud.beat
     in
         g
             [ class "measure-hud-alter-hotspots"
