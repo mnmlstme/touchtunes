@@ -8,8 +8,8 @@ import Music.Pitch exposing (Pitch, Semitones)
 
 
 type Action
-    = StartGesture Location
-    | FinishGesture
+    = Start Location
+    | Finish
     | ReplaceNote Note Beat
     | StretchNote Duration Beat
     | RepitchNote Pitch Beat

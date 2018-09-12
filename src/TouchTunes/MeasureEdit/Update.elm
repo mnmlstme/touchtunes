@@ -12,7 +12,7 @@ import Debug exposing (log)
 update : Action -> MeasureEdit -> MeasureEdit
 update action ed =
     case (log "action" action) of
-        StartGesture loc ->
+        Start loc ->
             let
                 beat =
                     loc.beat
@@ -25,34 +25,34 @@ update action ed =
                     , hud = Just <| HeadUpDisplay ed.saved beat pitch
                 }
 
-        FinishGesture ->
+        Finish ->
             { ed
                 | saved = ed.measure
                 , hud = Nothing
             }
 
-        ReplaceNote note at ->
+        ReplaceWith note at ->
             let
                 modifier _ =
                     note
             in
                 { ed | measure = modifyNote modifier at ed.measure }
 
-        StretchNote dur at ->
+        StretchTo dur at ->
             let
                 modifier note =
                     { note | duration = dur }
             in
                 { ed | measure = modifyNote modifier at ed.measure }
 
-        RepitchNote pitch at ->
+        RepitchTo pitch at ->
             let
                 modifier note =
                     { note | do = Play pitch }
             in
                 { ed | measure = modifyNote modifier at ed.measure }
 
-        AlterNote semitones at ->
+        AlterBy semitones at ->
             let
                 modifier note =
                     case note.do of
