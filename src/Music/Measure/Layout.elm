@@ -40,12 +40,13 @@ module Music.Measure.Layout
         , yPx
         )
 
-import Mouse
+import Browser
 import Music.Pitch as Pitch exposing (Pitch, StepNumber)
 import Music.Time as Time exposing (Beat, Time)
 import Svg exposing (Attribute)
 import Svg.Attributes as Attributes
-import String exposing (fromFloat)
+import String
+import Tuple exposing (first, second)
 
 
 -- Layout
@@ -81,7 +82,7 @@ toTenths layout pixels =
 
 pxAttribute : (String -> Attribute msg) -> (Pixels -> Attribute msg)
 pxAttribute strAttr =
-    .px >> fromFloat >> strAttr
+    .px >> String.fromFloat >> strAttr
 
 
 heightPx : Pixels -> Attribute msg
@@ -147,11 +148,11 @@ type alias Location =
     }
 
 
-positionToLocation : Layout -> Mouse.Position -> Location
+positionToLocation : Layout -> ( Int, Int ) -> Location
 positionToLocation layout offset =
     let
         x =
-            Pixels <| toFloat offset.x
+            Pixels <| toFloat <| first offset
 
         beat =
             unscaleBeat layout x
@@ -160,7 +161,7 @@ positionToLocation layout offset =
             scaleBeat layout beat
 
         y =
-            Pixels <| toFloat offset.y
+            Pixels <| toFloat <| second offset
 
         step =
             unscaleStep layout y

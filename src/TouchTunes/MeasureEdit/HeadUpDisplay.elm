@@ -34,7 +34,7 @@ import Music.Pitch exposing (Pitch, fromStepNumber, stepNumber)
 import Music.Time exposing (Beat)
 import Svg exposing (Svg, circle, g, rect, svg)
 import Svg.Attributes exposing (class, transform)
-import String exposing (fromFloat)
+import String
 import TouchTunes.MeasureEdit.Action as Action exposing (Action)
 
 
@@ -52,7 +52,7 @@ view hud =
             layoutFor hud.measure
 
         up =
-            onMouseUp Action.FinishGesture
+            onMouseUp Action.Finish
     in
         svg
             [ class "measure-hud"
@@ -84,7 +84,7 @@ viewNoteDurations hud =
 
         position =
             String.join "," <|
-                List.map fromFloat
+                List.map String.fromFloat
                     [ 0
                     , .px <| scaleStep layout <| stepNumber hud.pitch
                     ]
@@ -139,7 +139,7 @@ viewRestDurations hud =
 
         position =
             String.join "," <|
-                List.map fromFloat
+                List.map String.fromFloat
                     [ 0
                     , .px <| scaleStep layout <| stepNumber hud.pitch
                     ]
@@ -189,7 +189,7 @@ viewPitches hud =
 
         position =
             String.join "," <|
-                List.map fromFloat
+                List.map String.fromFloat
                     [ .px <| scaleBeat layout hud.beat
                     , .px <| scaleStep layout <| stepNumber hud.pitch
                     ]
@@ -254,7 +254,7 @@ viewAlterations hud =
 
         position =
             String.join "," <|
-                List.map fromFloat
+                List.map String.fromFloat
                     [ .px <| scaleBeat layout hud.beat
                     , .px <| scaleStep layout <| stepNumber pitch
                     ]

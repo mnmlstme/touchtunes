@@ -23,7 +23,7 @@ import Svg.Attributes
         ( class
         , transform
         )
-import String exposing (fromFloat)
+import String
 
 
 -- compute a layout for a measure
@@ -82,7 +82,7 @@ view measure =
 
         staffPosition =
             String.join ","
-                (List.map fromFloat
+                (List.map String.fromFloat
                     [ 0
                     , (Layout.margins layout).top.px
                     ]
@@ -103,7 +103,7 @@ view measure =
             [ if overflowBeats > 0 then
                 div
                     [ class "measure-overflow"
-                    , style "width" (fromFloat overflowWidth ++ "px")
+                    , style "width" (String.fromFloat overflowWidth ++ "px")
                     ]
                     []
               else

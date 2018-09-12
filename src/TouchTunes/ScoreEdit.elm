@@ -25,7 +25,7 @@ import Html
 import Html.Attributes exposing (class)
 import Music.Score as Score exposing (Score)
 import TouchTunes.PartEdit as PartEdit exposing (PartEdit)
-import String exposing (fromFloat)
+import String
 
 
 type alias ScoreEdit =
@@ -124,11 +124,11 @@ view editor =
                     [ dt []
                         [ text "Parts" ]
                     , dd []
-                        [ text (fromFloat nParts) ]
+                        [ text (String.fromInt nParts) ]
                     , dt []
                         [ text "Measures" ]
                     , dd []
-                        [ text (fromFloat nMeasures) ]
+                        [ text (String.fromInt nMeasures) ]
                     ]
                 ]
             ]

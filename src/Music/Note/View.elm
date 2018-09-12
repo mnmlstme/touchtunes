@@ -39,7 +39,7 @@ import Svg.Attributes
         , transform
         , xlinkHref
         )
-import String exposing (fromFloat)
+import String
 
 
 type StemOrientation
@@ -128,8 +128,8 @@ ledgerLines layout p =
             else
                 modBy 2 n
 
-        isEven n =
-            modBy 2 n == 0
+        isEven num =
+            modBy 2 num == 0
 
         steps =
             if n > 2 then
@@ -167,7 +167,7 @@ view layout beat note =
 
         position =
             String.join ","
-                (List.map fromFloat
+                (List.map String.fromFloat
                     [ xpos.px + dx.px
                     , 0
                     ]
@@ -211,7 +211,7 @@ viewRest layout beat d =
 
         position =
             String.join ","
-                (List.map fromFloat
+                (List.map String.fromFloat
                     [ 0 - w.px / 2.0
                     , sp.px + m.top.px
                     ]
@@ -249,7 +249,7 @@ viewPitch layout beat d p =
 
         position =
             String.join ","
-                (List.map fromFloat
+                (List.map String.fromFloat
                     [ 0 - w.px / 2.0
                     , ypos.px
                     ]

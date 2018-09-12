@@ -13,20 +13,18 @@ import Html
         )
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
-import Browser
+import Browser exposing (Document)
 import TouchTunes.ScoreEdit as ScoreEdit exposing (ScoreEdit)
 
 
 -- APP
 
 
-main : Program Never Model Msg
 main =
-    Browser.document
+    Browser.sandbox
         { init = init
         , view = view
         , update = update
-        , subscriptions = \model -> Sub.none
         }
 
 
@@ -39,13 +37,9 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Msg )
+init : Model
 init =
-    let
-        model =
-            Model ScoreEdit.empty
-    in
-        ( model, Cmd.none )
+    Model ScoreEdit.empty
 
 
 
@@ -58,7 +52,7 @@ type Msg
     | EditorAction ScoreEdit.Action
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Model
 update msg model =
     case msg of
         Clear ->
@@ -66,21 +60,21 @@ update msg model =
                 editor =
                     ScoreEdit.empty
             in
-                ( Model editor, Cmd.none )
+                Model editor
 
         ShowExample1 ->
             let
                 editor =
                     ScoreEdit.open Example1.example
             in
-                ( Model editor, Cmd.none )
+                Model editor
 
         EditorAction action ->
             let
                 updated =
                     ScoreEdit.update action model.editor
             in
-                ( { model | editor = updated }, Cmd.none )
+                { model | editor = updated }
 
 
 

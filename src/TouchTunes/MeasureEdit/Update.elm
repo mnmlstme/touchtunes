@@ -20,10 +20,10 @@ update action ed =
                 pitch =
                     fromStepNumber loc.step
             in
-            { ed
-                | measure = ed.saved
-                , hud = Just <| HeadUpDisplay ed.saved beat pitch
-            }
+                { ed
+                    | measure = ed.saved
+                    , hud = Just <| HeadUpDisplay ed.saved beat pitch
+                }
 
         Finish ->
             { ed
@@ -31,28 +31,28 @@ update action ed =
                 , hud = Nothing
             }
 
-        ReplaceWith note at ->
+        ReplaceNote note at ->
             let
                 modifier _ =
                     note
             in
-            { ed | measure = modifyNote modifier at ed.measure }
+                { ed | measure = modifyNote modifier at ed.measure }
 
-        StretchTo dur at ->
+        StretchNote dur at ->
             let
                 modifier note =
                     { note | duration = dur }
             in
-            { ed | measure = modifyNote modifier at ed.measure }
+                { ed | measure = modifyNote modifier at ed.measure }
 
-        RepitchTo pitch at ->
+        RepitchNote pitch at ->
             let
                 modifier note =
                     { note | do = Play pitch }
             in
-            { ed | measure = modifyNote modifier at ed.measure }
+                { ed | measure = modifyNote modifier at ed.measure }
 
-        AlterBy semitones at ->
+        AlterNote semitones at ->
             let
                 modifier note =
                     case note.do of
@@ -64,4 +64,4 @@ update action ed =
                         Rest ->
                             note
             in
-            { ed | measure = modifyNote modifier at ed.measure }
+                { ed | measure = modifyNote modifier at ed.measure }

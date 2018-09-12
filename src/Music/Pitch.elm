@@ -22,6 +22,7 @@ module Music.Pitch
         )
 
 import Array
+import String
 
 
 type alias Pitch =
@@ -198,14 +199,33 @@ toString : Pitch -> String
 toString p =
     let
         step =
-            Basics.toString p.step
+            case p.step of
+                C ->
+                    "C"
+
+                D ->
+                    "D"
+
+                E ->
+                    "E"
+
+                F ->
+                    "F"
+
+                G ->
+                    "G"
+
+                A ->
+                    "A"
+
+                B ->
+                    "B"
 
         alteration =
-            -- TODO: use Unicode for flat/sharp
             if p.alter > 0 then
-                "#"
+                "♯"
             else if p.alter < 0 then
-                "b"
+                "♭"
             else
                 ""
 
@@ -213,7 +233,7 @@ toString p =
             abs p.alter
 
         octave =
-            Basics.toString p.octave
+            String.fromInt p.octave
     in
         step
             ++ String.repeat times alteration
