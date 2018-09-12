@@ -1,50 +1,51 @@
 module Music.Measure.Layout
     exposing
         ( Layout
+        , Location
+        , Margins
         , Pixels
         , Tenths
-        , Margins
-        , toPixels
-        , toTenths
-        , heightPx
-        , widthPx
-        , xPx
-        , x1Px
-        , x2Px
-        , yPx
-        , y1Px
-        , y2Px
+        , beatSpacing
+        , bottomStep
         , cxPx
         , cyPx
-        , rPx
-        , Location
-        , positionToLocation
-        , spacing
         , halfSpacing
-        , beatSpacing
-        , width
         , height
-        , topStep
-        , bottomStep
+        , heightPx
         , margins
         , positionOnStaff
-        , scalePitch
-        , unscalePitch
-        , scaleStep
-        , unscaleStep
+        , positionToLocation
+        , rPx
         , scaleBeat
-        , scaleStartBeat
         , scaleEndBeat
         , scaleFractionalBeat
-        , unscaleBeat
+        , scalePitch
+        , scaleStartBeat
+        , scaleStep
+        , spacing
         , standard
+        , toPixels
+        , toTenths
+        , topStep
+        , unscaleBeat
+        , unscalePitch
+        , unscaleStep
+        , width
+        , widthPx
+        , x1Px
+        , x2Px
+        , xPx
+        , y1Px
+        , y2Px
+        , yPx
         )
 
+import Mouse
 import Music.Pitch as Pitch exposing (Pitch, StepNumber)
-import Music.Time as Time exposing (Time, Beat)
+import Music.Time as Time exposing (Beat, Time)
 import Svg exposing (Attribute)
 import Svg.Attributes as Attributes
-import Mouse
+import String exposing (fromFloat)
 
 
 -- Layout
@@ -80,7 +81,7 @@ toTenths layout pixels =
 
 pxAttribute : (String -> Attribute msg) -> (Pixels -> Attribute msg)
 pxAttribute strAttr =
-    .px >> toString >> strAttr
+    .px >> fromFloat >> strAttr
 
 
 heightPx : Pixels -> Attribute msg
@@ -264,8 +265,8 @@ bottomStep layout =
 positionOnStaff : Layout -> Pitch -> Int
 positionOnStaff layout p =
     -- distance (in steps) above (below if negative) base pitch of staff
-    (Pitch.stepNumber p)
-        - (Pitch.stepNumber layout.basePitch)
+    Pitch.stepNumber p
+        - Pitch.stepNumber layout.basePitch
 
 
 scaleStep : Layout -> StepNumber -> Pixels

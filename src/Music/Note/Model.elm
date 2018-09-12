@@ -1,18 +1,17 @@
-module Music.Note.Model
-    exposing
-        ( Note
-        , What(..)
-        , playFor
-        , restFor
-        , shiftX
-        , unshiftX
-        , getShiftX
-        , isPlayed
-        )
+module Music.Note.Model exposing
+    ( Note
+    , What(..)
+    , getShiftX
+    , isPlayed
+    , playFor
+    , restFor
+    , shiftX
+    , unshiftX
+    )
 
 import Music.Duration as Duration exposing (Duration)
-import Music.Pitch as Pitch exposing (Pitch)
 import Music.Measure.Layout exposing (Tenths)
+import Music.Pitch as Pitch exposing (Pitch)
 
 
 type alias Note =
@@ -72,7 +71,7 @@ unshiftX n =
                 _ ->
                     True
     in
-        { n | modifiers = List.filter check n.modifiers }
+    { n | modifiers = List.filter check n.modifiers }
 
 
 getShiftX : Note -> Maybe Tenths
@@ -89,7 +88,7 @@ getShiftX n =
         shifts =
             List.filterMap check n.modifiers
     in
-        List.head shifts
+    List.head shifts
 
 
 isPlayed : Note -> Bool

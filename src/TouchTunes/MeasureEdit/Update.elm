@@ -1,17 +1,17 @@
 module TouchTunes.MeasureEdit.Update exposing (update)
 
-import TouchTunes.MeasureEdit.HeadUpDisplay as HeadUpDisplay exposing (HeadUpDisplay)
-import TouchTunes.MeasureEdit.Action exposing (Action, Action(..))
-import TouchTunes.MeasureEdit.Model exposing (MeasureEdit)
+import Debug exposing (log)
 import Music.Measure.Model exposing (Measure, modifyNote)
 import Music.Note.Model exposing (Note, What(..))
-import Music.Pitch exposing (Pitch, stepNumber, fromStepNumber)
-import Debug exposing (log)
+import Music.Pitch exposing (Pitch, fromStepNumber, stepNumber)
+import TouchTunes.MeasureEdit.Action exposing (Action(..))
+import TouchTunes.MeasureEdit.HeadUpDisplay as HeadUpDisplay exposing (HeadUpDisplay)
+import TouchTunes.MeasureEdit.Model exposing (MeasureEdit)
 
 
 update : Action -> MeasureEdit -> MeasureEdit
 update action ed =
-    case (log "action" action) of
+    case log "action" action of
         Start loc ->
             let
                 beat =
@@ -20,10 +20,10 @@ update action ed =
                 pitch =
                     fromStepNumber loc.step
             in
-                { ed
-                    | measure = ed.saved
-                    , hud = Just <| HeadUpDisplay ed.saved beat pitch
-                }
+            { ed
+                | measure = ed.saved
+                , hud = Just <| HeadUpDisplay ed.saved beat pitch
+            }
 
         Finish ->
             { ed
@@ -36,21 +36,21 @@ update action ed =
                 modifier _ =
                     note
             in
-                { ed | measure = modifyNote modifier at ed.measure }
+            { ed | measure = modifyNote modifier at ed.measure }
 
         StretchTo dur at ->
             let
                 modifier note =
                     { note | duration = dur }
             in
-                { ed | measure = modifyNote modifier at ed.measure }
+            { ed | measure = modifyNote modifier at ed.measure }
 
         RepitchTo pitch at ->
             let
                 modifier note =
                     { note | do = Play pitch }
             in
-                { ed | measure = modifyNote modifier at ed.measure }
+            { ed | measure = modifyNote modifier at ed.measure }
 
         AlterBy semitones at ->
             let
@@ -64,4 +64,4 @@ update action ed =
                         Rest ->
                             note
             in
-                { ed | measure = modifyNote modifier at ed.measure }
+            { ed | measure = modifyNote modifier at ed.measure }

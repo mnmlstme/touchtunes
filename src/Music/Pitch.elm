@@ -1,23 +1,23 @@
 module Music.Pitch
     exposing
         ( Pitch
-        , StepNumber
         , Semitones
+        , StepNumber
         , a
+        , alter
         , b
         , c
         , d
+        , doubleFlat
+        , doubleSharp
           -- Basics.e is Euler's constant :(
         , e_
         , f
-        , g
-        , alter
         , flat
-        , sharp
-        , doubleFlat
-        , doubleSharp
-        , stepNumber
         , fromStepNumber
+        , g
+        , sharp
+        , stepNumber
         , toString
         )
 
@@ -87,7 +87,7 @@ stepFromNumber n =
         steps =
             Array.fromList [ C, D, E, F, G, A, B ]
     in
-        case Array.get (n % 7) steps of
+        case Array.get (modBy 7 n) steps of
             Just step ->
                 step
 

@@ -4,37 +4,38 @@ module TouchTunes.MeasureEdit.HeadUpDisplay
         , view
         )
 
-import TouchTunes.MeasureEdit.Action as Action exposing (Action)
-import Music.Measure.Model as Measure exposing (Measure)
-import Music.Measure.View exposing (layoutFor)
+import Html.Events exposing (onMouseEnter, onMouseUp)
+import Music.Duration exposing (fromTimeBeats)
 import Music.Measure.Layout as Layout
     exposing
         ( Layout
+        , Location
         , Pixels
         , Tenths
-        , Location
+        , beatSpacing
+        , cxPx
+        , cyPx
+        , halfSpacing
         , heightPx
+        , rPx
+        , scaleBeat
+        , scaleEndBeat
+        , scaleStartBeat
+        , scaleStep
+        , spacing
         , widthPx
         , xPx
         , yPx
-        , cxPx
-        , cyPx
-        , rPx
-        , spacing
-        , halfSpacing
-        , beatSpacing
-        , scaleStep
-        , scaleBeat
-        , scaleStartBeat
-        , scaleEndBeat
         )
+import Music.Measure.Model as Measure exposing (Measure)
+import Music.Measure.View exposing (layoutFor)
 import Music.Note.Model exposing (playFor, restFor)
-import Music.Pitch exposing (Pitch, stepNumber, fromStepNumber)
-import Music.Duration exposing (fromTimeBeats)
+import Music.Pitch exposing (Pitch, fromStepNumber, stepNumber)
 import Music.Time exposing (Beat)
-import Svg exposing (Svg, svg, g, circle, rect)
+import Svg exposing (Svg, circle, g, rect, svg)
 import Svg.Attributes exposing (class, transform)
-import Html.Events exposing (onMouseEnter, onMouseUp)
+import String exposing (fromFloat)
+import TouchTunes.MeasureEdit.Action as Action exposing (Action)
 
 
 type alias HeadUpDisplay =
@@ -83,7 +84,7 @@ viewNoteDurations hud =
 
         position =
             String.join "," <|
-                List.map toString
+                List.map fromFloat
                     [ 0
                     , .px <| scaleStep layout <| stepNumber hud.pitch
                     ]
@@ -138,7 +139,7 @@ viewRestDurations hud =
 
         position =
             String.join "," <|
-                List.map toString
+                List.map fromFloat
                     [ 0
                     , .px <| scaleStep layout <| stepNumber hud.pitch
                     ]
@@ -188,7 +189,7 @@ viewPitches hud =
 
         position =
             String.join "," <|
-                List.map toString
+                List.map fromFloat
                     [ .px <| scaleBeat layout hud.beat
                     , .px <| scaleStep layout <| stepNumber hud.pitch
                     ]
@@ -197,7 +198,7 @@ viewPitches hud =
         hotspot delta =
             let
                 pitch =
-                    fromStepNumber <| (stepNumber hud.pitch) + delta
+                    fromStepNumber <| stepNumber hud.pitch + delta
 
                 action =
                     onMouseEnter <|
@@ -253,7 +254,7 @@ viewAlterations hud =
 
         position =
             String.join "," <|
-                List.map toString
+                List.map fromFloat
                     [ .px <| scaleBeat layout hud.beat
                     , .px <| scaleStep layout <| stepNumber pitch
                     ]

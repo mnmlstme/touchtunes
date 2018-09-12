@@ -1,44 +1,45 @@
 module Music.Note.View exposing (view)
 
-import Music.Note.Model exposing (..)
-import Music.Time as Time exposing (Time, Beat)
 import Music.Duration as Duration exposing (Duration, isWhole)
 import Music.Measure.Layout
     exposing
         ( Layout
         , Pixels
-        , xPx
+        , halfSpacing
+        , heightPx
+        , margins
+        , positionOnStaff
+        , scaleBeat
+        , scalePitch
+        , spacing
+        , toPixels
+        , widthPx
         , x1Px
         , x2Px
-        , yPx
+        , xPx
         , y1Px
         , y2Px
-        , heightPx
-        , widthPx
-        , toPixels
-        , spacing
-        , halfSpacing
-        , margins
-        , scalePitch
-        , scaleBeat
-        , positionOnStaff
+        , yPx
         )
+import Music.Note.Model exposing (..)
+import Music.Pitch as Pitch exposing (Pitch)
+import Music.Time as Time exposing (Beat, Time)
 import Svg
     exposing
         ( Svg
-        , svg
         , g
         , line
-        , use
+        , svg
         , text
+        , use
         )
 import Svg.Attributes
     exposing
         ( class
-        , xlinkHref
         , transform
+        , xlinkHref
         )
-import Music.Pitch as Pitch exposing (Pitch)
+import String exposing (fromFloat)
 
 
 type StemOrientation
@@ -123,12 +124,12 @@ ledgerLines layout p =
 
         lineOffset =
             if isAbove then
-                2 - n % 2
+                2 - modBy 2 n
             else
-                n % 2
+                modBy 2 n
 
         isEven n =
-            n % 2 == 0
+            modBy 2 n == 0
 
         steps =
             if n > 2 then
@@ -166,7 +167,7 @@ view layout beat note =
 
         position =
             String.join ","
-                (List.map toString
+                (List.map fromFloat
                     [ xpos.px + dx.px
                     , 0
                     ]
@@ -210,7 +211,7 @@ viewRest layout beat d =
 
         position =
             String.join ","
-                (List.map toString
+                (List.map fromFloat
                     [ 0 - w.px / 2.0
                     , sp.px + m.top.px
                     ]
@@ -248,7 +249,7 @@ viewPitch layout beat d p =
 
         position =
             String.join ","
-                (List.map toString
+                (List.map fromFloat
                     [ 0 - w.px / 2.0
                     , ypos.px
                     ]

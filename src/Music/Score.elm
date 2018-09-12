@@ -1,12 +1,11 @@
-module Music.Score
-    exposing
-        ( Score
-        , score
-        , empty
-        , countParts
-        , length
-        , set
-        )
+module Music.Score exposing
+    ( Score
+    , countParts
+    , empty
+    , length
+    , score
+    , set
+    )
 
 import Array as Array exposing (Array)
 import Music.Part as Part exposing (Part)

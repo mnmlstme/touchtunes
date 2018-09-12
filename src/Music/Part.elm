@@ -1,10 +1,9 @@
-module Music.Part
-    exposing
-        ( Part
-        , empty
-        , length
-        , set
-        )
+module Music.Part exposing
+    ( Part
+    , empty
+    , length
+    , set
+    )
 
 import Array exposing (Array)
 import Music.Measure.Model as Measure exposing (Measure)

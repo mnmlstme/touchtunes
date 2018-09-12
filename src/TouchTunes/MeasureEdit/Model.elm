@@ -1,8 +1,7 @@
-module TouchTunes.MeasureEdit.Model
-    exposing
-        ( MeasureEdit
-        , open
-        )
+module TouchTunes.MeasureEdit.Model exposing
+    ( MeasureEdit
+    , open
+    )
 
 import Music.Measure.Model as Measure
     exposing

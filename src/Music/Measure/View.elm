@@ -1,13 +1,12 @@
 module Music.Measure.View
     exposing
-        ( view
+        ( fixedLayoutFor
         , layoutFor
-        , fixedLayoutFor
+        , view
         )
 
-import Music.Staff as Staff
-import Music.Note.View as NoteView
-import Music.Measure.Model exposing (..)
+import Html exposing (Html, div, text)
+import Html.Attributes exposing (style)
 import Music.Measure.Layout as Layout
     exposing
         ( Layout
@@ -15,14 +14,16 @@ import Music.Measure.Layout as Layout
         , heightPx
         , widthPx
         )
-import Html exposing (Html, div, text)
-import Html.Attributes exposing (style)
-import Svg exposing (Svg, svg, g)
+import Music.Measure.Model exposing (..)
+import Music.Note.View as NoteView
+import Music.Staff as Staff
+import Svg exposing (Svg, g, svg)
 import Svg.Attributes
     exposing
         ( class
         , transform
         )
+import String exposing (fromFloat)
 
 
 -- compute a layout for a measure
@@ -81,7 +82,7 @@ view measure =
 
         staffPosition =
             String.join ","
-                (List.map toString
+                (List.map fromFloat
                     [ 0
                     , (Layout.margins layout).top.px
                     ]
@@ -102,8 +103,7 @@ view measure =
             [ if overflowBeats > 0 then
                 div
                     [ class "measure-overflow"
-                    , style
-                        [ ( "width", toString overflowWidth ++ "px" ) ]
+                    , style "width" (fromFloat overflowWidth ++ "px")
                     ]
                     []
               else

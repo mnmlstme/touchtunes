@@ -1,12 +1,10 @@
-module Music.Staff
-    exposing
-        ( Staff
-        , treble
-        , bass
-        , draw
-        )
+module Music.Staff exposing
+    ( Staff
+    , bass
+    , draw
+    , treble
+    )
 
-import Music.Pitch as Pitch exposing (Pitch)
 import Music.Measure.Layout as Layout
     exposing
         ( Layout
@@ -16,6 +14,7 @@ import Music.Measure.Layout as Layout
         , y1Px
         , y2Px
         )
+import Music.Pitch as Pitch exposing (Pitch)
 import Svg
     exposing
         ( Svg
@@ -63,13 +62,13 @@ drawStaffLine layout n =
         y =
             Pixels <| toFloat n * s.px
     in
-        line
-            [ x1Px <| Pixels 0
-            , x2Px width
-            , y1Px y
-            , y2Px y
-            ]
-            []
+    line
+        [ x1Px <| Pixels 0
+        , x2Px width
+        , y1Px y
+        , y2Px y
+        ]
+        []
 
 
 drawBarLine : Layout -> Svg msg
@@ -84,10 +83,10 @@ drawBarLine layout =
         height =
             Pixels <| 4.0 * sp.px
     in
-        line
-            [ x1Px width
-            , y1Px <| Pixels 0
-            , x2Px width
-            , y2Px height
-            ]
-            []
+    line
+        [ x1Px width
+        , y1Px <| Pixels 0
+        , x2Px width
+        , y2Px height
+        ]
+        []

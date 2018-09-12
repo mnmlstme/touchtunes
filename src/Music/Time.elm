@@ -1,11 +1,10 @@
-module Music.Time
-    exposing
-        ( Time
-        , Beat
-        , common
-        , cut
-        , longer
-        )
+module Music.Time exposing
+    ( Beat
+    , Time
+    , common
+    , cut
+    , longer
+    )
 
 
 type alias Time =
@@ -38,4 +37,4 @@ longer time beat =
         b =
             max time.beats beat
     in
-        Time b time.divisor
+    Time b time.divisor

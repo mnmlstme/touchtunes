@@ -1,27 +1,27 @@
-module Music.Duration
-    exposing
-        ( Duration
-        , fromTimeBeats
-        , whole
-        , half
-        , quarter
-        , eighth
-        , sixteenth
-        , thirtysecond
-        , sixtyfourth
-        , dotted
-        , beats
-        , setBeats
-        , isWhole
-        , longerThan
-        , shorterThan
-        , equal
-        , add
-        , shortenBy
-        )
+module Music.Duration exposing
+    ( Duration
+    , add
+    , beats
+    , dotted
+    , eighth
+    , equal
+    , fromTimeBeats
+    , half
+    , isWhole
+    , longerThan
+    , quarter
+    , setBeats
+    , shortenBy
+    , shorterThan
+    , sixteenth
+    , sixtyfourth
+    , thirtysecond
+    , whole
+    )
 
 import Arithmetic exposing (lcm)
-import Music.Time exposing (Time, Beat)
+import Music.Time exposing (Beat, Time)
+
 
 
 -- Duration expressed as a certain integer number of
@@ -98,7 +98,7 @@ setBeats time b d =
         count =
             b * (d.divisor // time.divisor)
     in
-        Duration count d.divisor
+    Duration count d.divisor
 
 
 isWhole : Time -> Duration -> Bool
@@ -107,7 +107,7 @@ isWhole time d =
         b =
             beats time d
     in
-        b >= time.beats
+    b >= time.beats
 
 
 commonDivisor : Duration -> Duration -> Int
@@ -126,7 +126,7 @@ makeCommon ( a, b ) =
         change =
             changeDivisor <| commonDivisor a b
     in
-        ( change a, change b )
+    ( change a, change b )
 
 
 longerThan : Duration -> Duration -> Bool
@@ -135,7 +135,7 @@ longerThan a b =
         ( ac, bc ) =
             makeCommon ( a, b )
     in
-        ac.count > bc.count
+    ac.count > bc.count
 
 
 shorterThan : Duration -> Duration -> Bool
@@ -144,7 +144,7 @@ shorterThan a b =
         ( ac, bc ) =
             makeCommon ( a, b )
     in
-        ac.count < bc.count
+    ac.count < bc.count
 
 
 equal : Duration -> Duration -> Bool
@@ -153,7 +153,7 @@ equal a b =
         ( ac, bc ) =
             makeCommon ( a, b )
     in
-        ac.count == bc.count
+    ac.count == bc.count
 
 
 add : Duration -> Duration -> Duration
@@ -162,7 +162,7 @@ add a b =
         ( ac, bc ) =
             makeCommon ( a, b )
     in
-        { bc | count = ac.count + bc.count }
+    { bc | count = ac.count + bc.count }
 
 
 shortenBy : Beat -> Duration -> Duration

@@ -1,19 +1,20 @@
-module Main exposing (..)
+module Main exposing (Model, Msg(..), init, main, update, view)
 
+import Example1
 import Html
     exposing
         ( Html
-        , section
-        , header
-        , footer
-        , div
         , button
+        , div
+        , footer
+        , header
+        , section
         , text
         )
 import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
+import Browser
 import TouchTunes.ScoreEdit as ScoreEdit exposing (ScoreEdit)
-import Example1
 
 
 -- APP
@@ -21,11 +22,11 @@ import Example1
 
 main : Program Never Model Msg
 main =
-    Html.program
+    Browser.document
         { init = init
         , view = view
         , update = update
-        , subscriptions = (\model -> Sub.none)
+        , subscriptions = \model -> Sub.none
         }
 
 

@@ -1,23 +1,22 @@
-module Music.Measure.Model
-    exposing
-        ( Measure
-        , new
-        , fromNotes
-        , time
-        , notesLength
-        , length
-        , fitTime
-        , modifyNote
-        , aggregateRests
-        , Sequence
-        , toSequence
-        , fromSequence
-        )
+module Music.Measure.Model exposing
+    ( Measure
+    , Sequence
+    , aggregateRests
+    , fitTime
+    , fromNotes
+    , fromSequence
+    , length
+    , modifyNote
+    , new
+    , notesLength
+    , time
+    , toSequence
+    )
 
-import List.Nonempty as Nonempty exposing (Nonempty, (:::))
-import Music.Time as Time exposing (Time, Beat)
-import Music.Note.Model as Note exposing (Note)
+import List.Nonempty as Nonempty exposing ((:::), Nonempty)
 import Music.Duration as Duration
+import Music.Note.Model as Note exposing (Note)
+import Music.Time as Time exposing (Beat, Time)
 
 
 type alias Measure =
@@ -59,7 +58,7 @@ notesLength measure =
         beats =
             Nonempty.map (Duration.beats t << .duration) measure.notes
     in
-        Nonempty.foldl1 (+) beats
+    Nonempty.foldl1 (+) beats
 
 
 length : Measure -> Beat
@@ -69,7 +68,7 @@ length measure =
         t =
             time measure
     in
-        max t.beats <| notesLength measure
+    max t.beats <| notesLength measure
 
 
 fitTime : Measure -> Time
@@ -82,7 +81,7 @@ fitTime measure =
         beats =
             length measure
     in
-        Time.longer t beats
+    Time.longer t beats
 
 
 cumulativeBeats : Measure -> Nonempty Beat
@@ -95,7 +94,7 @@ cumulativeBeats measure =
         beats =
             Nonempty.map (Duration.beats t << .duration) measure.notes
     in
-        Nonempty.scanl (+) 0 beats
+    Nonempty.scanl (+) 0 beats
 
 
 type alias Sequence =
@@ -109,8 +108,8 @@ toSequence measure =
         startsAt =
             cumulativeBeats measure
     in
-        Nonempty.toList <|
-            Nonempty.map2 (,) startsAt measure.notes
+    Nonempty.toList <|
+        Nonempty.map2 (\a b -> ( a, b )) startsAt measure.notes
 
 
 fromSequence : Sequence -> Measure
@@ -119,7 +118,7 @@ fromSequence sequence =
         justNotes seq =
             List.map (\( b, n ) -> n) seq
     in
-        fromNotes <| justNotes sequence
+    fromNotes <| justNotes sequence
 
 
 openSequence : Beat -> Sequence -> ( Sequence, Note, Sequence )
@@ -143,6 +142,7 @@ openSequence beat sequence =
                 Just ( b, n ) ->
                     if b == beat then
                         ( Nothing, n )
+
                     else
                         let
                             durBefore =
@@ -155,27 +155,27 @@ openSequence beat sequence =
                                     Duration.beats t n.duration
                                         - (beat - b)
                         in
-                            ( Just
-                                ( beat - b
-                                , { n | duration = durBefore }
-                                )
-                            , { n | duration = durAfter }
+                        ( Just
+                            ( beat - b
+                            , { n | duration = durBefore }
                             )
+                        , { n | duration = durAfter }
+                        )
     in
-        ( case maybeBefore of
-            Nothing ->
-                before
+    ( case maybeBefore of
+        Nothing ->
+            before
 
-            Just tuple ->
-                List.append before [ tuple ]
-        , note
-        , case List.tail after of
-            Nothing ->
-                []
+        Just tuple ->
+            List.append before [ tuple ]
+    , note
+    , case List.tail after of
+        Nothing ->
+            []
 
-            Just list ->
-                list
-        )
+        Just list ->
+            list
+    )
 
 
 modifyNote : (Note -> Note) -> Beat -> Measure -> Measure
@@ -210,6 +210,7 @@ modifyNote f beat measure =
                     , Note.restFor <|
                         Duration.fromTimeBeats t (0 - delta)
                     )
+
             else
                 Nothing
 
@@ -233,7 +234,8 @@ modifyNote f beat measure =
                                     Duration.beats t n.duration
                                         - (endBeat - b)
                         in
-                            Just ( endBeat, { n | duration = d } )
+                        Just ( endBeat, { n | duration = d } )
+
                     else
                         Nothing
 
@@ -261,13 +263,14 @@ modifyNote f beat measure =
                 [ before
                 , if newBeats == 0 then
                     []
+
                   else
                     [ ( beat, newNote ) ]
                 , rest
                 ]
     in
-        fromSequence newSequence
-            |> aggregateRests
+    fromSequence newSequence
+        |> aggregateRests
 
 
 aggregateRests : Measure -> Measure
@@ -283,19 +286,19 @@ aggregateRests measure =
                 prevNote =
                     Nonempty.head sofar
             in
-                case ( prevNote.do, note.do ) of
-                    ( Note.Rest, Note.Rest ) ->
-                        Nonempty.replaceHead
-                            { prevNote
-                                | duration =
-                                    Duration.add prevNote.duration note.duration
-                            }
-                            sofar
+            case ( prevNote.do, note.do ) of
+                ( Note.Rest, Note.Rest ) ->
+                    Nonempty.replaceHead
+                        { prevNote
+                            | duration =
+                                Duration.add prevNote.duration note.duration
+                        }
+                        sofar
 
-                    _ ->
-                        note ::: sofar
+                _ ->
+                    note ::: sofar
     in
-        Nonempty.map Nonempty.fromElement measure.notes
-            |> Nonempty.reverse
-            |> Nonempty.foldl1 agg
-            |> Measure
+    Nonempty.map Nonempty.fromElement measure.notes
+        |> Nonempty.reverse
+        |> Nonempty.foldl1 agg
+        |> Measure

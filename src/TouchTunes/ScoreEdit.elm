@@ -1,30 +1,31 @@
 module TouchTunes.ScoreEdit
     exposing
-        ( ScoreEdit
+        ( Action
+        , ScoreEdit
         , empty
         , open
-        , Action
         , update
         , view
         )
 
-import Music.Score as Score exposing (Score)
-import TouchTunes.PartEdit as PartEdit exposing (PartEdit)
 import Array exposing (Array)
 import Html
     exposing
         ( Html
         , article
-        , header
-        , footer
-        , h1
+        , dd
         , div
         , dl
         , dt
-        , dd
+        , footer
+        , h1
+        , header
         , text
         )
 import Html.Attributes exposing (class)
+import Music.Score as Score exposing (Score)
+import TouchTunes.PartEdit as PartEdit exposing (PartEdit)
+import String exposing (fromFloat)
 
 
 type alias ScoreEdit =
@@ -123,11 +124,11 @@ view editor =
                     [ dt []
                         [ text "Parts" ]
                     , dd []
-                        [ text (toString nParts) ]
+                        [ text (fromFloat nParts) ]
                     , dt []
                         [ text "Measures" ]
                     , dd []
-                        [ text (toString nMeasures) ]
+                        [ text (fromFloat nMeasures) ]
                     ]
                 ]
             ]
