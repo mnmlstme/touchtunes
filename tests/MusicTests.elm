@@ -33,7 +33,7 @@ newMeasureTest =
                     Measure.toSequence m
                         |> List.length
                         |> Expect.equal 1
-            , test "contains a note one beat 'one'" <|
+            , test "contains a note on beat 'one'" <|
                 \_ ->
                     Measure.toSequence m
                         |> List.head

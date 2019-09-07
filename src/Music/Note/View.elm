@@ -336,8 +336,8 @@ viewPitch layout beat d p =
                 use
                     [ xlinkHref altSymbol
                     , xPx <| Pixels -w.px
-                    , yPx <| Pixels 0
-                    , heightPx sp
+                    , yPx <| Pixels <| -1.5 * sp.px
+                    , heightPx <| Pixels <| 3 * sp.px
                     , widthPx w
                     ]
                     []

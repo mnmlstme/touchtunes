@@ -102,7 +102,7 @@ cumulativeBeats measure =
         tail =
             scanl (+) head <| Nonempty.tail beats
     in
-        Nonempty.Nonempty head tail
+        Nonempty.Nonempty 0 tail
 
 
 type alias Sequence =
