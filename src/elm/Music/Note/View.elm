@@ -49,35 +49,35 @@ type StemOrientation
 
 
 wholeRest =
-    svgAsset "../static/graphics/tt-rest-whole.svg"
+    svgAsset "./Music/Note/tt-rest-whole.svg"
 
 
 halfRest =
-    svgAsset "../static/graphics/tt-rest-half.svg"
+    svgAsset "./Music/Note/tt-rest-half.svg"
 
 
 quarterRest =
-    svgAsset "../static/graphics/tt-rest-quarter.svg"
+    svgAsset "./Music/Note/tt-rest-quarter.svg"
 
 
 noteheadClosed =
-    svgAsset "../static/graphics/tt-notehead-closed.svg"
+    svgAsset "./Music/Note/tt-notehead-closed.svg"
 
 
 noteheadOpen =
-    svgAsset "../static/graphics/tt-notehead-open.svg"
+    svgAsset "./Music/Note/tt-notehead-open.svg"
 
 
 dot =
-    svgAsset "../static/graphics/tt-dot.svg"
+    svgAsset "./Music/Note/tt-dot.svg"
 
 
 sharp =
-    svgAsset "../static/graphics/tt-sharp.svg"
+    svgAsset "./Music/Note/tt-sharp.svg"
 
 
 flat =
-    svgAsset "../static/graphics/tt-flat.svg"
+    svgAsset "./Music/Note/tt-flat.svg"
 
 
 notehead : Time -> Duration -> String
