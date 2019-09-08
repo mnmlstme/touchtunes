@@ -5,7 +5,6 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ExtractCSSPlugin = require('mini-css-extract-plugin');
 var CopyWebpackPlugin = require('copy-webpack-plugin');
 
-
 const prod = 'production';
 const dev = 'development';
 
@@ -36,18 +35,12 @@ var commonConfig = {
         modules: ['node_modules']
     },
     module: {
-        noParse: /\.elm$/,
         rules: [{
-            test: /\.(eot|ttf|woff|woff2|svg)$/,
-            use: 'file-loader?publicPath=../../&name=static/css/[hash].[ext]'
+          test: /\.svg$/,
+          loader: 'svg-sprite-loader'
         }]
     },
     plugins: [
-        // new webpack.LoaderOptionsPlugin({
-        //     options: {
-        //         postcss: []
-        //     }
-        // }),
         new HtmlWebpackPlugin({
             template: 'src/static/index.html',
             inject: 'body',
@@ -70,11 +63,33 @@ if (isDev === true) {
                 test: /\.elm$/,
                 exclude: [/elm-stuff/, /node_modules/],
                 use: [{
-                    loader: 'elm-webpack-loader',
-                    options: {
-                        verbose: true,
-                        debug: true
-                    }
+                  loader: "babel-loader",
+                  options: {
+                    plugins: [
+                      [
+                        "module:babel-elm-assets-plugin",
+                        {},
+                        "assets-plugin-generic"
+                      ],
+                      [
+                        "module:babel-elm-assets-plugin",
+                        {
+                          // "author/project" is the default value if no "name" field is specified in elm.json.
+                          package: "author/project",
+                          module: "Icon.SvgAsset",
+                          function: "svgAsset"
+                        },
+                        "assets-plugin-svg"
+                      ]
+                    ]
+                  }
+                },{
+                  loader: 'elm-webpack-loader',
+                  options: {
+                    optimize: false,
+                    verbose: true,
+                    debug: true
+                  }
                 }]
             },{
                 test: /\.css$/,
@@ -93,7 +108,7 @@ if (isProd === true) {
                 exclude: [/elm-stuff/, /node_modules/],
                 use: 'elm-webpack-loader'
             }, {
-                test: /\.sc?ss$/,
+                test: /\.css$/,
                 use: ExtractCSSPlugin.extract({
                     fallback: 'style-loader',
                     use: ['css-loader'/*, 'postcss-loader'*/]

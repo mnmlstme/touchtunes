@@ -2,5 +2,5 @@
 require( './styles/main.css' );
 
 // inject bundled Elm app into div#main
-var bundle = require( '../elm/Main' );
-bundle.Elm.Main.init({ node: document.getElementById( 'main' ) });
+var app = require( '../elm/Main' );
+app.Elm.Main.init({ node: document.getElementById( 'main' ) });

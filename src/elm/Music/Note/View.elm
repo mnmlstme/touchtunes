@@ -24,6 +24,7 @@ import Music.Measure.Layout
 import Music.Note.Model exposing (..)
 import Music.Pitch as Pitch exposing (Pitch)
 import Music.Time as Time exposing (Beat, Time)
+import Icon.SvgAsset exposing (svgAsset)
 import Svg
     exposing
         ( Svg
@@ -47,6 +48,38 @@ type StemOrientation
     | StemDown
 
 
+wholeRest =
+    svgAsset "../static/graphics/tt-rest-whole.svg"
+
+
+halfRest =
+    svgAsset "../static/graphics/tt-rest-half.svg"
+
+
+quarterRest =
+    svgAsset "../static/graphics/tt-rest-quarter.svg"
+
+
+noteheadClosed =
+    svgAsset "../static/graphics/tt-notehead-closed.svg"
+
+
+noteheadOpen =
+    svgAsset "../static/graphics/tt-notehead-open.svg"
+
+
+dot =
+    svgAsset "../static/graphics/tt-dot.svg"
+
+
+sharp =
+    svgAsset "../static/graphics/tt-sharp.svg"
+
+
+flat =
+    svgAsset "../static/graphics/tt-flat.svg"
+
+
 notehead : Time -> Duration -> String
 notehead time d =
     let
@@ -54,9 +87,9 @@ notehead time d =
             Duration.beats time d
     in
         if b < 2 then
-            "#tt-notehead-closed"
+            noteheadClosed.id
         else
-            "#tt-notehead-open"
+            noteheadOpen.id
 
 
 restSymbol : Time -> Duration -> String
@@ -66,11 +99,11 @@ restSymbol time d =
             Duration.beats time d
     in
         if isWhole time d then
-            "#tt-rest-whole"
+            wholeRest.id
         else if b < 2 then
-            "#tt-rest-quarter"
+            quarterRest.id
         else
-            "#tt-rest-half"
+            halfRest.id
 
 
 dotted : Time -> Duration -> String
@@ -80,7 +113,7 @@ dotted time d =
             Duration.beats time d
     in
         if b == 3 then
-            "#tt-dot"
+            dot.id
         else
             ""
 
@@ -88,9 +121,9 @@ dotted time d =
 alteration : Pitch -> String
 alteration p =
     if p.alter > 0 then
-        "#tt-sharp"
+        sharp.id
     else if p.alter < 0 then
-        "#tt-flat"
+        flat.id
     else
         ""
 
@@ -224,7 +257,7 @@ viewRest layout beat d =
             [ transform ("translate(" ++ position ++ ")")
             ]
             [ use
-                [ xlinkHref symbol
+                [ xlinkHref <| "#" ++ symbol
                 , xPx <| Pixels 0
                 , yPx <| Pixels 0
                 , heightPx h
@@ -310,7 +343,7 @@ viewPitch layout beat d p =
             [ transform ("translate(" ++ position ++ ")")
             ]
             [ use
-                [ xlinkHref noteSymbol
+                [ xlinkHref <| "#" ++ noteSymbol
                 , xPx <| Pixels 0
                 , yPx <| Pixels <| 0 - (halfSpacing layout).px
                 , heightPx sp
@@ -334,7 +367,7 @@ viewPitch layout beat d p =
                 text ""
               else
                 use
-                    [ xlinkHref altSymbol
+                    [ xlinkHref <| "#" ++ altSymbol
                     , xPx <| Pixels -w.px
                     , yPx <| Pixels <| -1.5 * sp.px
                     , heightPx <| Pixels <| 3 * sp.px
@@ -361,7 +394,7 @@ viewDot layout d =
             text ""
         else
             use
-                [ xlinkHref dotSymbol
+                [ xlinkHref <| "#" ++ dotSymbol
                 , xPx w
                 , yPx <| Pixels <| 0 - (halfSpacing layout).px
                 , heightPx sp
