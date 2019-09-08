@@ -1,5 +1,6 @@
-/build
+/dist
 /elm-stuff
 /tests/elm-stuff
 /graphics/third-party
 /node_modules
+.DS_Store

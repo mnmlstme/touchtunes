@@ -1,10 +1,11 @@
-module TouchTunes.PartEdit exposing
-    ( Action
-    , PartEdit
-    , open
-    , update
-    , view
-    )
+module TouchTunes.PartEdit
+    exposing
+        ( Action
+        , PartEdit
+        , open
+        , update
+        , view
+        )
 
 import Array exposing (Array)
 import Html
@@ -16,7 +17,7 @@ import Html
         , section
         , text
         )
-import Html.Attributes exposing (class)
+import CssModules exposing (css)
 import Music.Part as Part exposing (Part)
 import TouchTunes.MeasureEdit.Action as MeasureEditAction
 import TouchTunes.MeasureEdit.Model as MeasureEdit exposing (MeasureEdit)
@@ -50,11 +51,10 @@ children editor =
                 Just ( n, active ) ->
                     if i == n then
                         \m -> active
-
                     else
                         MeasureEdit.open
     in
-    Array.indexedMap edit editor.part.measures
+        Array.indexedMap edit editor.part.measures
 
 
 update : Action -> PartEdit -> PartEdit
@@ -65,39 +65,47 @@ update msg editor =
                 subs =
                     children editor
             in
-            case Array.get n subs of
-                Nothing ->
-                    editor
+                case Array.get n subs of
+                    Nothing ->
+                        editor
 
-                Just m ->
-                    let
-                        updated =
-                            MeasureEditUpdate.update action m
+                    Just m ->
+                        let
+                            updated =
+                                MeasureEditUpdate.update action m
 
-                        newPart =
-                            Part.set n updated.measure editor.part
-                    in
-                    { editor
-                        | active = Just ( n, updated )
-                        , part = newPart
-                    }
+                            newPart =
+                                Part.set n updated.measure editor.part
+                        in
+                            { editor
+                                | active = Just ( n, updated )
+                                , part = newPart
+                            }
 
 
 view : PartEdit -> Html Action
 view editor =
     let
+        styles =
+            css "./static/styles/part.css"
+                { part = "part"
+                , header = "header"
+                , abbrev = "abbrev"
+                , body = "body"
+                }
+
         measureView i child =
             Html.map (OnMeasure i) (MeasureEditView.view child)
     in
-    section [ class "part" ]
-        [ header [ class "part-header" ]
-            [ h3 [ class "part-abbrev" ]
-                [ text editor.part.abbrev ]
+        section [ styles.class .part ]
+            [ header [ styles.class .header ]
+                [ h3 [ styles.class .abbrev ]
+                    [ text editor.part.abbrev ]
+                ]
+            , div
+                [ styles.class .body ]
+              <|
+                Array.toList <|
+                    Array.indexedMap measureView <|
+                        children editor
             ]
-        , div
-            [ class "part-body" ]
-          <|
-            Array.toList <|
-                Array.indexedMap measureView <|
-                    children editor
-        ]

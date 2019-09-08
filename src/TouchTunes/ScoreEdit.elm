@@ -23,6 +23,7 @@ import Html
         , text
         )
 import Html.Attributes exposing (class)
+import CssModules exposing (css)
 import Music.Score as Score exposing (Score)
 import TouchTunes.PartEdit as PartEdit exposing (PartEdit)
 import String
@@ -94,6 +95,22 @@ update msg editor =
 view : ScoreEdit -> Html Action
 view editor =
     let
+        frameStyles =
+            css "./static/styles/frame.css"
+                { frame = "frame"
+                , fullscreen = "fullscreen"
+                , header = "header"
+                , body = "body"
+                , footer = "footer"
+                }
+
+        styles =
+            css "./static/styles/score.css"
+                { title = "title"
+                , parts = "parts"
+                , stats = "stats"
+                }
+
         s =
             editor.score
 
@@ -107,20 +124,23 @@ view editor =
             Html.map (OnPart i) (PartEdit.view child)
     in
         article
-            [ class "score frame" ]
-            [ header [ class "frame-header" ]
-                [ h1 [ class "score-title" ]
+            [ frameStyles.class .frame ]
+            [ header [ frameStyles.class .header ]
+                [ h1 [ styles.class .title ]
                     [ text s.title ]
                 ]
             , div
-                [ class "frame-body score-parts"
+                [ class <|
+                    (frameStyles.toString .body)
+                        ++ " "
+                        ++ (styles.toString .parts)
                 ]
               <|
                 Array.toList <|
                     Array.indexedMap partView <|
                         children editor
-            , footer [ class "frame-footer" ]
-                [ dl [ class "score-stats" ]
+            , footer [ frameStyles.class .footer ]
+                [ dl [ styles.class .stats ]
                     [ dt []
                         [ text "Parts" ]
                     , dd []

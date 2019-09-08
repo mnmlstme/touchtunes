@@ -66,6 +66,7 @@ if (isDev === true) {
                   loader: "babel-loader",
                   options: {
                     plugins: [
+                      "module:elm-css-modules-plugin",
                       [
                         "module:babel-elm-assets-plugin",
                         {},
@@ -92,8 +93,18 @@ if (isDev === true) {
                   }
                 }]
             },{
-                test: /\.css$/,
-                use: ['style-loader', 'css-loader'/*, 'postcss-loader'*/]
+              test: /\.css$/,
+              use: [
+                'style-loader',
+                {
+                  loader: 'css-loader',
+                  options: {
+                    modules: {
+                      localIdentName: '[local]__[hash:base64:5]'
+                    }
+                  }
+                }
+              ]
             }]
         }
     });

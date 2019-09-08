@@ -34,6 +34,7 @@ import Music.Pitch exposing (Pitch, fromStepNumber, stepNumber)
 import Music.Time exposing (Beat)
 import Svg exposing (Svg, circle, g, rect, svg)
 import Svg.Attributes exposing (class, transform)
+import CssModules exposing (css)
 import String
 import TouchTunes.MeasureEdit.Action as Action exposing (Action)
 
@@ -43,6 +44,18 @@ type alias HeadUpDisplay =
     , beat : Beat
     , pitch : Pitch
     }
+
+
+styles =
+    css "./static/styles/measure.css"
+        { measure = "measure"
+        , staff = "staff"
+        , overflow = "overflow"
+        , editor = "editor"
+        , ruler = "ruler"
+        , hud = "hud"
+        , hotspot = "hotspot"
+        }
 
 
 view : HeadUpDisplay -> Svg Action
@@ -55,7 +68,7 @@ view hud =
             onMouseUp Action.Finish
     in
         svg
-            [ class "measure-hud"
+            [ class <| styles.toString .hud
             , heightPx <| Layout.height layout
             , widthPx <| Layout.width layout
             , up
@@ -104,7 +117,7 @@ viewNoteDurations hud =
                     onMouseEnter <| Action.ReplaceNote note hud.beat
             in
                 rect
-                    [ class "measure-hotspot"
+                    [ class <| styles.toString .hotspot
                     , heightPx <| Pixels (2 * s.px)
                     , widthPx <| beatSpacing layout
                     , xPx <| scaleStartBeat layout (beat + 1)
@@ -114,8 +127,7 @@ viewNoteDurations hud =
                     []
     in
         g
-            [ class "measure-hud-note-hotspots"
-            , transform
+            [ transform
                 ("translate(" ++ position ++ ")")
             ]
         <|
@@ -157,7 +169,7 @@ viewRestDurations hud =
                         Action.ReplaceNote rest beat
             in
                 rect
-                    [ class "measure-hotspot"
+                    [ class <| styles.toString .hotspot
                     , heightPx <| Pixels (4 * s.px)
                     , widthPx <| Pixels 3
                     , xPx <| scaleStartBeat layout beat
@@ -167,8 +179,7 @@ viewRestDurations hud =
                     []
     in
         g
-            [ class "measure-hud-rest-hotspots"
-            , transform
+            [ transform
                 ("translate(" ++ position ++ ")")
             ]
         <|
@@ -214,7 +225,7 @@ viewPitches hud =
                     20
             in
                 rect
-                    [ class "measure-hotspot"
+                    [ class <| styles.toString .hotspot
                     , heightPx <| Pixels <| h
                     , widthPx <| Pixels <| w
                     , xPx <| Pixels <| -w / 2
@@ -229,8 +240,7 @@ viewPitches hud =
                     []
     in
         g
-            [ class "measure-hud-pitch-hotspots"
-            , transform
+            [ transform
                 ("translate(" ++ position ++ ")")
             ]
         <|
@@ -276,12 +286,11 @@ viewAlterations hud =
                     Action.RepitchNote altered hud.beat
     in
         g
-            [ class "measure-hud-alter-hotspots"
-            , transform
+            [ transform
                 ("translate(" ++ position ++ ")")
             ]
             [ circle
-                [ class "measure-hotspot"
+                [ class <| styles.toString .hotspot
                 , rPx half
                 , cxPx s
                 , cyPx <| Pixels (1.5 * s.px)
@@ -289,7 +298,7 @@ viewAlterations hud =
                 ]
                 []
             , circle
-                [ class "measure-hotspot"
+                [ class <| styles.toString .hotspot
                 , rPx half
                 , cxPx s
                 , cyPx <| Pixels (-1.5 * s.px)

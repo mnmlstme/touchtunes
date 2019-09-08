@@ -11,8 +11,8 @@ import Html
         , section
         , text
         )
-import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
+import CssModules exposing (css)
 import Browser exposing (Document)
 import TouchTunes.ScoreEdit as ScoreEdit exposing (ScoreEdit)
 
@@ -83,14 +83,28 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    section [ class "fullscreen- frame" ]
-        [ div [ class "frame-body" ]
-            [ Html.map
-                EditorAction
-                (ScoreEdit.view model.editor)
+    let
+        styles =
+            css "./static/styles/frame.css"
+                { frame = "frame"
+                , fullscreen = "fullscreen"
+                , body = "body"
+                , footer = "footer"
+                }
+    in
+        section
+            [ styles.classList
+                [ ( .fullscreen, True )
+                , ( .frame, True )
+                ]
             ]
-        , footer [ class "frame-footer" ]
-            [ button [ onClick Clear ] [ text "Clear" ]
-            , button [ onClick ShowExample1 ] [ text "Example 1" ]
+            [ div [ styles.class .body ]
+                [ Html.map
+                    EditorAction
+                    (ScoreEdit.view model.editor)
+                ]
+            , footer [ styles.class .footer ]
+                [ button [ onClick Clear ] [ text "Clear" ]
+                , button [ onClick ShowExample1 ] [ text "Example 1" ]
+                ]
             ]
-        ]

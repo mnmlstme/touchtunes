@@ -7,6 +7,7 @@ module Music.Measure.View
 
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (style)
+import CssModules exposing (css)
 import Music.Measure.Layout as Layout
     exposing
         ( Layout
@@ -56,6 +57,13 @@ layoutFor measure =
 view : Measure -> Html msg
 view measure =
     let
+        styles =
+            css "./static/styles/measure.css"
+                { measure = "measure"
+                , staff = "staff"
+                , overflow = "overflow"
+                }
+
         givenTime =
             time measure
 
@@ -99,17 +107,17 @@ view measure =
         noteSequence =
             toSequence measure
     in
-        div [ Html.Attributes.class "measure" ]
+        div [ styles.class .measure ]
             [ if overflowBeats > 0 then
                 div
-                    [ class "measure-overflow"
+                    [ styles.class .overflow
                     , style "width" (String.fromFloat overflowWidth ++ "px")
                     ]
                     []
               else
                 text ""
             , svg
-                [ class "measure-staff"
+                [ class <| styles.toString .staff
                 , heightPx h
                 , widthPx w
                 ]
@@ -119,7 +127,7 @@ view measure =
                     ]
                     [ Staff.draw layout ]
                 , g
-                    [ class "measure-notes" ]
+                    []
                   <|
                     List.map drawNote noteSequence
                 ]

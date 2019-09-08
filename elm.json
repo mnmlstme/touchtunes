@@ -8,6 +8,7 @@
     "dependencies": {
         "direct": {
             "cultureamp/babel-elm-assets-plugin": "1.0.1",
+            "cultureamp/elm-css-modules-loader": "2.0.10",
             "elm/browser": "1.0.0",
             "elm/core": "1.0.0",
             "elm/html": "1.0.0",

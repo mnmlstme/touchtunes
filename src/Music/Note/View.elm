@@ -25,6 +25,7 @@ import Music.Note.Model exposing (..)
 import Music.Pitch as Pitch exposing (Pitch)
 import Music.Time as Time exposing (Beat, Time)
 import Icon.SvgAsset exposing (svgAsset)
+import CssModules exposing (css)
 import Svg
     exposing
         ( Svg
@@ -181,6 +182,16 @@ ledgerLines layout p =
         List.map spaceToPixels spaces
 
 
+styles =
+    css "./static/styles/note.css"
+        { note = "note"
+        , rest = "rest"
+        , stem = "stem"
+        , ledger = "ledger"
+        , blank = "blank"
+        }
+
+
 view : Layout -> Beat -> Note -> Svg msg
 view layout beat note =
     let
@@ -209,13 +220,13 @@ view layout beat note =
         className =
             case note.do of
                 Play _ ->
-                    "note"
+                    .note
 
                 Rest ->
-                    "rest"
+                    .rest
     in
         g
-            [ class className
+            [ class <| styles.toString className
             , transform ("translate(" ++ position ++ ")")
             ]
             [ case note.do of
@@ -350,13 +361,13 @@ viewPitch layout beat d p =
                 , widthPx w
                 ]
                 []
-            , g [ class "note-ledger" ]
+            , g [ class <| styles.toString .ledger ]
                 (List.map viewLedger ledgers)
             , if isWhole then
                 text ""
               else
                 line
-                    [ class "note-stem"
+                    [ class <| styles.toString .stem
                     , x1Px xstem
                     , y1Px y1stem
                     , x2Px xstem

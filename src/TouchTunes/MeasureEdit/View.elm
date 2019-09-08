@@ -1,7 +1,7 @@
 module TouchTunes.MeasureEdit.View exposing (view)
 
 import Html exposing (Html, div, text)
-import Html.Attributes exposing (class)
+import CssModules exposing (css)
 import Html.Events exposing (on)
 import Json.Decode as Decode exposing (Decoder, field, int)
 import Music.Measure.Layout as Layout exposing (positionToLocation)
@@ -23,6 +23,11 @@ mouseOffset =
 view : MeasureEdit -> Html Action
 view editor =
     let
+        styles =
+            css "./static/styles/measure.css"
+                { editor = "editor"
+                }
+
         hudview =
             case editor.hud of
                 Just hud ->
@@ -43,7 +48,7 @@ view editor =
                     Decode.map toLocation mouseOffset
     in
         div
-            [ class "measure-editor"
+            [ styles.class .editor
             , down
             ]
         <|
