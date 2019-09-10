@@ -24,7 +24,7 @@ import Music.Measure.Layout
 import Music.Note.Model exposing (..)
 import Music.Pitch as Pitch exposing (Pitch)
 import Music.Time as Time exposing (Beat, Time)
-import Icon.SvgAsset exposing (svgAsset)
+import Icon.SvgAsset as SvgAsset exposing (svgAsset, SvgAsset)
 import CssModules exposing (css)
 import Svg
     exposing
@@ -69,7 +69,7 @@ noteheadOpen =
     svgAsset "./Music/Note/tt-notehead-open.svg"
 
 
-dot =
+singleDot =
     svgAsset "./Music/Note/tt-dot.svg"
 
 
@@ -81,52 +81,52 @@ flat =
     svgAsset "./Music/Note/tt-flat.svg"
 
 
-notehead : Time -> Duration -> String
+notehead : Time -> Duration -> SvgAsset
 notehead time d =
     let
         b =
             Duration.beats time d
     in
         if b < 2 then
-            noteheadClosed.id
+            noteheadClosed
         else
-            noteheadOpen.id
+            noteheadOpen
 
 
-restSymbol : Time -> Duration -> String
+restSymbol : Time -> Duration -> SvgAsset
 restSymbol time d =
     let
         b =
             Duration.beats time d
     in
         if isWhole time d then
-            wholeRest.id
+            wholeRest
         else if b < 2 then
-            quarterRest.id
+            quarterRest
         else
-            halfRest.id
+            halfRest
 
 
-dotted : Time -> Duration -> String
+dotted : Time -> Duration -> Maybe SvgAsset
 dotted time d =
     let
         b =
             Duration.beats time d
     in
         if b == 3 then
-            dot.id
+            Just singleDot
         else
-            ""
+            Nothing
 
 
-alteration : Pitch -> String
+alteration : Pitch -> Maybe SvgAsset
 alteration p =
     if p.alter > 0 then
-        sharp.id
+        Just sharp
     else if p.alter < 0 then
-        flat.id
+        Just flat
     else
-        ""
+        Nothing
 
 
 stemOrientation : Layout -> Pitch -> StemOrientation
@@ -256,25 +256,18 @@ viewRest layout beat d =
         position =
             String.join ","
                 (List.map String.fromFloat
-                    [ 0 - w.px / 2.0
-                    , sp.px + m.top.px
+                    [ 0.0
+                    , m.top.px + 2.0 * sp.px
                     ]
                 )
 
-        symbol =
+        rest =
             restSymbol layout.time d
     in
         g
             [ transform ("translate(" ++ position ++ ")")
             ]
-            [ use
-                [ xlinkHref <| "#" ++ symbol
-                , xPx <| Pixels 0
-                , yPx <| Pixels 0
-                , heightPx h
-                , widthPx w
-                ]
-                []
+            [ SvgAsset.view rest
             , viewDot layout d
             ]
 
@@ -294,7 +287,7 @@ viewPitch layout beat d p =
         position =
             String.join ","
                 (List.map String.fromFloat
-                    [ 0 - w.px / 2.0
+                    [ 0
                     , ypos.px
                     ]
                 )
@@ -314,10 +307,10 @@ viewPitch layout beat d p =
         xstem =
             case stemDir of
                 StemUp ->
-                    w
+                    0.5 * w.px |> Pixels
 
                 StemDown ->
-                    Pixels 0
+                    -0.5 * w.px |> Pixels
 
         y1stem =
             case stemDir of
@@ -335,10 +328,10 @@ viewPitch layout beat d p =
                 StemDown ->
                     Pixels <| y1stem.px + stemLength.px
 
-        noteSymbol =
+        note =
             notehead layout.time d
 
-        altSymbol =
+        alt =
             alteration p
 
         viewLedger y =
@@ -353,14 +346,7 @@ viewPitch layout beat d p =
         g
             [ transform ("translate(" ++ position ++ ")")
             ]
-            [ use
-                [ xlinkHref <| "#" ++ noteSymbol
-                , xPx <| Pixels 0
-                , yPx <| Pixels <| 0 - (halfSpacing layout).px
-                , heightPx sp
-                , widthPx w
-                ]
-                []
+            [ SvgAsset.view note
             , g [ class <| styles.toString .ledger ]
                 (List.map viewLedger ledgers)
             , if isWhole then
@@ -374,17 +360,13 @@ viewPitch layout beat d p =
                     , y2Px y2stem
                     ]
                     []
-            , if altSymbol == "" then
-                text ""
-              else
-                use
-                    [ xlinkHref <| "#" ++ altSymbol
-                    , xPx <| Pixels -w.px
-                    , yPx <| Pixels <| -1.5 * sp.px
-                    , heightPx <| Pixels <| 3 * sp.px
-                    , widthPx w
-                    ]
-                    []
+            , case alt of
+                Just theAlt ->
+                    SvgAsset.view <|
+                        SvgAsset.rightAlign 0 theAlt
+
+                Nothing ->
+                    text ""
             , viewDot layout d
             ]
 
@@ -395,20 +377,16 @@ viewDot layout d =
         sp =
             spacing layout
 
-        w =
-            1.5 * sp.px |> Pixels
+        xOffset =
+            0.75 * sp.px
 
-        dotSymbol =
+        dot =
             dotted layout.time d
     in
-        if dotSymbol == "" then
-            text ""
-        else
-            use
-                [ xlinkHref <| "#" ++ dotSymbol
-                , xPx w
-                , yPx <| Pixels <| 0 - (halfSpacing layout).px
-                , heightPx sp
-                , widthPx sp
-                ]
-                []
+        case dot of
+            Just theDot ->
+                SvgAsset.view <|
+                    SvgAsset.leftAlign xOffset theDot
+
+            Nothing ->
+                text ""
