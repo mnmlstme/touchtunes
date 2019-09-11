@@ -1,0 +1,21 @@
+/* App */
+
+.app {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 100; /* for child frame */
+    position: relative;
+}
+
+.fullscreen {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+.body {
+    flex-grow: 100;
+    display: flex;
+    flex-direction: column;
+}

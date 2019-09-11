@@ -5,6 +5,7 @@
     flex-direction: column;
     justify-content: space-between;
     flex-grow: 100; /* for child frame */
+    position: relative;
 }
 
 .fullscreen {
@@ -14,13 +15,24 @@
 }
 
 .header {
+    display: flex;
+    margin-left: 175px;
+    justify-content: space-between;
 }
 
 .body {
     flex-grow: 100;
     display: flex;
     flex-direction: column;
+    margin-left: 175px;
+    overflow: auto;
 }
 
-.footer {
+.controls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 150px;
+    background: #464245;
 }
