@@ -4,7 +4,7 @@ import Array
 import Music.Duration exposing (half, quarter, whole)
 import Music.Measure.Model as Measure
 import Music.Note.Model exposing (playFor, restFor)
-import Music.Part exposing (Part)
+import Music.Part.Model exposing (Part)
 import Music.Pitch
     exposing
         ( a
@@ -19,7 +19,7 @@ import Music.Pitch
         , g
         , sharp
         )
-import Music.Score exposing (Score)
+import Music.Score.Model exposing (Score)
 
 
 example : Score

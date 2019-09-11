@@ -85,7 +85,7 @@ view : Model -> Html Msg
 view model =
     let
         styles =
-            css "./static/styles/frame.css"
+            css "./TouchTunes/frame.css"
                 { frame = "frame"
                 , fullscreen = "fullscreen"
                 , body = "body"

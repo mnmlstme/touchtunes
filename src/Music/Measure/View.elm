@@ -17,7 +17,7 @@ import Music.Measure.Layout as Layout
         )
 import Music.Measure.Model exposing (..)
 import Music.Note.View as NoteView
-import Music.Staff as Staff
+import Music.Staff.Model as Staff
 import Svg exposing (Svg, g, svg)
 import Svg.Attributes
     exposing
@@ -58,7 +58,7 @@ view : Measure -> Html msg
 view measure =
     let
         styles =
-            css "./static/styles/measure.css"
+            css "./Music/Measure/measure.css"
                 { measure = "measure"
                 , staff = "staff"
                 , overflow = "overflow"

@@ -23,7 +23,7 @@ import Svg.Attributes
 
 
 styles =
-    css "./static/styles/measure.css"
+    css "./TouchTunes/MeasureEdit/editor.css"
         { ruler = "ruler"
         }
 

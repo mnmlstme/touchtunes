@@ -18,7 +18,7 @@ import Html
         , text
         )
 import CssModules exposing (css)
-import Music.Part as Part exposing (Part)
+import Music.Part.Model as Part exposing (Part)
 import TouchTunes.MeasureEdit.Action as MeasureEditAction
 import TouchTunes.MeasureEdit.Model as MeasureEdit exposing (MeasureEdit)
 import TouchTunes.MeasureEdit.Update as MeasureEditUpdate
@@ -87,7 +87,7 @@ view : PartEdit -> Html Action
 view editor =
     let
         styles =
-            css "./static/styles/part.css"
+            css "./Music/Part/part.css"
                 { part = "part"
                 , header = "header"
                 , abbrev = "abbrev"

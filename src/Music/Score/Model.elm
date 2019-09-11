@@ -1,14 +1,15 @@
-module Music.Score exposing
-    ( Score
-    , countParts
-    , empty
-    , length
-    , score
-    , set
-    )
+module Music.Score.Model
+    exposing
+        ( Score
+        , countParts
+        , empty
+        , length
+        , score
+        , set
+        )
 
 import Array as Array exposing (Array)
-import Music.Part as Part exposing (Part)
+import Music.Part.Model as Part exposing (Part)
 
 
 type alias Score =

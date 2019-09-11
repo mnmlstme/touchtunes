@@ -183,7 +183,7 @@ ledgerLines layout p =
 
 
 styles =
-    css "./static/styles/note.css"
+    css "./Music/Note/note.css"
         { note = "note"
         , rest = "rest"
         , stem = "stem"

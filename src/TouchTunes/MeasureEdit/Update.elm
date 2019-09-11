@@ -22,6 +22,7 @@ update action ed =
             in
                 { ed
                     | measure = ed.saved
+                    , selection = Just beat
                     , hud = Just <| HeadUpDisplay ed.saved beat pitch
                 }
 

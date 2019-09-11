@@ -1,24 +1,3 @@
-/* Measure */
-
-.measure {
-    position: relative;
-}
-
-svg.staff {
-    overflow: visible;
-    stroke: none;
-    fill: #333;
-}
-
-.overflow {
-    height: 100%;
-    position: absolute;
-    right: 0;
-    top: 0;
-    background: rgba(255,48,0,0.25);
-    z-index: -1;
-}
-
 /* MeasureEdit */
 
 .editor {
@@ -45,4 +24,12 @@ svg.staff {
 
 .hotspot:hover {
     stroke: red;
+}
+
+.selection {
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: cell;
+    fill: #d4e6f5;
 }

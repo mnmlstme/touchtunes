@@ -24,7 +24,7 @@ import Html
         )
 import Html.Attributes exposing (class)
 import CssModules exposing (css)
-import Music.Score as Score exposing (Score)
+import Music.Score.Model as Score exposing (Score)
 import TouchTunes.PartEdit as PartEdit exposing (PartEdit)
 import String
 
@@ -96,7 +96,7 @@ view : ScoreEdit -> Html Action
 view editor =
     let
         frameStyles =
-            css "./static/styles/frame.css"
+            css "./TouchTunes/frame.css"
                 { frame = "frame"
                 , fullscreen = "fullscreen"
                 , header = "header"
@@ -105,7 +105,7 @@ view editor =
                 }
 
         styles =
-            css "./static/styles/score.css"
+            css "./Music/Score/score.css"
                 { title = "title"
                 , parts = "parts"
                 , stats = "stats"

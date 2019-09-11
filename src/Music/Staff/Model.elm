@@ -1,4 +1,4 @@
-module Music.Staff
+module Music.Staff.Model
     exposing
         ( Staff
         , bass
@@ -46,7 +46,7 @@ draw : Layout -> Svg msg
 draw layout =
     let
         styles =
-            css "./static/styles/staff.css"
+            css "./Music/Staff/staff.css"
                 { staff = "staff"
                 , barline = "barline"
                 , lines = "lines"

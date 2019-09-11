@@ -47,14 +47,10 @@ type alias HeadUpDisplay =
 
 
 styles =
-    css "./static/styles/measure.css"
-        { measure = "measure"
-        , staff = "staff"
-        , overflow = "overflow"
-        , editor = "editor"
-        , ruler = "ruler"
-        , hud = "hud"
+    css "./TouchTunes/MeasureEdit/editor.css"
+        { hud = "hud"
         , hotspot = "hotspot"
+        , selection = "selection"
         }
 
 
