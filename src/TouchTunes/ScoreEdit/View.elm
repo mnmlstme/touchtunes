@@ -15,6 +15,7 @@ import Html
         , footer
         , h1
         , header
+        , nav
         , text
         )
 import Html.Attributes exposing (class)
@@ -23,6 +24,8 @@ import Music.Score.Model as Score exposing (Score)
 import TouchTunes.PartEdit as PartEdit exposing (PartEdit)
 import TouchTunes.ScoreEdit.Model as ScoreEdit exposing (ScoreEdit, children)
 import TouchTunes.ScoreEdit.Action exposing (Action(..))
+import TouchTunes.Dial as Dial
+import TouchTunes.Controls as Controls
 
 
 view : ScoreEdit -> Html Action
@@ -31,10 +34,9 @@ view editor =
         frameStyles =
             css "./TouchTunes/ScoreEdit/frame.css"
                 { frame = "frame"
-                , fullscreen = "fullscreen"
                 , header = "header"
                 , body = "body"
-                , footer = "footer"
+                , controls = "controls"
                 }
 
         styles =
@@ -82,4 +84,8 @@ view editor =
                 Array.toList <|
                     Array.indexedMap partView <|
                         children editor
+            , nav
+                [ frameStyles.class .controls ]
+                [ Dial.view Controls.durationDial editor.durationSetting
+                ]
             ]

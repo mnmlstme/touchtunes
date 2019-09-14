@@ -1,4 +1,4 @@
-module Music.Note.View exposing (view)
+module Music.Note.View exposing (view, viewNote, StemOrientation(..))
 
 import Music.Duration as Duration exposing (Duration, isWhole)
 import Music.Measure.Layout
@@ -81,11 +81,11 @@ flat =
     svgAsset "./Music/Note/tt-flat.svg"
 
 
-notehead : Time -> Duration -> SvgAsset
-notehead time d =
+notehead : Duration -> SvgAsset
+notehead d =
     let
         b =
-            Duration.beats time d
+            d.count
     in
         if b < 2 then
             noteheadClosed
@@ -93,13 +93,13 @@ notehead time d =
             noteheadOpen
 
 
-restSymbol : Time -> Duration -> SvgAsset
-restSymbol time d =
+restSymbol : Duration -> SvgAsset
+restSymbol d =
     let
         b =
-            Duration.beats time d
+            d.count
     in
-        if isWhole time d then
+        if isWhole d then
             wholeRest
         else if b < 2 then
             quarterRest
@@ -107,11 +107,11 @@ restSymbol time d =
             halfRest
 
 
-dotted : Time -> Duration -> Maybe SvgAsset
-dotted time d =
+dotted : Duration -> Maybe SvgAsset
+dotted d =
     let
         b =
-            Duration.beats time d
+            d.count
     in
         if b == 3 then
             Just singleDot
@@ -262,13 +262,13 @@ viewRest layout beat d =
                 )
 
         rest =
-            restSymbol layout.time d
+            restSymbol d
     in
         g
             [ transform ("translate(" ++ position ++ ")")
             ]
             [ SvgAsset.view rest
-            , viewDot layout d
+            , viewDot d
             ]
 
 
@@ -292,44 +292,11 @@ viewPitch layout beat d p =
                     ]
                 )
 
-        isWhole =
-            Duration.isWhole layout.time d
-
-        stemLength =
-            3.0 * sp.px |> Pixels
-
         stemDir =
             stemOrientation layout p
 
         ledgers =
             ledgerLines layout p
-
-        xstem =
-            case stemDir of
-                StemUp ->
-                    0.5 * w.px |> Pixels
-
-                StemDown ->
-                    -0.5 * w.px |> Pixels
-
-        y1stem =
-            case stemDir of
-                StemUp ->
-                    Pixels <| -0.25 * sp.px
-
-                StemDown ->
-                    Pixels <| 0.25 * sp.px
-
-        y2stem =
-            case stemDir of
-                StemUp ->
-                    Pixels <| y1stem.px - stemLength.px
-
-                StemDown ->
-                    Pixels <| y1stem.px + stemLength.px
-
-        note =
-            notehead layout.time d
 
         alt =
             alteration p
@@ -346,9 +313,64 @@ viewPitch layout beat d p =
         g
             [ transform ("translate(" ++ position ++ ")")
             ]
-            [ SvgAsset.view note
+            [ viewNote d stemDir
             , g [ class <| styles.toString .ledger ]
                 (List.map viewLedger ledgers)
+            , case alt of
+                Just theAlt ->
+                    SvgAsset.view <|
+                        SvgAsset.rightAlign 0 theAlt
+
+                Nothing ->
+                    text ""
+            ]
+
+
+viewNote : Duration -> StemOrientation -> Svg msg
+viewNote d stemDir =
+    let
+        sp =
+            20.0
+
+        w =
+            1.5 * sp
+
+        stemLength =
+            3.0 * sp
+
+        note =
+            notehead d
+
+        isWhole =
+            Duration.isWhole d
+
+        xstem =
+            case stemDir of
+                StemUp ->
+                    0.5 * w |> Pixels
+
+                StemDown ->
+                    -0.5 * w |> Pixels
+
+        y1stem =
+            case stemDir of
+                StemUp ->
+                    Pixels <| -0.25 * sp
+
+                StemDown ->
+                    Pixels <| 0.25 * sp
+
+        y2stem =
+            case stemDir of
+                StemUp ->
+                    Pixels <| y1stem.px - stemLength
+
+                StemDown ->
+                    Pixels <| y1stem.px + stemLength
+    in
+        g
+            []
+            [ SvgAsset.view note
             , if isWhole then
                 text ""
               else
@@ -360,28 +382,21 @@ viewPitch layout beat d p =
                     , y2Px y2stem
                     ]
                     []
-            , case alt of
-                Just theAlt ->
-                    SvgAsset.view <|
-                        SvgAsset.rightAlign 0 theAlt
-
-                Nothing ->
-                    text ""
-            , viewDot layout d
+            , viewDot d
             ]
 
 
-viewDot : Layout -> Duration -> Svg msg
-viewDot layout d =
+viewDot : Duration -> Svg msg
+viewDot d =
     let
         sp =
-            spacing layout
+            20.0
 
         xOffset =
-            0.75 * sp.px
+            0.75 * sp
 
         dot =
-            dotted layout.time d
+            dotted d
     in
         case dot of
             Just theDot ->

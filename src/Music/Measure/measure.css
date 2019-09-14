@@ -6,7 +6,7 @@
 
 svg.staff {
     overflow: visible;
-    stroke: none;
+    stroke: #333;
     fill: #333;
 }
 

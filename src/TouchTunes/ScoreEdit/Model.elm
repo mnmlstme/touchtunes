@@ -7,6 +7,7 @@ module TouchTunes.ScoreEdit.Model
         )
 
 import Array exposing (Array)
+import Music.Duration as Duration exposing (Duration)
 import Music.Score.Model as Score exposing (Score)
 import TouchTunes.PartEdit as PartEdit exposing (PartEdit)
 import String
@@ -15,17 +16,18 @@ import String
 type alias ScoreEdit =
     { active : Maybe ( Int, PartEdit )
     , score : Score
+    , durationSetting : Duration
     }
 
 
 empty : ScoreEdit
 empty =
-    ScoreEdit Nothing Score.empty
+    ScoreEdit Nothing Score.empty Duration.quarter
 
 
 open : Score -> ScoreEdit
 open score =
-    ScoreEdit Nothing score
+    ScoreEdit Nothing score Duration.quarter
 
 
 children : ScoreEdit -> Array PartEdit

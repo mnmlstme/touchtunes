@@ -100,13 +100,9 @@ setBeats time b d =
         Duration count d.divisor
 
 
-isWhole : Time -> Duration -> Bool
-isWhole time d =
-    let
-        b =
-            beats time d
-    in
-        b >= time.beats
+isWhole : Duration -> Bool
+isWhole d =
+    d.divisor == 1
 
 
 commonDivisor : Duration -> Duration -> Int

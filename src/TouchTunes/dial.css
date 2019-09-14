@@ -1,0 +1,20 @@
+/* Dial */
+
+.dial {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.window {
+    fill: black;
+    stroke: yellow;
+    stroke-width: 1px
+}
+
+.value {
+    fill: yellow;
+    stroke: yellow;
+}
+
+.spindle {
+    background: black;
+}

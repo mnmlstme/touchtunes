@@ -35,4 +35,7 @@
     height: 100%;
     width: 150px;
     background: #464245;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
