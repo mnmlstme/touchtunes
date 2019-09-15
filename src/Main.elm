@@ -1,5 +1,7 @@
 module Main exposing (Model, Msg(..), init, main, update, view)
 
+import Browser exposing (Document)
+import CssModules exposing (css)
 import Example1
 import Html
     exposing
@@ -12,12 +14,11 @@ import Html
         , text
         )
 import Html.Events exposing (onClick)
-import CssModules exposing (css)
-import Browser exposing (Document)
-import TouchTunes.ScoreEdit.Model as ScoreEdit exposing (ScoreEdit)
-import TouchTunes.ScoreEdit.Action as ScoreEditAction
-import TouchTunes.ScoreEdit.Update as ScoreEditUpdate
-import TouchTunes.ScoreEdit.View as ScoreEditView
+import TouchTunes.Action as TTAction
+import TouchTunes.Model as Editor exposing (Editor)
+import TouchTunes.Update as EditorUpdate
+import TouchTunes.View as EditorView
+
 
 
 -- APP
@@ -36,13 +37,13 @@ main =
 
 
 type alias Model =
-    { editor : ScoreEdit
+    { editor : Editor
     }
 
 
 init : Model
 init =
-    Model ScoreEdit.empty
+    Model Editor.empty
 
 
 
@@ -52,7 +53,7 @@ init =
 type Msg
     = Clear
     | ShowExample1
-    | EditorAction ScoreEditAction.Action
+    | EditorAction TTAction.Action
 
 
 update : Msg -> Model -> Model
@@ -61,23 +62,23 @@ update msg model =
         Clear ->
             let
                 editor =
-                    ScoreEdit.empty
+                    Editor.empty
             in
-                Model editor
+            Model editor
 
         ShowExample1 ->
             let
                 editor =
-                    ScoreEdit.open Example1.example
+                    Editor.open Example1.example
             in
-                Model editor
+            Model editor
 
         EditorAction action ->
             let
                 updated =
-                    ScoreEditUpdate.update action model.editor
+                    EditorUpdate.update action model.editor
             in
-                { model | editor = updated }
+            { model | editor = updated }
 
 
 
@@ -95,19 +96,19 @@ view model =
                 , footer = "footer"
                 }
     in
-        section
-            [ styles.classList
-                [ ( .fullscreen, True )
-                , ( .app, True )
-                ]
+    section
+        [ styles.classList
+            [ ( .fullscreen, True )
+            , ( .app, True )
             ]
-            [ div [ styles.class .body ]
-                [ Html.map
-                    EditorAction
-                    (ScoreEditView.view model.editor)
-                ]
-            , footer [ styles.class .footer ]
-                [ button [ onClick Clear ] [ text "Clear" ]
-                , button [ onClick ShowExample1 ] [ text "Example 1" ]
-                ]
+        ]
+        [ div [ styles.class .body ]
+            [ Html.map
+                EditorAction
+                (EditorView.view model.editor)
             ]
+        , footer [ styles.class .footer ]
+            [ button [ onClick Clear ] [ text "Clear" ]
+            , button [ onClick ShowExample1 ] [ text "Example 1" ]
+            ]
+        ]

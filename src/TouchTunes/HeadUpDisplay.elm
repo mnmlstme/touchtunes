@@ -1,4 +1,4 @@
-module TouchTunes.MeasureEdit.HeadUpDisplay
+module TouchTunes.HeadUpDisplay
     exposing
         ( HeadUpDisplay
         , view
@@ -36,7 +36,7 @@ import Svg exposing (Svg, circle, g, rect, svg)
 import Svg.Attributes exposing (class, transform)
 import CssModules exposing (css)
 import String
-import TouchTunes.MeasureEdit.Action as Action exposing (Action)
+import TouchTunes.Action as Action exposing (Action)
 
 
 type alias HeadUpDisplay =
@@ -47,7 +47,7 @@ type alias HeadUpDisplay =
 
 
 styles =
-    css "./TouchTunes/MeasureEdit/editor.css"
+    css "./TouchTunes/editor.css"
         { hud = "hud"
         , hotspot = "hotspot"
         , selection = "selection"

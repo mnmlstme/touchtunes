@@ -1,4 +1,4 @@
-module TouchTunes.MeasureEdit.Ruler exposing (view)
+module TouchTunes.Ruler exposing (view)
 
 import Music.Measure.Layout as Layout
     exposing
@@ -23,7 +23,7 @@ import Svg.Attributes
 
 
 styles =
-    css "./TouchTunes/MeasureEdit/editor.css"
+    css "./TouchTunes/editor.css"
         { ruler = "ruler"
         }
 

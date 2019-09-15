@@ -1,14 +1,17 @@
-module Music.Score.Model
-    exposing
-        ( Score
-        , countParts
-        , empty
-        , length
-        , score
-        , set
-        )
+module Music.Score.Model exposing
+    ( Score
+    , countParts
+    , empty
+    , length
+    , measure
+    , part
+    , score
+    , setMeasure
+    , setPart
+    )
 
 import Array as Array exposing (Array)
+import Music.Measure.Model exposing (Measure)
 import Music.Part.Model as Part exposing (Part)
 
 
@@ -39,6 +42,31 @@ countParts s =
     Array.length s.parts
 
 
-set : Int -> Part -> Score -> Score
-set n p s =
-    { s | parts = Array.set n p s.parts }
+part : Int -> Score -> Maybe Part
+part i s =
+    Array.get i s.parts
+
+
+setPart : Int -> Part -> Score -> Score
+setPart i p s =
+    { s | parts = Array.set i p s.parts }
+
+
+measure : Int -> Int -> Score -> Maybe Measure
+measure i j s =
+    case part i s of
+        Just thePart ->
+            Part.measure j thePart
+
+        Nothing ->
+            Nothing
+
+
+setMeasure : Int -> Int -> Measure -> Score -> Score
+setMeasure i j m s =
+    case part i s of
+        Just thePart ->
+            setPart i (Part.setMeasure j m thePart) s
+
+        Nothing ->
+            s

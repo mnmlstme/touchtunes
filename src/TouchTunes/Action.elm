@@ -1,4 +1,4 @@
-module TouchTunes.MeasureEdit.Action exposing (Action(..))
+module TouchTunes.Action exposing (Action(..))
 
 import Music.Duration exposing (Duration)
 import Music.Measure.Layout exposing (Location)
@@ -8,7 +8,7 @@ import Music.Time exposing (Beat)
 
 
 type Action
-    = Start Location
+    = Start Int Int Location
     | Finish
     | ReplaceNote Note Beat
     | StretchNote Duration Beat
