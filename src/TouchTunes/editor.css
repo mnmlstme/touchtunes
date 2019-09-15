@@ -14,18 +14,6 @@
     fill: #d4e6f5;
 }
 
-.hud {
-    position: absolute;
-    top: 0;
-    left: 0;
-    cursor: cell;
-    fill: rgba(150, 150, 150, 0.5);
-}
-
-.hotspot:hover {
-    stroke: red;
-}
-
 .selection {
     position: absolute;
     top: 0;

@@ -1,4 +1,4 @@
-module Main exposing (Model, Msg(..), init, main, update, view)
+module Main exposing (Model, Msg(..), main, update, view)
 
 import Browser exposing (Document)
 import CssModules exposing (css)
@@ -24,11 +24,13 @@ import TouchTunes.View as EditorView
 -- APP
 
 
+main : Program () Model Msg
 main =
-    Browser.sandbox
-        { init = init
+    Browser.element
+        { init = \flags -> ( initialModel, Cmd.none )
         , view = view
         , update = update
+        , subscriptions = \model -> Sub.none
         }
 
 
@@ -41,8 +43,8 @@ type alias Model =
     }
 
 
-init : Model
-init =
+initialModel : Model
+initialModel =
     Model Editor.empty
 
 
@@ -56,7 +58,7 @@ type Msg
     | EditorAction TTAction.Action
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Clear ->
@@ -64,21 +66,26 @@ update msg model =
                 editor =
                     Editor.empty
             in
-            Model editor
+            ( Model editor, Cmd.none )
 
         ShowExample1 ->
             let
                 editor =
                     Editor.open Example1.example
             in
-            Model editor
+            ( Model editor, Cmd.none )
 
         EditorAction action ->
             let
-                updated =
+                ( updated, maybeAction ) =
                     EditorUpdate.update action model.editor
             in
-            { model | editor = updated }
+            case maybeAction of
+                Just theAction ->
+                    update (EditorAction theAction) (Model updated)
+
+                Nothing ->
+                    ( Model updated, Cmd.none )
 
 
 

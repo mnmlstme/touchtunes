@@ -8,8 +8,8 @@ import Music.Time exposing (Beat)
 
 
 type Action
-    = Start Int Int Location
-    | Finish
+    = StartEdit Int Int Location
+    | FinishEdit
     | ReplaceNote Note Beat
     | StretchNote Duration Beat
     | RepitchNote Pitch Beat

@@ -19,7 +19,7 @@ import Html
         , text
         )
 import Html.Attributes exposing (class)
-import Html.Events exposing (on)
+import Html.Events exposing (on, onMouseUp)
 import Json.Decode as Decode exposing (Decoder, field, int)
 import Music.Measure.Layout as Layout
     exposing
@@ -41,7 +41,6 @@ import Svg.Attributes exposing (class, transform)
 import TouchTunes.Action as Action exposing (Action)
 import TouchTunes.Controls as Controls
 import TouchTunes.Dial as Dial
-import TouchTunes.HeadUpDisplay as HeadUpDisplay exposing (HeadUpDisplay)
 import TouchTunes.Model as Editor exposing (Editor)
 import TouchTunes.Ruler as Ruler
 import Tuple exposing (pair)
@@ -106,6 +105,33 @@ view editor =
         ]
 
 
+viewPart : Editor -> Int -> Part -> Html Action
+viewPart editor i part =
+    let
+        styles =
+            css "./Music/Part/part.css"
+                { part = "part"
+                , header = "header"
+                , abbrev = "abbrev"
+                , body = "body"
+                }
+    in
+    section
+        [ styles.class .part
+        , onMouseUp Action.FinishEdit
+        ]
+        [ header [ styles.class .header ]
+            [ h3 [ styles.class .abbrev ]
+                [ text part.abbrev ]
+            ]
+        , div
+            [ styles.class .body ]
+          <|
+            Array.toList <|
+                Array.indexedMap (viewMeasure editor i) part.measures
+        ]
+
+
 mouseOffset : Decoder ( Int, Int )
 mouseOffset =
     Decode.map2 pair
@@ -122,26 +148,32 @@ viewMeasure editor i j measure =
                 , selection = "selection"
                 }
 
+        m =
+            case editor.measure of
+                Just theMeasure ->
+                    if editor.partNum == i && editor.measureNum == j then
+                        theMeasure
+
+                    else
+                        measure
+
+                Nothing ->
+                    measure
+
         layout =
-            layoutFor measure
+            layoutFor m
 
         toLocation =
             positionToLocation layout
 
-        down =
-            on "mousedown" <|
-                Decode.map (Action.Start i j) <|
-                    Decode.map toLocation mouseOffset
-
         selection =
             Nothing
-
-        hud =
-            Editor.hudForMeasure i j editor
     in
     div
         [ styles.class .editor
-        , down
+        , on "mousedown" <|
+            Decode.map (Action.StartEdit i j) <|
+                Decode.map toLocation mouseOffset
         ]
         [ case selection of
             Just beat ->
@@ -161,36 +193,6 @@ viewMeasure editor i j measure =
 
             Nothing ->
                 text ""
-        , MeasureView.view measure
+        , MeasureView.view m
         , Ruler.view measure
-        , case hud of
-            Just theHud ->
-                HeadUpDisplay.view theHud
-
-            Nothing ->
-                text ""
-        ]
-
-
-viewPart : Editor -> Int -> Part -> Html Action
-viewPart editor i part =
-    let
-        styles =
-            css "./Music/Part/part.css"
-                { part = "part"
-                , header = "header"
-                , abbrev = "abbrev"
-                , body = "body"
-                }
-    in
-    section [ styles.class .part ]
-        [ header [ styles.class .header ]
-            [ h3 [ styles.class .abbrev ]
-                [ text part.abbrev ]
-            ]
-        , div
-            [ styles.class .body ]
-          <|
-            Array.toList <|
-                Array.indexedMap (viewMeasure editor i) part.measures
         ]

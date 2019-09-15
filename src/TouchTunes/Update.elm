@@ -6,14 +6,13 @@ import Music.Note.Model exposing (Note, What(..))
 import Music.Pitch exposing (Pitch, fromStepNumber, stepNumber)
 import Music.Score.Model as Score
 import TouchTunes.Action exposing (Action(..))
-import TouchTunes.HeadUpDisplay as HeadUpDisplay exposing (HeadUpDisplay)
 import TouchTunes.Model exposing (Editor)
 
 
-update : Action -> Editor -> Editor
+update : Action -> Editor -> ( Editor, Maybe Action )
 update action editor =
     case log "action" action of
-        Start partNum measureNum loc ->
+        StartEdit partNum measureNum loc ->
             let
                 beat =
                     loc.beat
@@ -21,26 +20,24 @@ update action editor =
                 pitch =
                     fromStepNumber loc.step
 
+                note =
+                    Note (Play pitch) editor.durationSetting []
+
                 measure =
                     Score.measure partNum measureNum editor.score
             in
-            { editor
+            ( { editor
                 | partNum = partNum
                 , measureNum = measureNum
                 , measure = measure
                 , savedMeasure = Nothing
                 , selection = Just beat
-                , hud =
-                    case measure of
-                        Just theMeasure ->
-                            Just <| HeadUpDisplay theMeasure beat pitch
+              }
+            , Just <| ReplaceNote note beat
+            )
 
-                        Nothing ->
-                            Nothing
-            }
-
-        Finish ->
-            { editor
+        FinishEdit ->
+            ( { editor
                 | score =
                     case editor.measure of
                         Just theMeasure ->
@@ -52,9 +49,11 @@ update action editor =
 
                         Nothing ->
                             editor.score
+                , measure = Nothing
                 , savedMeasure = editor.measure
-                , hud = Nothing
-            }
+              }
+            , Nothing
+            )
 
         ReplaceNote note at ->
             let
@@ -63,14 +62,16 @@ update action editor =
             in
             case editor.measure of
                 Just theMeasure ->
-                    { editor
+                    ( { editor
                         | measure =
                             Just <|
                                 modifyNote modifier at theMeasure
-                    }
+                      }
+                    , Nothing
+                    )
 
                 Nothing ->
-                    editor
+                    ( editor, Nothing )
 
         StretchNote dur at ->
             let
@@ -79,14 +80,16 @@ update action editor =
             in
             case editor.measure of
                 Just theMeasure ->
-                    { editor
+                    ( { editor
                         | measure =
                             Just <|
                                 modifyNote modifier at theMeasure
-                    }
+                      }
+                    , Nothing
+                    )
 
                 Nothing ->
-                    editor
+                    ( editor, Nothing )
 
         RepitchNote pitch at ->
             let
@@ -95,14 +98,16 @@ update action editor =
             in
             case editor.measure of
                 Just theMeasure ->
-                    { editor
+                    ( { editor
                         | measure =
                             Just <|
                                 modifyNote modifier at theMeasure
-                    }
+                      }
+                    , Nothing
+                    )
 
                 Nothing ->
-                    editor
+                    ( editor, Nothing )
 
         AlterNote semitones at ->
             let
@@ -118,11 +123,13 @@ update action editor =
             in
             case editor.measure of
                 Just theMeasure ->
-                    { editor
+                    ( { editor
                         | measure =
                             Just <|
                                 modifyNote modifier at theMeasure
-                    }
+                      }
+                    , Nothing
+                    )
 
                 Nothing ->
-                    editor
+                    ( editor, Nothing )
