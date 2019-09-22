@@ -38,7 +38,7 @@ import Music.Part.Model as Part exposing (Part)
 import Music.Score.Model as Score exposing (Score)
 import Svg exposing (Svg, circle, g, rect, svg)
 import Svg.Attributes exposing (class, transform)
-import TouchTunes.Action as Action exposing (Action(..))
+import TouchTunes.Action as Action exposing (Msg(..))
 import TouchTunes.Controls as Controls
 import TouchTunes.Dial as Dial
 import TouchTunes.Model as Editor exposing (Editor)
@@ -46,7 +46,7 @@ import TouchTunes.Ruler as Ruler
 import Tuple exposing (pair)
 
 
-view : Editor -> Html Action
+view : Editor -> Html Msg
 view editor =
     let
         frameStyles =
@@ -67,8 +67,8 @@ view editor =
         s =
             editor.score
 
-        controls =
-            editor.controls
+        tracking =
+            editor.tracking
 
         nParts =
             Score.countParts s
@@ -103,13 +103,14 @@ view editor =
                 Array.indexedMap (viewPart editor) editor.score.parts
         , nav
             [ frameStyles.class .controls ]
-            [ Html.map DurationControl <|
-                Dial.view controls.durationDial editor.durationSetting
+            [ Controls.viewDurationDial
+                tracking.durationDial
+                editor.durationSetting
             ]
         ]
 
 
-viewPart : Editor -> Int -> Part -> Html Action
+viewPart : Editor -> Int -> Part -> Html Msg
 viewPart editor i part =
     let
         styles =
@@ -143,7 +144,7 @@ mouseOffset =
         (field "offsetY" int)
 
 
-viewMeasure : Editor -> Int -> Int -> Measure -> Html Action
+viewMeasure : Editor -> Int -> Int -> Measure -> Html Msg
 viewMeasure editor i j measure =
     let
         styles =

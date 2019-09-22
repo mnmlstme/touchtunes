@@ -2,27 +2,26 @@ module TouchTunes.Update exposing (update)
 
 import Array as Array
 import Debug exposing (log)
-import List.Extra exposing (findIndex)
-import Maybe exposing (withDefault)
 import Music.Measure.Model exposing (Measure, modifyNote)
 import Music.Note.Model exposing (Note, What(..))
 import Music.Pitch exposing (Pitch, fromStepNumber, stepNumber)
 import Music.Score.Model as Score
-import TouchTunes.Action
-    exposing
-        ( Action(..)
-        , DialAction(..)
-        )
+import TouchTunes.Action exposing (Msg(..))
+import TouchTunes.Controls as Controls
+import TouchTunes.Dial as Dial
 import TouchTunes.Model exposing (Editor)
 
 
-update : Action -> Editor -> ( Editor, Maybe Action )
-update action editor =
+update : Msg -> Editor -> Editor
+update msg editor =
     let
-        loggedAction =
-            log "action" action
+        tracking =
+            editor.tracking
+
+        activateDurationDial activation =
+            { tracking | durationDial = activation }
     in
-    case loggedAction of
+    case log "msg" msg of
         StartEdit partNum measureNum loc ->
             let
                 beat =
@@ -37,18 +36,17 @@ update action editor =
                 measure =
                     Score.measure partNum measureNum editor.score
             in
-            ( { editor
-                | partNum = partNum
-                , measureNum = measureNum
-                , measure = measure
-                , savedMeasure = Nothing
-                , selection = Just beat
-              }
-            , Just <| ReplaceNote note beat
-            )
+            update (ReplaceNote note beat)
+                { editor
+                    | partNum = partNum
+                    , measureNum = measureNum
+                    , measure = measure
+                    , savedMeasure = Nothing
+                    , selection = Just beat
+                }
 
         FinishEdit ->
-            ( { editor
+            { editor
                 | score =
                     case editor.measure of
                         Just theMeasure ->
@@ -62,9 +60,7 @@ update action editor =
                             editor.score
                 , measure = Nothing
                 , savedMeasure = editor.measure
-              }
-            , Nothing
-            )
+            }
 
         ReplaceNote note at ->
             let
@@ -73,16 +69,14 @@ update action editor =
             in
             case editor.measure of
                 Just theMeasure ->
-                    ( { editor
+                    { editor
                         | measure =
                             Just <|
                                 modifyNote modifier at theMeasure
-                      }
-                    , Nothing
-                    )
+                    }
 
                 Nothing ->
-                    ( editor, Nothing )
+                    editor
 
         StretchNote dur at ->
             let
@@ -91,16 +85,14 @@ update action editor =
             in
             case editor.measure of
                 Just theMeasure ->
-                    ( { editor
+                    { editor
                         | measure =
                             Just <|
                                 modifyNote modifier at theMeasure
-                      }
-                    , Nothing
-                    )
+                    }
 
                 Nothing ->
-                    ( editor, Nothing )
+                    editor
 
         RepitchNote pitch at ->
             let
@@ -109,16 +101,14 @@ update action editor =
             in
             case editor.measure of
                 Just theMeasure ->
-                    ( { editor
+                    { editor
                         | measure =
                             Just <|
                                 modifyNote modifier at theMeasure
-                      }
-                    , Nothing
-                    )
+                    }
 
                 Nothing ->
-                    ( editor, Nothing )
+                    editor
 
         AlterNote semitones at ->
             let
@@ -134,147 +124,32 @@ update action editor =
             in
             case editor.measure of
                 Just theMeasure ->
-                    ( { editor
+                    { editor
                         | measure =
                             Just <|
                                 modifyNote modifier at theMeasure
-                      }
-                    , Nothing
-                    )
+                    }
 
                 Nothing ->
-                    ( editor, Nothing )
+                    editor
+
+        ChangeDuration dur ->
+            { editor | durationSetting = dur }
 
         DurationControl dialAction ->
             let
-                currentValue =
-                    editor.durationSetting
+                ( act, maybeMsg ) =
+                    Controls.updateDurationDial
+                        tracking.durationDial
+                        editor.durationSetting
+                        dialAction
 
-                cntrl =
-                    editor.controls
-
-                dd =
-                    cntrl.durationDial
-
-                config =
-                    Tuple.first dd
-
-                inter =
-                    Tuple.second dd
-
-                controlDD maybeAct =
-                    let
-                        controls =
-                            editor.controls
-                    in
-                    { editor
-                        | controls =
-                            { controls
-                                | durationDial =
-                                    ( config, maybeAct )
-                            }
-                    }
-
-                i0 =
-                    case inter of
-                        Just theInteraction ->
-                            theInteraction.originalIndex
-
-                        Nothing ->
-                            withDefault 0 <|
-                                log "findIndex" <|
-                                    findIndex
-                                        ((==) currentValue)
-                                    <|
-                                        Array.toList config.options
+                updated =
+                    { editor | tracking = activateDurationDial act }
             in
-            case dialAction of
-                ChangeValue d ->
-                    ( { editor
-                        | durationSetting = d
-                      }
-                    , Nothing
-                    )
+            case maybeMsg of
+                Just theMsg ->
+                    update theMsg updated
 
-                Start coord ->
-                    let
-                        y =
-                            Tuple.second coord
-                    in
-                    ( controlDD <|
-                        Just
-                            { position = 0
-                            , originalIndex = i0
-                            , positionOffset = y
-                            }
-                    , Nothing
-                    )
-
-                Drag coord ->
-                    let
-                        y =
-                            Tuple.second coord
-
-                        offset =
-                            case inter of
-                                Just theInteraction ->
-                                    theInteraction.positionOffset
-
-                                Nothing ->
-                                    y
-
-                        rotation =
-                            -2 * (y - offset)
-
-                        sect =
-                            360 // config.segments
-
-                        shift =
-                            log "shift" <|
-                                floor <|
-                                    toFloat rotation
-                                        / toFloat sect
-                                        + 0.5
-
-                        selected =
-                            Array.get (i0 + shift) config.options
-
-                        change =
-                            case selected of
-                                Just theValue ->
-                                    if theValue == currentValue then
-                                        Nothing
-
-                                    else
-                                        selected
-
-                                Nothing ->
-                                    Nothing
-                    in
-                    ( controlDD <|
-                        case inter of
-                            Just theInteraction ->
-                                Just
-                                    { theInteraction
-                                        | position = y - offset
-                                    }
-
-                            Nothing ->
-                                Just
-                                    { position = 0
-                                    , originalIndex = i0
-                                    , positionOffset = offset
-                                    }
-                    , Maybe.map (DurationControl << ChangeValue) change
-                    )
-
-                Finish ->
-                    ( controlDD Nothing
-                    , Nothing
-                    )
-
-                Cancel ->
-                    ( controlDD Nothing
-                    , Maybe.map (DurationControl << ChangeValue) <|
-                        Array.get i0 config.options
-                    )
+                Nothing ->
+                    updated

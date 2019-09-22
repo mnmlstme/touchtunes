@@ -1,28 +1,19 @@
-module TouchTunes.Action exposing
-    ( Action(..)
-    , DialAction(..)
-    )
+module TouchTunes.Action exposing (Msg(..))
 
 import Music.Duration exposing (Duration)
 import Music.Measure.Layout exposing (Location)
 import Music.Note.Model exposing (Note)
 import Music.Pitch exposing (Pitch, Semitones)
 import Music.Time exposing (Beat)
+import TouchTunes.Dial as Dial
 
 
-type Action
+type Msg
     = StartEdit Int Int Location
     | FinishEdit
     | ReplaceNote Note Beat
     | StretchNote Duration Beat
     | RepitchNote Pitch Beat
     | AlterNote Semitones Beat
-    | DurationControl (DialAction Duration)
-
-
-type DialAction valueType
-    = Start ( Int, Int )
-    | Finish
-    | Cancel
-    | Drag ( Int, Int )
-    | ChangeValue valueType
+    | DurationControl Dial.Action
+    | ChangeDuration Duration

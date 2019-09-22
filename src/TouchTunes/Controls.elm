@@ -1,6 +1,12 @@
-module TouchTunes.Controls exposing (Controls, new)
+module TouchTunes.Controls exposing
+    ( Tracking
+    , inactive
+    , updateDurationDial
+    , viewDurationDial
+    )
 
 import Array as Array
+import Html exposing (Html)
 import Music.Duration
     exposing
         ( Duration
@@ -22,31 +28,43 @@ import Svg.Attributes
         , transform
         , width
         )
+import TouchTunes.Action exposing (Msg(..))
 import TouchTunes.Dial as Dial
 
 
-type alias Controls =
-    { durationDial : ( Dial.Config Duration, Maybe Dial.Interaction ) }
-
-
-new : Controls
-new =
-    { durationDial =
-        ( { options =
-                Array.fromList
-                    [ quarter
-                    , dotted quarter
-                    , half
-                    , dotted half
-                    , whole
-                    , dotted whole
-                    ]
-          , segments = 18
-          , viewValue = viewDuration
-          }
-        , Nothing
-        )
+type alias Tracking =
+    { durationDial : Dial.Tracking
     }
+
+
+inactive : Tracking
+inactive =
+    Tracking
+        Nothing
+
+
+durationDial : Dial.Config Duration msg
+durationDial =
+    { options =
+        Array.fromList
+            [ quarter
+            , dotted quarter
+            , half
+            , dotted half
+            , whole
+            , dotted whole
+            ]
+    , segments = 18
+    , viewValue = viewDuration
+    }
+
+
+viewDurationDial =
+    Dial.view durationDial DurationControl
+
+
+updateDurationDial =
+    Dial.update durationDial ChangeDuration
 
 
 viewDuration : Duration -> Svg msg

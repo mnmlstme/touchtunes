@@ -1,8 +1,15 @@
-module TouchTunes.Dial exposing (Config, Interaction, view)
+module TouchTunes.Dial exposing
+    ( Action(..)
+    , Config
+    , Tracking
+    , update
+    , view
+    )
 
 import Array as Array exposing (Array)
 import Array.Extra exposing (indexedMapToList)
 import CssModules exposing (css)
+import Debug exposing (log)
 import Html exposing (Html)
 import Html.Events
     exposing
@@ -12,6 +19,8 @@ import Html.Events
         , onMouseUp
         )
 import Json.Decode as Decode exposing (Decoder, field, int)
+import List.Extra exposing (findIndex)
+import Maybe as Maybe exposing (withDefault)
 import Svg exposing (Svg, circle, g, line, rect, svg)
 import Svg.Attributes
     exposing
@@ -31,22 +40,32 @@ import Svg.Attributes
         , y1
         , y2
         )
-import TouchTunes.Action exposing (DialAction(..))
 import Tuple exposing (pair)
 
 
-type alias Interaction =
+type Action
+    = Start ( Int, Int )
+    | Finish
+    | Cancel
+    | Drag ( Int, Int )
+
+
+type alias Config valueType msg =
+    { options : Array valueType
+    , viewValue : valueType -> Svg msg
+    , segments : Int
+    }
+
+
+type alias Track =
     { position : Int
     , originalIndex : Int
     , positionOffset : Int
     }
 
 
-type alias Config valueType =
-    { options : Array valueType
-    , viewValue : valueType -> Svg (DialAction valueType)
-    , segments : Int
-    }
+type alias Tracking =
+    Maybe Track
 
 
 mouseOffset : Decoder ( Int, Int )
@@ -56,11 +75,118 @@ mouseOffset =
         (field "offsetY" int)
 
 
-view :
-    ( Config valueType, Maybe Interaction )
+update :
+    Config valueType msg
+    -> (valueType -> msg)
+    -> Tracking
     -> valueType
-    -> Html (DialAction valueType)
-view ( config, interaction ) value =
+    -> Action
+    -> ( Tracking, Maybe msg )
+update config onChange tracking currentValue dialAction =
+    let
+        i0 =
+            case tracking of
+                Just theTrack ->
+                    theTrack.originalIndex
+
+                Nothing ->
+                    withDefault 0 <|
+                        log "findIndex" <|
+                            findIndex
+                                ((==) currentValue)
+                            <|
+                                Array.toList config.options
+    in
+    case dialAction of
+        Start coord ->
+            let
+                y =
+                    Tuple.second coord
+            in
+            ( Just
+                { position = 0
+                , originalIndex = i0
+                , positionOffset = y
+                }
+            , Nothing
+            )
+
+        Drag coord ->
+            let
+                y =
+                    Tuple.second coord
+
+                offset =
+                    case tracking of
+                        Just theTrack ->
+                            theTrack.positionOffset
+
+                        Nothing ->
+                            y
+
+                rotation =
+                    -2 * (y - offset)
+
+                sect =
+                    360 // config.segments
+
+                shift =
+                    log "shift" <|
+                        floor <|
+                            toFloat rotation
+                                / toFloat sect
+                                + 0.5
+
+                selected =
+                    Array.get (i0 + shift) config.options
+
+                change =
+                    case selected of
+                        Just theValue ->
+                            if theValue == currentValue then
+                                Nothing
+
+                            else
+                                selected
+
+                        Nothing ->
+                            Nothing
+            in
+            ( Just
+                (case tracking of
+                    Just theTrack ->
+                        { theTrack
+                            | position = y - offset
+                        }
+
+                    Nothing ->
+                        { position = 0
+                        , originalIndex = i0
+                        , positionOffset = offset
+                        }
+                )
+            , Maybe.map onChange change
+            )
+
+        Finish ->
+            ( Nothing
+            , Nothing
+            )
+
+        Cancel ->
+            ( Nothing
+            , Maybe.map onChange <|
+                Array.get i0 config.options
+            )
+
+
+view :
+    Config valueType msg
+    -> (Action -> msg)
+    -> Tracking
+    -> valueType
+    -> Html msg
+view config toMsg tracking value =
     let
         styles =
             css "./TouchTunes/dial.css"
@@ -76,7 +202,7 @@ view ( config, interaction ) value =
                 }
 
         active =
-            case interaction of
+            case tracking of
                 Just _ ->
                     " " ++ styles.toString .active
 
@@ -105,17 +231,17 @@ view ( config, interaction ) value =
             -200
 
         position =
-            case interaction of
-                Just theInteraction ->
-                    theInteraction.position
+            case tracking of
+                Just theTrack ->
+                    theTrack.position
 
                 Nothing ->
                     0
 
         initialRotation =
-            case interaction of
-                Just theInteraction ->
-                    theInteraction.originalIndex * sect
+            case tracking of
+                Just theTrack ->
+                    theTrack.originalIndex * sect
 
                 Nothing ->
                     0
@@ -216,7 +342,7 @@ view ( config, interaction ) value =
             [ class <| styles.toString .thumb ++ active
             , on "mousedown" <|
                 Decode.map
-                    (\( x, y ) -> Start ( x, y - faceRadius ))
+                    (\( x, y ) -> Start ( x, y - faceRadius ) |> toMsg)
                     mouseOffset
             ]
             [ rect
@@ -232,10 +358,10 @@ view ( config, interaction ) value =
             [ class <| styles.toString .track ++ active
             , on "mousemove" <|
                 Decode.map
-                    (\( x, y ) -> Drag ( x, y + trackTop ))
+                    (\( x, y ) -> Drag ( x, y + trackTop ) |> toMsg)
                     mouseOffset
-            , onMouseUp Finish
-            , onMouseOut Cancel
+            , onMouseUp (Finish |> toMsg)
+            , onMouseOut (Cancel |> toMsg)
             ]
             [ rect
                 [ x <| String.fromInt (-1 * dialRadius)

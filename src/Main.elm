@@ -55,7 +55,7 @@ initialModel =
 type Msg
     = Clear
     | ShowExample1
-    | EditorAction TTAction.Action
+    | EditorMessage TTAction.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -75,17 +75,10 @@ update msg model =
             in
             ( Model editor, Cmd.none )
 
-        EditorAction action ->
-            let
-                ( updated, maybeAction ) =
-                    EditorUpdate.update action model.editor
-            in
-            case maybeAction of
-                Just theAction ->
-                    update (EditorAction theAction) (Model updated)
-
-                Nothing ->
-                    ( Model updated, Cmd.none )
+        EditorMessage ttmsg ->
+            ( Model <| EditorUpdate.update ttmsg model.editor
+            , Cmd.none
+            )
 
 
 
@@ -111,7 +104,7 @@ view model =
         ]
         [ div [ styles.class .body ]
             [ Html.map
-                EditorAction
+                EditorMessage
                 (EditorView.view model.editor)
             ]
         , footer [ styles.class .footer ]
