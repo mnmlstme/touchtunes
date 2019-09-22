@@ -1,17 +1,28 @@
 module TouchTunes.Update exposing (update)
 
+import Array as Array
 import Debug exposing (log)
+import List.Extra exposing (findIndex)
+import Maybe exposing (withDefault)
 import Music.Measure.Model exposing (Measure, modifyNote)
 import Music.Note.Model exposing (Note, What(..))
 import Music.Pitch exposing (Pitch, fromStepNumber, stepNumber)
 import Music.Score.Model as Score
-import TouchTunes.Action exposing (Action(..))
+import TouchTunes.Action
+    exposing
+        ( Action(..)
+        , DialAction(..)
+        )
 import TouchTunes.Model exposing (Editor)
 
 
 update : Action -> Editor -> ( Editor, Maybe Action )
 update action editor =
-    case log "action" action of
+    let
+        loggedAction =
+            log "action" action
+    in
+    case loggedAction of
         StartEdit partNum measureNum loc ->
             let
                 beat =
@@ -133,3 +144,137 @@ update action editor =
 
                 Nothing ->
                     ( editor, Nothing )
+
+        DurationControl dialAction ->
+            let
+                currentValue =
+                    editor.durationSetting
+
+                cntrl =
+                    editor.controls
+
+                dd =
+                    cntrl.durationDial
+
+                config =
+                    Tuple.first dd
+
+                inter =
+                    Tuple.second dd
+
+                controlDD maybeAct =
+                    let
+                        controls =
+                            editor.controls
+                    in
+                    { editor
+                        | controls =
+                            { controls
+                                | durationDial =
+                                    ( config, maybeAct )
+                            }
+                    }
+
+                i0 =
+                    case inter of
+                        Just theInteraction ->
+                            theInteraction.originalIndex
+
+                        Nothing ->
+                            withDefault 0 <|
+                                log "findIndex" <|
+                                    findIndex
+                                        ((==) currentValue)
+                                    <|
+                                        Array.toList config.options
+            in
+            case dialAction of
+                ChangeValue d ->
+                    ( { editor
+                        | durationSetting = d
+                      }
+                    , Nothing
+                    )
+
+                Start coord ->
+                    let
+                        y =
+                            Tuple.second coord
+                    in
+                    ( controlDD <|
+                        Just
+                            { position = 0
+                            , originalIndex = i0
+                            , positionOffset = y
+                            }
+                    , Nothing
+                    )
+
+                Drag coord ->
+                    let
+                        y =
+                            Tuple.second coord
+
+                        offset =
+                            case inter of
+                                Just theInteraction ->
+                                    theInteraction.positionOffset
+
+                                Nothing ->
+                                    y
+
+                        rotation =
+                            -2 * (y - offset)
+
+                        sect =
+                            360 // config.segments
+
+                        shift =
+                            log "shift" <|
+                                floor <|
+                                    toFloat rotation
+                                        / toFloat sect
+                                        + 0.5
+
+                        selected =
+                            Array.get (i0 + shift) config.options
+
+                        change =
+                            case selected of
+                                Just theValue ->
+                                    if theValue == currentValue then
+                                        Nothing
+
+                                    else
+                                        selected
+
+                                Nothing ->
+                                    Nothing
+                    in
+                    ( controlDD <|
+                        case inter of
+                            Just theInteraction ->
+                                Just
+                                    { theInteraction
+                                        | position = y - offset
+                                    }
+
+                            Nothing ->
+                                Just
+                                    { position = 0
+                                    , originalIndex = i0
+                                    , positionOffset = offset
+                                    }
+                    , Maybe.map (DurationControl << ChangeValue) change
+                    )
+
+                Finish ->
+                    ( controlDD Nothing
+                    , Nothing
+                    )
+
+                Cancel ->
+                    ( controlDD Nothing
+                    , Maybe.map (DurationControl << ChangeValue) <|
+                        Array.get i0 config.options
+                    )

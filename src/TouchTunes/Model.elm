@@ -10,6 +10,7 @@ import Music.Measure.Model exposing (Measure)
 import Music.Score.Model as Score exposing (Score)
 import Music.Time exposing (Beat)
 import String
+import TouchTunes.Controls as Controls exposing (Controls)
 
 
 type alias Editor =
@@ -20,6 +21,7 @@ type alias Editor =
     , savedMeasure : Maybe Measure
     , selection : Maybe Beat
     , durationSetting : Duration
+    , controls : Controls
     }
 
 
@@ -33,6 +35,7 @@ empty =
         Nothing
         Nothing
         Duration.quarter
+        Controls.new
 
 
 open : Score -> Editor
@@ -45,3 +48,4 @@ open score =
         Nothing
         Nothing
         Duration.quarter
+        Controls.new

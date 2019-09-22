@@ -14,6 +14,7 @@
             "elm/html": "1.0.0",
             "elm/json": "1.0.0",
             "elm/svg": "1.0.0",
+            "elm-community/array-extra": "2.1.0",
             "elm-community/list-extra": "8.0.0",
             "mgold/elm-nonempty-list": "4.0.0"
         },

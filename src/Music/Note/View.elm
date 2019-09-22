@@ -1,6 +1,13 @@
-module Music.Note.View exposing (view, viewNote, StemOrientation(..))
+module Music.Note.View exposing
+    ( StemOrientation(..)
+    , isWhole
+    , view
+    , viewNote
+    )
 
-import Music.Duration as Duration exposing (Duration, isWhole)
+import CssModules exposing (css)
+import Icon.SvgAsset as SvgAsset exposing (SvgAsset, svgAsset)
+import Music.Duration as Duration exposing (Duration)
 import Music.Measure.Layout
     exposing
         ( Layout
@@ -24,8 +31,7 @@ import Music.Measure.Layout
 import Music.Note.Model exposing (..)
 import Music.Pitch as Pitch exposing (Pitch)
 import Music.Time as Time exposing (Beat, Time)
-import Icon.SvgAsset as SvgAsset exposing (svgAsset, SvgAsset)
-import CssModules exposing (css)
+import String
 import Svg
     exposing
         ( Svg
@@ -41,7 +47,6 @@ import Svg.Attributes
         , transform
         , xlinkHref
         )
-import String
 
 
 type StemOrientation
@@ -81,16 +86,18 @@ flat =
     svgAsset "./Music/Note/tt-flat.svg"
 
 
+isWhole : Duration -> Bool
+isWhole d =
+    d.count // d.divisor == 1
+
+
 notehead : Duration -> SvgAsset
 notehead d =
-    let
-        b =
-            d.count
-    in
-        if b < 2 then
-            noteheadClosed
-        else
-            noteheadOpen
+    if toFloat d.divisor / toFloat d.count > 2.0 then
+        noteheadClosed
+
+    else
+        noteheadOpen
 
 
 restSymbol : Duration -> SvgAsset
@@ -99,12 +106,14 @@ restSymbol d =
         b =
             d.count
     in
-        if isWhole d then
-            wholeRest
-        else if b < 2 then
-            quarterRest
-        else
-            halfRest
+    if isWhole d then
+        wholeRest
+
+    else if b < 2 then
+        quarterRest
+
+    else
+        halfRest
 
 
 dotted : Duration -> Maybe SvgAsset
@@ -113,18 +122,21 @@ dotted d =
         b =
             d.count
     in
-        if b == 3 then
-            Just singleDot
-        else
-            Nothing
+    if b == 3 then
+        Just singleDot
+
+    else
+        Nothing
 
 
 alteration : Pitch -> Maybe SvgAsset
 alteration p =
     if p.alter > 0 then
         Just sharp
+
     else if p.alter < 0 then
         Just flat
+
     else
         Nothing
 
@@ -135,10 +147,11 @@ stemOrientation layout p =
         n =
             positionOnStaff layout p
     in
-        if n > -3 then
-            StemDown
-        else
-            StemUp
+    if n > -3 then
+        StemDown
+
+    else
+        StemUp
 
 
 ledgerLines : Layout -> Pitch -> List Pixels
@@ -159,6 +172,7 @@ ledgerLines layout p =
         lineOffset =
             if isAbove then
                 2 - modBy 2 n
+
             else
                 modBy 2 n
 
@@ -168,8 +182,10 @@ ledgerLines layout p =
         steps =
             if n > 2 then
                 List.range 0 (n - 3)
+
             else if n < -8 then
                 List.range (n + 9) 0
+
             else
                 []
 
@@ -179,7 +195,7 @@ ledgerLines layout p =
         spaceToPixels i =
             Pixels (toFloat (i + lineOffset - 1) * sp.px / 2)
     in
-        List.map spaceToPixels spaces
+    List.map spaceToPixels spaces
 
 
 styles =
@@ -225,17 +241,17 @@ view layout beat note =
                 Rest ->
                     .rest
     in
-        g
-            [ class <| styles.toString className
-            , transform ("translate(" ++ position ++ ")")
-            ]
-            [ case note.do of
-                Play p ->
-                    viewPitch layout beat d p
+    g
+        [ class <| styles.toString className
+        , transform ("translate(" ++ position ++ ")")
+        ]
+        [ case note.do of
+            Play p ->
+                viewPitch layout beat d p
 
-                Rest ->
-                    viewRest layout beat d
-            ]
+            Rest ->
+                viewRest layout beat d
+        ]
 
 
 viewRest : Layout -> Beat -> Duration -> Svg msg
@@ -264,12 +280,12 @@ viewRest layout beat d =
         rest =
             restSymbol d
     in
-        g
-            [ transform ("translate(" ++ position ++ ")")
-            ]
-            [ SvgAsset.view rest
-            , viewDot d
-            ]
+    g
+        [ transform ("translate(" ++ position ++ ")")
+        ]
+        [ SvgAsset.view rest
+        , viewDot d
+        ]
 
 
 viewPitch : Layout -> Beat -> Duration -> Pitch -> Svg msg
@@ -310,20 +326,20 @@ viewPitch layout beat d p =
                 ]
                 []
     in
-        g
-            [ transform ("translate(" ++ position ++ ")")
-            ]
-            [ viewNote d stemDir
-            , g [ class <| styles.toString .ledger ]
-                (List.map viewLedger ledgers)
-            , case alt of
-                Just theAlt ->
-                    SvgAsset.view <|
-                        SvgAsset.rightAlign 0 theAlt
+    g
+        [ transform ("translate(" ++ position ++ ")")
+        ]
+        [ viewNote d stemDir
+        , g [ class <| styles.toString .ledger ]
+            (List.map viewLedger ledgers)
+        , case alt of
+            Just theAlt ->
+                SvgAsset.view <|
+                    SvgAsset.rightAlign 0 theAlt
 
-                Nothing ->
-                    text ""
-            ]
+            Nothing ->
+                text ""
+        ]
 
 
 viewNote : Duration -> StemOrientation -> Svg msg
@@ -341,8 +357,8 @@ viewNote d stemDir =
         note =
             notehead d
 
-        isWhole =
-            Duration.isWhole d
+        stemless =
+            isWhole d
 
         xstem =
             case stemDir of
@@ -368,22 +384,23 @@ viewNote d stemDir =
                 StemDown ->
                     Pixels <| y1stem.px + stemLength
     in
-        g
-            []
-            [ SvgAsset.view note
-            , if isWhole then
-                text ""
-              else
-                line
-                    [ class <| styles.toString .stem
-                    , x1Px xstem
-                    , y1Px y1stem
-                    , x2Px xstem
-                    , y2Px y2stem
-                    ]
-                    []
-            , viewDot d
-            ]
+    g
+        []
+        [ SvgAsset.view note
+        , if stemless then
+            text ""
+
+          else
+            line
+                [ class <| styles.toString .stem
+                , x1Px xstem
+                , y1Px y1stem
+                , x2Px xstem
+                , y2Px y2stem
+                ]
+                []
+        , viewDot d
+        ]
 
 
 viewDot : Duration -> Svg msg
@@ -398,10 +415,10 @@ viewDot d =
         dot =
             dotted d
     in
-        case dot of
-            Just theDot ->
-                SvgAsset.view <|
-                    SvgAsset.leftAlign xOffset theDot
+    case dot of
+        Just theDot ->
+            SvgAsset.view <|
+                SvgAsset.leftAlign xOffset theDot
 
-            Nothing ->
-                text ""
+        Nothing ->
+            text ""

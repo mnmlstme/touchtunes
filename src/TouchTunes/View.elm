@@ -38,7 +38,7 @@ import Music.Part.Model as Part exposing (Part)
 import Music.Score.Model as Score exposing (Score)
 import Svg exposing (Svg, circle, g, rect, svg)
 import Svg.Attributes exposing (class, transform)
-import TouchTunes.Action as Action exposing (Action)
+import TouchTunes.Action as Action exposing (Action(..))
 import TouchTunes.Controls as Controls
 import TouchTunes.Dial as Dial
 import TouchTunes.Model as Editor exposing (Editor)
@@ -66,6 +66,9 @@ view editor =
 
         s =
             editor.score
+
+        controls =
+            editor.controls
 
         nParts =
             Score.countParts s
@@ -100,7 +103,8 @@ view editor =
                 Array.indexedMap (viewPart editor) editor.score.parts
         , nav
             [ frameStyles.class .controls ]
-            [ Dial.view Controls.durationDial editor.durationSetting
+            [ Html.map DurationControl <|
+                Dial.view controls.durationDial editor.durationSetting
             ]
         ]
 

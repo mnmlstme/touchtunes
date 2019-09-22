@@ -1,4 +1,7 @@
-module TouchTunes.Action exposing (Action(..))
+module TouchTunes.Action exposing
+    ( Action(..)
+    , DialAction(..)
+    )
 
 import Music.Duration exposing (Duration)
 import Music.Measure.Layout exposing (Location)
@@ -14,3 +17,12 @@ type Action
     | StretchNote Duration Beat
     | RepitchNote Pitch Beat
     | AlterNote Semitones Beat
+    | DurationControl (DialAction Duration)
+
+
+type DialAction valueType
+    = Start ( Int, Int )
+    | Finish
+    | Cancel
+    | Drag ( Int, Int )
+    | ChangeValue valueType
