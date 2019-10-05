@@ -15,8 +15,9 @@ import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Extra exposing (findIndex)
 import Maybe as Maybe exposing (withDefault)
-import Svg exposing (Svg, circle, g, line, rect, svg)
-import Svg.Attributes
+import Tuple exposing (pair)
+import TypedSvg exposing (circle, g, line, rect, svg)
+import TypedSvg.Attributes
     exposing
         ( class
         , cx
@@ -34,7 +35,8 @@ import Svg.Attributes
         , y1
         , y2
         )
-import Tuple exposing (pair)
+import TypedSvg.Core exposing (Svg)
+import TypedSvg.Types exposing (Transform(..), px)
 
 
 type Action
@@ -175,23 +177,24 @@ view :
     -> Html msg
 view config toMsg tracking value =
     let
-        styles =
-            css "./TouchTunes/dial.css"
-                { dial = "dial"
-                , face = "face"
-                , value = "value"
-                , option = "option"
-                , tick = "tick"
-                , collar = "collar"
-                , thumb = "thumb"
-                , active = "active"
-                , track = "track"
-                }
+        style =
+            .toString <|
+                css "./TouchTunes/dial.css"
+                    { dial = "dial"
+                    , face = "face"
+                    , value = "value"
+                    , option = "option"
+                    , tick = "tick"
+                    , collar = "collar"
+                    , thumb = "thumb"
+                    , active = "active"
+                    , track = "track"
+                    }
 
         active =
             case tracking of
                 Just _ ->
-                    " " ++ styles.toString .active
+                    style .active
 
                 Nothing ->
                     ""
@@ -239,77 +242,69 @@ view config toMsg tracking value =
         viewOption i v =
             let
                 ri =
-                    i * sect
+                    toFloat (i * sect)
             in
             g
-                [ class <|
-                    styles.toString <|
+                [ class
+                    [ style <|
                         if v == value then
                             .value
 
                         else
                             .option
-                , transform <|
-                    "rotate("
-                        ++ String.fromInt (-1 * ri)
-                        ++ ") translate("
-                        ++ String.fromFloat (dialRadius / 2.0 + collarRadius / 2.0)
-                        ++ ",0) rotate("
-                        ++ String.fromInt (ri - rotation)
-                        ++ ") scale(0.25, 0.25)"
+                    ]
+                , transform
+                    [ Rotate (-1 * ri) 0 0
+                    , Translate (dialRadius / 2.0 + collarRadius / 2.0) 0
+                    , Rotate (ri - toFloat rotation) 0 0
+                    , Scale 0.25 0.25
+                    ]
                 ]
                 [ config.viewValue v ]
     in
     svg
-        [ height <| String.fromFloat (2.0 * collarRadius)
-        , width <| String.fromFloat (2.0 * collarRadius)
-        , viewBox <|
-            String.join " "
-                [ String.fromFloat (-1.0 * dialRadius)
-                , String.fromFloat (-1.0 * collarRadius)
-                , String.fromFloat (2.0 * collarRadius)
-                , String.fromFloat (2.0 * collarRadius)
-                ]
+        [ height <| px (2.0 * collarRadius)
+        , width <| px (2.0 * collarRadius)
+        , viewBox
+            (-1.0 * dialRadius)
+            (-1.0 * collarRadius)
+            (2.0 * collarRadius)
+            (2.0 * collarRadius)
         ]
         [ g
-            [ class <|
-                styles.toString .collar
-                    ++ active
-            , transform <|
-                "rotate("
-                    ++ String.fromInt rotation
-                    ++ ")"
+            [ class [ style .collar, active ]
+            , transform [ Rotate (toFloat rotation) 0 0 ]
             ]
           <|
             List.append
                 [ circle
-                    [ r <| String.fromFloat collarRadius ]
+                    [ r <| px collarRadius ]
                     []
                 ]
             <|
                 indexedMapToList viewOption config.options
-        , g [ class <| styles.toString .dial ]
+        , g [ class [ style .dial ] ]
             [ circle
-                [ r <| String.fromFloat dialRadius ]
+                [ r <| px dialRadius ]
                 []
             , line
-                [ class <| styles.toString .tick
-                , x1 <| String.fromFloat faceRadius
-                , y1 "0"
-                , x2 <| String.fromFloat (dialRadius + 10)
-                , y2 "0"
+                [ class [ style .tick ]
+                , x1 <| px faceRadius
+                , y1 <| px 0
+                , x2 <| px (dialRadius + 10)
+                , y2 <| px 0
                 ]
                 []
             ]
         , g
-            [ class <| styles.toString .value ]
+            [ class [ style .value ] ]
             [ circle
-                [ class <| styles.toString .face
-                , r <| String.fromFloat faceRadius
+                [ class [ style .face ]
+                , r <| px faceRadius
                 ]
                 []
             , g
-                [ transform "scale(0.375, 0.375)" ]
+                [ transform [ Scale 0.375 0.375 ] ]
                 [ config.viewValue value ]
             ]
         , let
@@ -326,7 +321,7 @@ view config toMsg tracking value =
                 thumbWidth / 2.0
           in
           g
-            [ class <| styles.toString .thumb ++ active
+            [ class [ style .thumb, active ]
             , Mouse.onDown
                 (\event ->
                     let
@@ -337,16 +332,16 @@ view config toMsg tracking value =
                 )
             ]
             [ rect
-                [ x <| String.fromFloat (-1.0 * dialRadius)
-                , y <| String.fromFloat (position - halfThumbHeight)
-                , height <| String.fromFloat thumbHeight
-                , width <| String.fromFloat thumbWidth
-                , rx <| String.fromFloat halfThumbWidth
+                [ x <| px (-1.0 * dialRadius)
+                , y <| px (position - halfThumbHeight)
+                , height <| px thumbHeight
+                , width <| px thumbWidth
+                , rx <| px halfThumbWidth
                 ]
                 []
             ]
         , g
-            [ class <| styles.toString .track ++ active
+            [ class [ style .track, active ]
             , Mouse.onMove
                 (\event ->
                     let
@@ -359,11 +354,11 @@ view config toMsg tracking value =
             , Mouse.onOut (\event -> Cancel |> toMsg)
             ]
             [ rect
-                [ x <| String.fromFloat (-1.0 * dialRadius)
-                , y <| String.fromFloat trackTop
-                , height <| String.fromFloat (trackBottom - trackTop)
-                , width <| String.fromFloat (dialRadius - faceRadius)
-                , rx <| String.fromFloat <| (dialRadius - faceRadius) / 2.0
+                [ x <| px (-1.0 * dialRadius)
+                , y <| px trackTop
+                , height <| px (trackBottom - trackTop)
+                , width <| px (dialRadius - faceRadius)
+                , rx <| px ((dialRadius - faceRadius) / 2.0)
                 ]
                 []
             ]

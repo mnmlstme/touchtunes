@@ -16,10 +16,12 @@
             "elm/svg": "1.0.0",
             "elm-community/array-extra": "2.1.0",
             "elm-community/list-extra": "8.0.0",
+            "elm-community/typed-svg": "5.1.0",
             "mgold/elm-nonempty-list": "4.0.0",
             "mpizenberg/elm-pointer-events": "3.1.0"
         },
         "indirect": {
+            "avh4/elm-color": "1.0.0",
             "elm/random": "1.0.0",
             "elm/time": "1.0.0",
             "elm/url": "1.0.0",
