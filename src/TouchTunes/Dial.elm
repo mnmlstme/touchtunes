@@ -11,13 +11,7 @@ import Array.Extra exposing (indexedMapToList)
 import CssModules exposing (css)
 import Debug exposing (log)
 import Html exposing (Html)
-import Html.Events
-    exposing
-        ( on
-        , onMouseDown
-        , onMouseOut
-        , onMouseUp
-        )
+import Html.Events.Extra.Mouse as Mouse
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Extra exposing (findIndex)
 import Maybe as Maybe exposing (withDefault)
@@ -44,10 +38,10 @@ import Tuple exposing (pair)
 
 
 type Action
-    = Start ( Int, Int )
+    = Start ( Float, Float )
     | Finish
     | Cancel
-    | Drag ( Int, Int )
+    | Drag ( Float, Float )
 
 
 type alias Config valueType msg =
@@ -58,21 +52,14 @@ type alias Config valueType msg =
 
 
 type alias Track =
-    { position : Int
+    { position : Float
     , originalIndex : Int
-    , positionOffset : Int
+    , positionOffset : Float
     }
 
 
 type alias Tracking =
     Maybe Track
-
-
-mouseOffset : Decoder ( Int, Int )
-mouseOffset =
-    Decode.map2 pair
-        (field "offsetX" int)
-        (field "offsetY" int)
 
 
 update :
@@ -100,11 +87,11 @@ update config onChange tracking currentValue dialAction =
     case dialAction of
         Start coord ->
             let
-                y =
-                    Tuple.second coord
+                ( _, y ) =
+                    coord
             in
             ( Just
-                { position = 0
+                { position = 0.0
                 , originalIndex = i0
                 , positionOffset = y
                 }
@@ -113,8 +100,8 @@ update config onChange tracking currentValue dialAction =
 
         Drag coord ->
             let
-                y =
-                    Tuple.second coord
+                ( _, y ) =
+                    coord
 
                 offset =
                     case tracking of
@@ -125,7 +112,7 @@ update config onChange tracking currentValue dialAction =
                             y
 
                 rotation =
-                    -2 * (y - offset)
+                    -2.0 * (y - offset)
 
                 sect =
                     360 // config.segments
@@ -133,7 +120,7 @@ update config onChange tracking currentValue dialAction =
                 shift =
                     log "shift" <|
                         floor <|
-                            toFloat rotation
+                            rotation
                                 / toFloat sect
                                 + 0.5
 
@@ -160,7 +147,7 @@ update config onChange tracking currentValue dialAction =
                         }
 
                     Nothing ->
-                        { position = 0
+                        { position = 0.0
                         , originalIndex = i0
                         , positionOffset = offset
                         }
@@ -210,13 +197,13 @@ view config toMsg tracking value =
                     ""
 
         collarRadius =
-            100
+            100.0
 
         dialRadius =
-            50
+            50.0
 
         faceRadius =
-            32
+            32.0
 
         segments =
             config.segments
@@ -225,10 +212,10 @@ view config toMsg tracking value =
             360 // config.segments
 
         trackBottom =
-            200
+            200.0
 
         trackTop =
-            -200
+            -200.0
 
         position =
             case tracking of
@@ -236,7 +223,7 @@ view config toMsg tracking value =
                     theTrack.position
 
                 Nothing ->
-                    0
+                    0.0
 
         initialRotation =
             case tracking of
@@ -247,7 +234,7 @@ view config toMsg tracking value =
                     0
 
         rotation =
-            initialRotation - 2 * position
+            initialRotation - 2 * floor position
 
         viewOption i v =
             let
@@ -266,7 +253,7 @@ view config toMsg tracking value =
                     "rotate("
                         ++ String.fromInt (-1 * ri)
                         ++ ") translate("
-                        ++ String.fromInt (dialRadius // 2 + collarRadius // 2)
+                        ++ String.fromFloat (dialRadius / 2.0 + collarRadius / 2.0)
                         ++ ",0) rotate("
                         ++ String.fromInt (ri - rotation)
                         ++ ") scale(0.25, 0.25)"
@@ -274,14 +261,14 @@ view config toMsg tracking value =
                 [ config.viewValue v ]
     in
     svg
-        [ height <| String.fromInt (2 * collarRadius)
-        , width <| String.fromInt (2 * collarRadius)
+        [ height <| String.fromFloat (2.0 * collarRadius)
+        , width <| String.fromFloat (2.0 * collarRadius)
         , viewBox <|
             String.join " "
-                [ String.fromInt (-1 * dialRadius)
-                , String.fromInt (-1 * collarRadius)
-                , String.fromInt (2 * collarRadius)
-                , String.fromInt (2 * collarRadius)
+                [ String.fromFloat (-1.0 * dialRadius)
+                , String.fromFloat (-1.0 * collarRadius)
+                , String.fromFloat (2.0 * collarRadius)
+                , String.fromFloat (2.0 * collarRadius)
                 ]
         ]
         [ g
@@ -296,20 +283,20 @@ view config toMsg tracking value =
           <|
             List.append
                 [ circle
-                    [ r <| String.fromInt collarRadius ]
+                    [ r <| String.fromFloat collarRadius ]
                     []
                 ]
             <|
                 indexedMapToList viewOption config.options
         , g [ class <| styles.toString .dial ]
             [ circle
-                [ r <| String.fromInt dialRadius ]
+                [ r <| String.fromFloat dialRadius ]
                 []
             , line
                 [ class <| styles.toString .tick
-                , x1 <| String.fromInt faceRadius
+                , x1 <| String.fromFloat faceRadius
                 , y1 "0"
-                , x2 <| String.fromInt (dialRadius + 10)
+                , x2 <| String.fromFloat (dialRadius + 10)
                 , y2 "0"
                 ]
                 []
@@ -318,7 +305,7 @@ view config toMsg tracking value =
             [ class <| styles.toString .value ]
             [ circle
                 [ class <| styles.toString .face
-                , r <| String.fromInt faceRadius
+                , r <| String.fromFloat faceRadius
                 ]
                 []
             , g
@@ -330,45 +317,53 @@ view config toMsg tracking value =
                 faceRadius
 
             thumbHeight =
-                2 * halfThumbHeight
+                2.0 * halfThumbHeight
 
             thumbWidth =
                 dialRadius - faceRadius
 
             halfThumbWidth =
-                thumbWidth // 2
+                thumbWidth / 2.0
           in
           g
             [ class <| styles.toString .thumb ++ active
-            , on "mousedown" <|
-                Decode.map
-                    (\( x, y ) -> Start ( x, y - faceRadius ) |> toMsg)
-                    mouseOffset
+            , Mouse.onDown
+                (\event ->
+                    let
+                        ( x, y ) =
+                            event.offsetPos
+                    in
+                    Start ( x, y - faceRadius ) |> toMsg
+                )
             ]
             [ rect
-                [ x <| String.fromInt (-1 * dialRadius)
-                , y <| String.fromInt (position - halfThumbHeight)
-                , height <| String.fromInt thumbHeight
-                , width <| String.fromInt thumbWidth
-                , rx <| String.fromInt halfThumbWidth
+                [ x <| String.fromFloat (-1.0 * dialRadius)
+                , y <| String.fromFloat (position - halfThumbHeight)
+                , height <| String.fromFloat thumbHeight
+                , width <| String.fromFloat thumbWidth
+                , rx <| String.fromFloat halfThumbWidth
                 ]
                 []
             ]
         , g
             [ class <| styles.toString .track ++ active
-            , on "mousemove" <|
-                Decode.map
-                    (\( x, y ) -> Drag ( x, y + trackTop ) |> toMsg)
-                    mouseOffset
-            , onMouseUp (Finish |> toMsg)
-            , onMouseOut (Cancel |> toMsg)
+            , Mouse.onMove
+                (\event ->
+                    let
+                        ( x, y ) =
+                            event.offsetPos
+                    in
+                    Drag ( x, y + trackTop ) |> toMsg
+                )
+            , Mouse.onUp (\event -> Finish |> toMsg)
+            , Mouse.onOut (\event -> Cancel |> toMsg)
             ]
             [ rect
-                [ x <| String.fromInt (-1 * dialRadius)
-                , y <| String.fromInt trackTop
-                , height <| String.fromInt (trackBottom - trackTop)
-                , width <| String.fromInt (dialRadius - faceRadius)
-                , rx <| String.fromInt <| (dialRadius - faceRadius) // 2
+                [ x <| String.fromFloat (-1.0 * dialRadius)
+                , y <| String.fromFloat trackTop
+                , height <| String.fromFloat (trackBottom - trackTop)
+                , width <| String.fromFloat (dialRadius - faceRadius)
+                , rx <| String.fromFloat <| (dialRadius - faceRadius) / 2.0
                 ]
                 []
             ]

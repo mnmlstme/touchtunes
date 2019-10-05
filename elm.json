@@ -16,7 +16,8 @@
             "elm/svg": "1.0.0",
             "elm-community/array-extra": "2.1.0",
             "elm-community/list-extra": "8.0.0",
-            "mgold/elm-nonempty-list": "4.0.0"
+            "mgold/elm-nonempty-list": "4.0.0",
+            "mpizenberg/elm-pointer-events": "3.1.0"
         },
         "indirect": {
             "elm/random": "1.0.0",
