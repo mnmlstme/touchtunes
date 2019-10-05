@@ -12,6 +12,7 @@ import CssModules exposing (css)
 import Debug exposing (log)
 import Html exposing (Html)
 import Html.Events.Extra.Mouse as Mouse
+import Html.Events.Extra.Touch as Touch
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Extra exposing (findIndex)
 import Maybe as Maybe exposing (withDefault)
@@ -169,6 +170,18 @@ update config onChange tracking currentValue dialAction =
             )
 
 
+touchCoordinates : Touch.Event -> ( Float, Float )
+touchCoordinates touchEvent =
+    List.head touchEvent.changedTouches
+        |> Maybe.map .clientPos
+        |> Maybe.withDefault ( 0, 0 )
+
+
+mouseCoordinates : Mouse.Event -> ( Float, Float )
+mouseCoordinates mouseEvent =
+    mouseEvent.offsetPos
+
+
 view :
     Config valueType msg
     -> (Action -> msg)
@@ -227,6 +240,9 @@ view config toMsg tracking value =
 
                 Nothing ->
                     0.0
+
+        adjustThumbPosition ( x, y ) =
+            ( x, y - faceRadius )
 
         initialRotation =
             case tracking of
@@ -307,6 +323,26 @@ view config toMsg tracking value =
                 [ transform [ Scale 0.375 0.375 ] ]
                 [ config.viewValue value ]
             ]
+        , g
+            [ class [ style .track, active ]
+
+            -- , Mouse.onMove <|
+            --     mouseCoordinates
+            --         >> adjustDragPosition
+            --         >> Drag
+            --         >> toMsg
+            -- , Mouse.onUp (\event -> Finish |> toMsg)
+            -- , Mouse.onOut (\event -> Cancel |> toMsg)
+            ]
+            [ rect
+                [ x <| px (-1.0 * dialRadius)
+                , y <| px trackTop
+                , height <| px (trackBottom - trackTop)
+                , width <| px (dialRadius - faceRadius)
+                , rx <| px ((dialRadius - faceRadius) / 2.0)
+                ]
+                []
+            ]
         , let
             halfThumbHeight =
                 faceRadius
@@ -322,14 +358,23 @@ view config toMsg tracking value =
           in
           g
             [ class [ style .thumb, active ]
-            , Mouse.onDown
-                (\event ->
-                    let
-                        ( x, y ) =
-                            event.offsetPos
-                    in
-                    Start ( x, y - faceRadius ) |> toMsg
-                )
+
+            -- , Mouse.onDown <|
+            --     mouseCoordinates
+            --         >> adjustStartPosition
+            --         >> Start
+            --         >> toMsg
+            , Touch.onStart <|
+                touchCoordinates
+                    >> adjustThumbPosition
+                    >> Start
+                    >> toMsg
+            , Touch.onMove <|
+                touchCoordinates
+                    >> adjustThumbPosition
+                    >> Drag
+                    >> toMsg
+            , Touch.onEnd (\event -> Finish |> toMsg)
             ]
             [ rect
                 [ x <| px (-1.0 * dialRadius)
@@ -337,28 +382,6 @@ view config toMsg tracking value =
                 , height <| px thumbHeight
                 , width <| px thumbWidth
                 , rx <| px halfThumbWidth
-                ]
-                []
-            ]
-        , g
-            [ class [ style .track, active ]
-            , Mouse.onMove
-                (\event ->
-                    let
-                        ( x, y ) =
-                            event.offsetPos
-                    in
-                    Drag ( x, y + trackTop ) |> toMsg
-                )
-            , Mouse.onUp (\event -> Finish |> toMsg)
-            , Mouse.onOut (\event -> Cancel |> toMsg)
-            ]
-            [ rect
-                [ x <| px (-1.0 * dialRadius)
-                , y <| px trackTop
-                , height <| px (trackBottom - trackTop)
-                , width <| px (dialRadius - faceRadius)
-                , rx <| px ((dialRadius - faceRadius) / 2.0)
                 ]
                 []
             ]
