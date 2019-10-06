@@ -1,7 +1,7 @@
 module TouchTunes.View exposing (view)
 
 import Array exposing (Array)
-import CssModules exposing (css)
+import CssModules as CssModules
 import Debug exposing (log)
 import Html
     exposing
@@ -19,51 +19,58 @@ import Html
         , section
         , text
         )
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, classList)
 import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import Music.Measure.Layout as Layout
     exposing
-        ( Pixels
-        , beatSpacing
-        , heightPx
+        ( beatSpacing
+        , inPx
         , positionToLocation
         , scaleStartBeat
-        , widthPx
-        , xPx
-        , yPx
         )
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.View as MeasureView exposing (layoutFor)
 import Music.Part.Model as Part exposing (Part)
 import Music.Score.Model as Score exposing (Score)
-import Svg exposing (Svg, circle, g, rect, svg)
-import Svg.Attributes exposing (class, transform)
 import TouchTunes.Action as Action exposing (Msg(..))
 import TouchTunes.Controls as Controls
 import TouchTunes.Dial as Dial
 import TouchTunes.Model as Editor exposing (Editor)
 import TouchTunes.Ruler as Ruler
 import Tuple exposing (pair)
+import TypedSvg exposing (circle, g, rect, svg)
+import TypedSvg.Attributes
+    exposing
+        ( height
+        , transform
+        , width
+        , x
+        , y
+        )
+import TypedSvg.Core exposing (Svg)
+import TypedSvg.Types exposing (Transform(..), px)
 
 
 view : Editor -> Html Msg
 view editor =
     let
-        frameStyles =
-            css "./TouchTunes/frame.css"
-                { frame = "frame"
-                , header = "header"
-                , body = "body"
-                , controls = "controls"
-                }
+        frameCss =
+            .toString <|
+                CssModules.css "./TouchTunes/frame.css"
+                    { frame = "frame"
+                    , header = "header"
+                    , body = "body"
+                    , controls = "controls"
+                    }
 
-        styles =
-            css "./Music/Score/score.css"
-                { title = "title"
-                , parts = "parts"
-                , stats = "stats"
-                }
+        scoreCss =
+            .toString <|
+                CssModules.css "./Music/Score/score.css"
+                    { title = "title"
+                    , parts = "parts"
+                    , stats = "stats"
+                    }
 
         s =
             editor.score
@@ -78,11 +85,11 @@ view editor =
             Score.length s
     in
     article
-        [ frameStyles.class .frame ]
-        [ header [ frameStyles.class .header ]
-            [ h1 [ styles.class .title ]
+        [ class <| frameCss .frame ]
+        [ header [ class <| frameCss .header ]
+            [ h1 [ class <| scoreCss .title ]
                 [ text s.title ]
-            , dl [ styles.class .stats ]
+            , dl [ class <| scoreCss .stats ]
                 [ dt []
                     [ text "Parts" ]
                 , dd []
@@ -94,16 +101,16 @@ view editor =
                 ]
             ]
         , div
-            [ class <|
-                frameStyles.toString .body
-                    ++ " "
-                    ++ styles.toString .parts
+            [ classList
+                [ ( frameCss .body, True )
+                , ( scoreCss .parts, False )
+                ]
             ]
           <|
             Array.toList <|
                 Array.indexedMap (viewPart editor) editor.score.parts
         , nav
-            [ frameStyles.class .controls ]
+            [ class <| frameCss .controls ]
             [ Controls.viewDurationDial
                 tracking.durationDial
                 editor.durationSetting
@@ -114,24 +121,25 @@ view editor =
 viewPart : Editor -> Int -> Part -> Html Msg
 viewPart editor i part =
     let
-        styles =
-            css "./Music/Part/part.css"
-                { part = "part"
-                , header = "header"
-                , abbrev = "abbrev"
-                , body = "body"
-                }
+        css =
+            .toString <|
+                CssModules.css "./Music/Part/part.css"
+                    { part = "part"
+                    , header = "header"
+                    , abbrev = "abbrev"
+                    , body = "body"
+                    }
     in
     section
-        [ styles.class .part
+        [ class <| css .part
         , Pointer.onUp (\_ -> Action.FinishEdit)
         ]
-        [ header [ styles.class .header ]
-            [ h3 [ styles.class .abbrev ]
+        [ header [ class <| css .header ]
+            [ h3 [ class <| css .abbrev ]
                 [ text part.abbrev ]
             ]
         , div
-            [ styles.class .body ]
+            [ class <| css .body ]
           <|
             Array.toList <|
                 Array.indexedMap (viewMeasure editor i) part.measures
@@ -146,11 +154,12 @@ pointerCoordinates event =
 viewMeasure : Editor -> Int -> Int -> Measure -> Html Msg
 viewMeasure editor i j measure =
     let
-        styles =
-            css "./TouchTunes/editor.css"
-                { editor = "editor"
-                , selection = "selection"
-                }
+        css =
+            .toString <|
+                CssModules.css "./TouchTunes/editor.css"
+                    { editor = "editor"
+                    , selection = "selection"
+                    }
 
         m =
             case editor.measure of
@@ -174,7 +183,7 @@ viewMeasure editor i j measure =
             Nothing
     in
     div
-        [ styles.class .editor
+        [ class <| css .editor
         , Pointer.onDown <|
             pointerCoordinates
                 >> Tuple.mapBoth floor floor
@@ -184,15 +193,15 @@ viewMeasure editor i j measure =
         [ case selection of
             Just beat ->
                 svg
-                    [ class <| styles.toString .selection
-                    , heightPx <| Layout.height layout
-                    , widthPx <| Layout.width layout
+                    [ class <| css .selection
+                    , height <| inPx <| Layout.height layout
+                    , width <| inPx <| Layout.width layout
                     ]
                     [ rect
-                        [ widthPx <| beatSpacing layout
-                        , xPx <| scaleStartBeat layout beat
-                        , yPx <| Pixels 0
-                        , heightPx <| Layout.height layout
+                        [ width <| inPx <| beatSpacing layout
+                        , x <| inPx <| scaleStartBeat layout beat
+                        , y <| px 0
+                        , height <| inPx <| Layout.height layout
                         ]
                         []
                     ]

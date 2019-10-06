@@ -8,7 +8,7 @@ module TouchTunes.Dial exposing
 
 import Array as Array exposing (Array)
 import Array.Extra exposing (indexedMapToList)
-import CssModules exposing (css)
+import CssModules as CssModules
 import Debug exposing (log)
 import Html exposing (Html)
 import Html.Events.Extra.Mouse as Mouse
@@ -191,9 +191,9 @@ view :
     -> Html msg
 view config toMsg tracking value =
     let
-        style =
+        css =
             .toString <|
-                css "./TouchTunes/dial.css"
+                CssModules.css "./TouchTunes/dial.css"
                     { dial = "dial"
                     , face = "face"
                     , value = "value"
@@ -208,7 +208,7 @@ view config toMsg tracking value =
         active =
             case tracking of
                 Just _ ->
-                    style .active
+                    css .active
 
                 Nothing ->
                     ""
@@ -263,12 +263,11 @@ view config toMsg tracking value =
             in
             g
                 [ class
-                    [ style <|
-                        if v == value then
-                            .value
+                    [ if v == value then
+                        css .value
 
-                        else
-                            .option
+                      else
+                        css .option
                     ]
                 , transform
                     [ Rotate (-1 * ri) 0 0
@@ -289,7 +288,7 @@ view config toMsg tracking value =
             (2.0 * collarRadius)
         ]
         [ g
-            [ class [ style .collar, active ]
+            [ class [ css .collar, active ]
             , transform [ Rotate (toFloat rotation) 0 0 ]
             ]
           <|
@@ -300,12 +299,12 @@ view config toMsg tracking value =
                 ]
             <|
                 indexedMapToList viewOption config.options
-        , g [ class [ style .dial ] ]
+        , g [ class [ css .dial ] ]
             [ circle
                 [ r <| px dialRadius ]
                 []
             , line
-                [ class [ style .tick ]
+                [ class [ css .tick ]
                 , x1 <| px faceRadius
                 , y1 <| px 0
                 , x2 <| px (dialRadius + 10)
@@ -314,9 +313,9 @@ view config toMsg tracking value =
                 []
             ]
         , g
-            [ class [ style .value ] ]
+            [ class [ css .value ] ]
             [ circle
-                [ class [ style .face ]
+                [ class [ css .face ]
                 , r <| px faceRadius
                 ]
                 []
@@ -325,7 +324,7 @@ view config toMsg tracking value =
                 [ config.viewValue value ]
             ]
         , g
-            [ class [ style .track, active ]
+            [ class [ css .track, active ]
 
             -- , Mouse.onMove <|
             --     mouseCoordinates
@@ -358,7 +357,7 @@ view config toMsg tracking value =
                 thumbWidth / 2.0
           in
           g
-            [ class [ style .thumb, active ]
+            [ class [ css .thumb, active ]
 
             -- , Mouse.onDown <|
             --     mouseCoordinates

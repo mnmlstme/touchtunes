@@ -1,29 +1,26 @@
-module Music.Staff.Model
-    exposing
-        ( Staff
-        , bass
-        , draw
-        , treble
-        )
+module Music.Staff.Model exposing
+    ( Staff
+    , bass
+    , draw
+    , treble
+    )
 
+import CssModules as CssModules
 import Music.Measure.Layout as Layout
     exposing
         ( Layout
         , Pixels
-        , x1Px
-        , x2Px
-        , y1Px
-        , y2Px
+        , inPx
         )
 import Music.Pitch as Pitch exposing (Pitch)
-import Svg
+import TypedSvg
     exposing
-        ( Svg
-        , g
+        ( g
         , line
         )
-import Svg.Attributes exposing (class)
-import CssModules exposing (css)
+import TypedSvg.Attributes exposing (class, x1, x2, y1, y2)
+import TypedSvg.Core exposing (Svg)
+import TypedSvg.Types exposing (px)
 
 
 type alias Staff =
@@ -45,19 +42,20 @@ bass =
 draw : Layout -> Svg msg
 draw layout =
     let
-        styles =
-            css "./Music/Staff/staff.css"
-                { staff = "staff"
-                , barline = "barline"
-                , lines = "lines"
-                }
+        css =
+            .toString <|
+                CssModules.css "./Music/Staff/staff.css"
+                    { staff = "staff"
+                    , barline = "barline"
+                    , lines = "lines"
+                    }
     in
-        g [ class <| styles.toString .staff ]
-            [ g [ class <| styles.toString .lines ]
-                (List.map (drawStaffLine layout) (List.range 0 4))
-            , g [ class <| styles.toString .barline ]
-                [ drawBarLine layout ]
-            ]
+    g [ class [ css .staff ] ]
+        [ g [ class [ css .lines ] ]
+            (List.map (drawStaffLine layout) (List.range 0 4))
+        , g [ class [ css .barline ] ]
+            [ drawBarLine layout ]
+        ]
 
 
 drawStaffLine : Layout -> Int -> Svg msg
@@ -70,15 +68,15 @@ drawStaffLine layout n =
             Layout.width layout
 
         y =
-            Pixels <| toFloat n * s.px
+            toFloat n * s.px
     in
-        line
-            [ x1Px <| Pixels 0
-            , x2Px width
-            , y1Px y
-            , y2Px y
-            ]
-            []
+    line
+        [ x1 <| px 0
+        , x2 <| inPx width
+        , y1 <| px y
+        , y2 <| px y
+        ]
+        []
 
 
 drawBarLine : Layout -> Svg msg
@@ -91,12 +89,12 @@ drawBarLine layout =
             Layout.width layout
 
         height =
-            Pixels <| 4.0 * sp.px
+            4.0 * sp.px
     in
-        line
-            [ x1Px width
-            , y1Px <| Pixels 0
-            , x2Px width
-            , y2Px height
-            ]
-            []
+    line
+        [ x1 <| inPx width
+        , y1 <| px 0
+        , x2 <| inPx width
+        , y2 <| px height
+        ]
+        []

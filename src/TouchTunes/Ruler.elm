@@ -1,18 +1,12 @@
 module TouchTunes.Ruler exposing (view)
 
-import Music.Measure.Layout as Layout
-    exposing
-        ( Pixels
-        , heightPx
-        , widthPx
-        , xPx
-        , yPx
-        )
+import CssModules as CssModules
+import Html exposing (Html)
+import Music.Measure.Layout as Layout exposing (inPx)
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.View exposing (layoutFor)
-import CssModules exposing (css)
-import Svg exposing (Svg, g, rect, svg)
-import Svg.Attributes
+import TypedSvg exposing (g, rect, svg)
+import TypedSvg.Attributes
     exposing
         ( class
         , height
@@ -20,15 +14,17 @@ import Svg.Attributes
         , x
         , y
         )
+import TypedSvg.Types exposing (px)
 
 
-styles =
-    css "./TouchTunes/editor.css"
-        { ruler = "ruler"
-        }
+css =
+    .toString <|
+        CssModules.css "./TouchTunes/editor.css"
+            { ruler = "ruler"
+            }
 
 
-view : Measure -> Svg msg
+view : Measure -> Html msg
 view measure =
     let
         layout =
@@ -54,20 +50,20 @@ view measure =
                 xmid =
                     Layout.scaleBeat layout b
             in
-                rect
-                    [ xPx <| Pixels (xmid.px - bsp.px / 2.0 + pad)
-                    , yPx <| Pixels 0
-                    , heightPx <| Pixels (sp.px / 4.0)
-                    , widthPx <| Pixels (bsp.px - 2.0 * pad)
-                    ]
-                    []
+            rect
+                [ x <| px <| xmid.px - bsp.px / 2.0 + pad
+                , y <| px 0
+                , height <| px <| sp.px / 4.0
+                , width <| px <| bsp.px - 2.0 * pad
+                ]
+                []
     in
-        svg
-            [ class <| styles.toString .ruler
-            , heightPx sp
-            , widthPx w
-            ]
-            (List.map
-                viewSegment
-                (List.range 0 (beats - 1))
-            )
+    svg
+        [ class [ css .ruler ]
+        , height <| inPx sp
+        , width <| inPx w
+        ]
+        (List.map
+            viewSegment
+            (List.range 0 (beats - 1))
+        )

@@ -1,52 +1,41 @@
-module Music.Measure.Layout
-    exposing
-        ( Layout
-        , Location
-        , Margins
-        , Pixels
-        , Tenths
-        , beatSpacing
-        , bottomStep
-        , cxPx
-        , cyPx
-        , halfSpacing
-        , height
-        , heightPx
-        , margins
-        , positionOnStaff
-        , positionToLocation
-        , rPx
-        , scaleBeat
-        , scaleEndBeat
-        , scaleFractionalBeat
-        , scalePitch
-        , scaleStartBeat
-        , scaleStep
-        , spacing
-        , standard
-        , toPixels
-        , toTenths
-        , topStep
-        , unscaleBeat
-        , unscalePitch
-        , unscaleStep
-        , width
-        , widthPx
-        , x1Px
-        , x2Px
-        , xPx
-        , y1Px
-        , y2Px
-        , yPx
-        )
+module Music.Measure.Layout exposing
+    ( Layout
+    , Location
+    , Margins
+    , Pixels
+    , Tenths
+    , beatSpacing
+    , bottomStep
+    , halfSpacing
+    , height
+    , inPx
+    , margins
+    , positionOnStaff
+    , positionToLocation
+    , scaleBeat
+    , scaleEndBeat
+    , scaleFractionalBeat
+    , scalePitch
+    , scaleStartBeat
+    , scaleStep
+    , spacing
+    , standard
+    , toPixels
+    , toTenths
+    , topStep
+    , unscaleBeat
+    , unscalePitch
+    , unscaleStep
+    , width
+    )
 
 import Browser
 import Music.Pitch as Pitch exposing (Pitch, StepNumber)
 import Music.Time as Time exposing (Beat, Time)
-import Svg exposing (Attribute)
-import Svg.Attributes as Attributes
 import String
 import Tuple exposing (first, second)
+import TypedSvg.Types exposing (Length, px)
+
 
 
 -- Layout
@@ -80,64 +69,9 @@ toTenths layout pixels =
     Tenths <| pixels.px / layout.zoom
 
 
-pxAttribute : (String -> Attribute msg) -> (Pixels -> Attribute msg)
-pxAttribute strAttr =
-    .px >> String.fromFloat >> strAttr
-
-
-heightPx : Pixels -> Attribute msg
-heightPx =
-    pxAttribute Attributes.height
-
-
-widthPx : Pixels -> Attribute msg
-widthPx =
-    pxAttribute Attributes.width
-
-
-xPx : Pixels -> Attribute msg
-xPx =
-    pxAttribute Attributes.x
-
-
-x1Px : Pixels -> Attribute msg
-x1Px =
-    pxAttribute Attributes.x1
-
-
-x2Px : Pixels -> Attribute msg
-x2Px =
-    pxAttribute Attributes.x2
-
-
-yPx : Pixels -> Attribute msg
-yPx =
-    pxAttribute Attributes.y
-
-
-y1Px : Pixels -> Attribute msg
-y1Px =
-    pxAttribute Attributes.y1
-
-
-y2Px : Pixels -> Attribute msg
-y2Px =
-    pxAttribute Attributes.y2
-
-
-cxPx : Pixels -> Attribute msg
-cxPx =
-    pxAttribute Attributes.cx
-
-
-cyPx : Pixels -> Attribute msg
-cyPx =
-    pxAttribute Attributes.cy
-
-
-rPx : Pixels -> Attribute msg
-rPx =
-    pxAttribute Attributes.r
+inPx : Pixels -> Length
+inPx =
+    .px >> px
 
 
 type alias Location =
@@ -169,11 +103,11 @@ positionToLocation layout offset =
         ys =
             scaleStep layout step
     in
-        { step = step
-        , beat = beat
-        , shiftx = toTenths layout <| Pixels <| x.px - xb.px
-        , shifty = toTenths layout <| Pixels <| y.px - ys.px
-        }
+    { step = step
+    , beat = beat
+    , shiftx = toTenths layout <| Pixels <| x.px - xb.px
+    , shifty = toTenths layout <| Pixels <| y.px - ys.px
+    }
 
 
 type alias Margins =
@@ -208,7 +142,7 @@ margins layout =
         hmargin =
             spacing layout
     in
-        Margins vmargin hmargin vmargin hmargin
+    Margins vmargin hmargin vmargin hmargin
 
 
 beatSpacing : Layout -> Pixels
@@ -229,7 +163,7 @@ width layout =
         bs =
             beatSpacing layout
     in
-        m.left.px + m.right.px + b * bs.px |> Pixels
+    m.left.px + m.right.px + b * bs.px |> Pixels
 
 
 height : Layout -> Pixels
@@ -242,7 +176,7 @@ height layout =
         s =
             spacing layout
     in
-        m.top.px + m.bottom.px + 4 * s.px |> Pixels
+    m.top.px + m.bottom.px + 4 * s.px |> Pixels
 
 
 topStep : Layout -> StepNumber
@@ -260,7 +194,7 @@ bottomStep layout =
         hs =
             halfSpacing layout
     in
-        unscaleStep layout <| Pixels <| h.px - hs.px
+    unscaleStep layout <| Pixels <| h.px - hs.px
 
 
 positionOnStaff : Layout -> Pitch -> Int
@@ -283,12 +217,12 @@ scaleStep layout sn =
         n =
             Pitch.stepNumber layout.basePitch - sn
     in
-        Pixels <|
-            toFloat n
-                / 2.0
-                * s.px
-                + m.top.px
-                + (s.px / 2.0)
+    Pixels <|
+        toFloat n
+            / 2.0
+            * s.px
+            + m.top.px
+            + (s.px / 2.0)
 
 
 unscaleStep : Layout -> Pixels -> StepNumber
@@ -304,8 +238,8 @@ unscaleStep layout y =
         n =
             round (2.0 * (y.px - m.top.px - s.px / 2.0) / s.px)
     in
-        Pitch.stepNumber layout.basePitch
-            - n
+    Pitch.stepNumber layout.basePitch
+        - n
 
 
 scalePitch : Layout -> Pitch -> Pixels
@@ -350,7 +284,7 @@ scaleFractionalBeat layout x =
         bs =
             beatSpacing layout
     in
-        m.left.px + bs.px * x |> Pixels
+    m.left.px + bs.px * x |> Pixels
 
 
 unscaleBeat : Layout -> Pixels -> Beat
@@ -363,7 +297,7 @@ unscaleBeat layout x =
         bs =
             beatSpacing layout
     in
-        floor ((x.px - m.left.px) / bs.px)
+    floor ((x.px - m.left.px) / bs.px)
 
 
 standard : Pitch -> Time -> Layout

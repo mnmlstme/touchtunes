@@ -4,21 +4,19 @@
 
 module Icon.SvgAsset exposing (..)
 
-import String exposing (fromFloat)
 import Array
-import Svg
+import String exposing (fromFloat)
+import TypedSvg exposing (use)
+import TypedSvg.Attributes
     exposing
-        ( Svg
-        , use
-        )
-import Svg.Attributes
-    exposing
-        ( x
-        , y
+        ( height
         , width
-        , height
+        , x
         , xlinkHref
+        , y
         )
+import TypedSvg.Core exposing (Svg)
+import TypedSvg.Types exposing (px)
 
 
 type alias SvgAsset =
@@ -66,11 +64,11 @@ dimensions asset =
         item n =
             Maybe.withDefault 0 (Array.get n floats)
     in
-        { x = item 0
-        , y = item 1
-        , width = item 2
-        , height = item 3
-        }
+    { x = item 0
+    , y = item 1
+    , width = item 2
+    , height = item 3
+    }
 
 
 leftAlign : Float -> SvgAsset -> SvgAsset
@@ -85,9 +83,9 @@ leftAlign xOffset asset =
                 | x = box.x - xOffset - 0.5 * box.width
             }
     in
-        { id = asset.id
-        , viewBox = makeViewBox newBox
-        }
+    { id = asset.id
+    , viewBox = makeViewBox newBox
+    }
 
 
 rightAlign : Float -> SvgAsset -> SvgAsset
@@ -102,9 +100,9 @@ rightAlign xOffset asset =
                 | x = box.x - xOffset + 1.5 * box.width
             }
     in
-        { id = asset.id
-        , viewBox = makeViewBox newBox
-        }
+    { id = asset.id
+    , viewBox = makeViewBox newBox
+    }
 
 
 view : SvgAsset -> Svg msg
@@ -119,11 +117,11 @@ view asset =
         yOffset =
             -0.5 * box.height - box.y
     in
-        use
-            [ xlinkHref <| "#" ++ asset.id
-            , x <| fromFloat xOffset
-            , y <| fromFloat yOffset
-            , height <| fromFloat box.height
-            , width <| fromFloat box.width
-            ]
-            []
+    use
+        [ xlinkHref <| "#" ++ asset.id
+        , x <| px xOffset
+        , y <| px yOffset
+        , height <| px box.height
+        , width <| px box.width
+        ]
+        []

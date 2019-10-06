@@ -16,20 +16,12 @@ import Music.Duration
         , whole
         )
 import Music.Note.View exposing (StemOrientation(..), isWhole, viewNote)
-import Svg exposing (Svg, circle, g, svg, text, text_)
-import Svg.Attributes
-    exposing
-        ( class
-        , cx
-        , cy
-        , height
-        , r
-        , textAnchor
-        , transform
-        , width
-        )
 import TouchTunes.Action exposing (Msg(..))
 import TouchTunes.Dial as Dial
+import TypedSvg exposing (g)
+import TypedSvg.Attributes exposing (transform)
+import TypedSvg.Core exposing (Svg)
+import TypedSvg.Types exposing (Transform(..), px)
 
 
 type alias Tracking =
@@ -78,9 +70,5 @@ viewDuration d =
                 20
     in
     g
-        [ transform <|
-            "translate(0,"
-                ++ String.fromInt valign
-                ++ ")"
-        ]
+        [ transform [ Translate 0 valign ] ]
         [ viewNote d StemUp ]

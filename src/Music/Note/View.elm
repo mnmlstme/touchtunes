@@ -5,7 +5,7 @@ module Music.Note.View exposing
     , viewNote
     )
 
-import CssModules exposing (css)
+import CssModules as CssModules
 import Icon.SvgAsset as SvgAsset exposing (SvgAsset, svgAsset)
 import Music.Duration as Duration exposing (Duration)
 import Music.Measure.Layout
@@ -13,40 +13,42 @@ import Music.Measure.Layout
         ( Layout
         , Pixels
         , halfSpacing
-        , heightPx
+        , inPx
         , margins
         , positionOnStaff
         , scaleBeat
         , scalePitch
         , spacing
         , toPixels
-        , widthPx
-        , x1Px
-        , x2Px
-        , xPx
-        , y1Px
-        , y2Px
-        , yPx
         )
 import Music.Note.Model exposing (..)
 import Music.Pitch as Pitch exposing (Pitch)
 import Music.Time as Time exposing (Beat, Time)
 import String
-import Svg
+import TypedSvg
     exposing
-        ( Svg
-        , g
+        ( g
         , line
         , svg
-        , text
+        , text_
         , use
         )
-import Svg.Attributes
+import TypedSvg.Attributes
     exposing
         ( class
+        , height
         , transform
+        , width
+        , x
+        , x1
+        , x2
         , xlinkHref
+        , y
+        , y1
+        , y2
         )
+import TypedSvg.Core exposing (Svg)
+import TypedSvg.Types exposing (Transform(..), px)
 
 
 type StemOrientation
@@ -198,14 +200,15 @@ ledgerLines layout p =
     List.map spaceToPixels spaces
 
 
-styles =
-    css "./Music/Note/note.css"
-        { note = "note"
-        , rest = "rest"
-        , stem = "stem"
-        , ledger = "ledger"
-        , blank = "blank"
-        }
+css =
+    .toString <|
+        CssModules.css "./Music/Note/note.css"
+            { note = "note"
+            , rest = "rest"
+            , stem = "stem"
+            , ledger = "ledger"
+            , blank = "blank"
+            }
 
 
 view : Layout -> Beat -> Note -> Svg msg
@@ -225,25 +228,17 @@ view layout beat note =
                 Nothing ->
                     Pixels 0
 
-        position =
-            String.join ","
-                (List.map String.fromFloat
-                    [ xpos.px + dx.px
-                    , 0
-                    ]
-                )
-
         className =
             case note.do of
                 Play _ ->
-                    .note
+                    css .note
 
                 Rest ->
-                    .rest
+                    css .rest
     in
     g
-        [ class <| styles.toString className
-        , transform ("translate(" ++ position ++ ")")
+        [ class [ className ]
+        , transform [ Translate (xpos.px + dx.px) 0 ]
         ]
         [ case note.do of
             Play p ->
@@ -263,25 +258,11 @@ viewRest layout beat d =
         m =
             margins layout
 
-        w =
-            Pixels <| 1.5 * sp.px
-
-        h =
-            Pixels <| 4.0 * sp.px
-
-        position =
-            String.join ","
-                (List.map String.fromFloat
-                    [ 0.0
-                    , m.top.px + 2.0 * sp.px
-                    ]
-                )
-
         rest =
             restSymbol d
     in
     g
-        [ transform ("translate(" ++ position ++ ")")
+        [ transform [ Translate 0 (m.top.px + 2.0 * sp.px) ]
         ]
         [ SvgAsset.view rest
         , viewDot d
@@ -295,7 +276,7 @@ viewPitch layout beat d p =
             spacing layout
 
         w =
-            1.5 * sp.px |> Pixels
+            1.5 * sp.px
 
         ypos =
             scalePitch layout p
@@ -319,18 +300,18 @@ viewPitch layout beat d p =
 
         viewLedger y =
             line
-                [ x1Px <| Pixels <| -0.35 * w.px
-                , x2Px <| Pixels <| 1.35 * w.px
-                , y1Px <| y
-                , y2Px <| y
+                [ x1 <| px <| -0.35 * w
+                , x2 <| px <| 1.35 * w
+                , y1 <| inPx y
+                , y2 <| inPx y
                 ]
                 []
     in
     g
-        [ transform ("translate(" ++ position ++ ")")
+        [ transform [ Translate 0 ypos.px ]
         ]
         [ viewNote d stemDir
-        , g [ class <| styles.toString .ledger ]
+        , g [ class [ css .ledger ] ]
             (List.map viewLedger ledgers)
         , case alt of
             Just theAlt ->
@@ -338,7 +319,7 @@ viewPitch layout beat d p =
                     SvgAsset.rightAlign 0 theAlt
 
             Nothing ->
-                text ""
+                text_ [] []
         ]
 
 
@@ -363,40 +344,40 @@ viewNote d stemDir =
         xstem =
             case stemDir of
                 StemUp ->
-                    0.5 * w |> Pixels
+                    0.5 * w
 
                 StemDown ->
-                    -0.5 * w |> Pixels
+                    -0.5 * w
 
         y1stem =
             case stemDir of
                 StemUp ->
-                    Pixels <| -0.25 * sp
+                    -0.25 * sp
 
                 StemDown ->
-                    Pixels <| 0.25 * sp
+                    0.25 * sp
 
         y2stem =
             case stemDir of
                 StemUp ->
-                    Pixels <| y1stem.px - stemLength
+                    y1stem - stemLength
 
                 StemDown ->
-                    Pixels <| y1stem.px + stemLength
+                    y1stem + stemLength
     in
     g
         []
         [ SvgAsset.view note
         , if stemless then
-            text ""
+            text_ [] []
 
           else
             line
-                [ class <| styles.toString .stem
-                , x1Px xstem
-                , y1Px y1stem
-                , x2Px xstem
-                , y2Px y2stem
+                [ class [ css .stem ]
+                , x1 <| px xstem
+                , y1 <| px y1stem
+                , x2 <| px xstem
+                , y2 <| px y2stem
                 ]
                 []
         , viewDot d
@@ -421,4 +402,4 @@ viewDot d =
                 SvgAsset.leftAlign xOffset theDot
 
         Nothing ->
-            text ""
+            text_ [] []

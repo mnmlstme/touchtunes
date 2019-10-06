@@ -1,30 +1,32 @@
-module Music.Measure.View
-    exposing
-        ( fixedLayoutFor
-        , layoutFor
-        , view
-        )
+module Music.Measure.View exposing
+    ( fixedLayoutFor
+    , layoutFor
+    , view
+    )
 
+import CssModules as CssModules
 import Html exposing (Html, div, text)
-import Html.Attributes exposing (style)
-import CssModules exposing (css)
+import Html.Attributes exposing (class, style)
 import Music.Measure.Layout as Layout
     exposing
         ( Layout
         , Pixels
-        , heightPx
-        , widthPx
+        , inPx
         )
 import Music.Measure.Model exposing (..)
 import Music.Note.View as NoteView
 import Music.Staff.Model as Staff
-import Svg exposing (Svg, g, svg)
-import Svg.Attributes
-    exposing
-        ( class
-        , transform
-        )
 import String
+import TypedSvg exposing (g, svg)
+import TypedSvg.Attributes as SvgAttr
+    exposing
+        ( height
+        , transform
+        , width
+        )
+import TypedSvg.Core exposing (Svg)
+import TypedSvg.Types exposing (Transform(..))
+
 
 
 -- compute a layout for a measure
@@ -39,7 +41,7 @@ fixedLayoutFor measure =
         staff =
             Staff.treble
     in
-        Layout.standard staff.basePitch t
+    Layout.standard staff.basePitch t
 
 
 layoutFor : Measure -> Layout
@@ -51,18 +53,19 @@ layoutFor measure =
         staff =
             Staff.treble
     in
-        Layout.standard staff.basePitch t
+    Layout.standard staff.basePitch t
 
 
 view : Measure -> Html msg
 view measure =
     let
-        styles =
-            css "./Music/Measure/measure.css"
-                { measure = "measure"
-                , staff = "staff"
-                , overflow = "overflow"
-                }
+        css =
+            .toString <|
+                CssModules.css "./Music/Measure/measure.css"
+                    { measure = "measure"
+                    , staff = "staff"
+                    , overflow = "overflow"
+                    }
 
         givenTime =
             time measure
@@ -88,14 +91,6 @@ view measure =
         h =
             Layout.height layout
 
-        staffPosition =
-            String.join ","
-                (List.map String.fromFloat
-                    [ 0
-                    , (Layout.margins layout).top.px
-                    ]
-                )
-
         overflowWidth =
             w.px
                 - ow.px
@@ -107,28 +102,31 @@ view measure =
         noteSequence =
             toSequence measure
     in
-        div [ styles.class .measure ]
-            [ if overflowBeats > 0 then
-                div
-                    [ styles.class .overflow
-                    , style "width" (String.fromFloat overflowWidth ++ "px")
-                    ]
-                    []
-              else
-                text ""
-            , svg
-                [ class <| styles.toString .staff
-                , heightPx h
-                , widthPx w
+    div [ class <| css .measure ]
+        [ if overflowBeats > 0 then
+            div
+                [ class <| css .overflow
+                , style "width" (String.fromFloat overflowWidth ++ "px")
                 ]
-                [ g
-                    [ transform
-                        ("translate(" ++ staffPosition ++ ")")
-                    ]
-                    [ Staff.draw layout ]
-                , g
-                    []
-                  <|
-                    List.map drawNote noteSequence
-                ]
+                []
+
+          else
+            text ""
+        , svg
+            [ SvgAttr.class [ css .staff ]
+            , height <| inPx h
+            , width <| inPx w
             ]
+            [ g
+                [ transform
+                    [ Translate 0
+                        (Layout.margins layout).top.px
+                    ]
+                ]
+                [ Staff.draw layout ]
+            , g
+                []
+              <|
+                List.map drawNote noteSequence
+            ]
+        ]
