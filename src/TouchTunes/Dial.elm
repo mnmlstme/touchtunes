@@ -11,8 +11,7 @@ import Array.Extra exposing (indexedMapToList)
 import CssModules as CssModules
 import Debug exposing (log)
 import Html exposing (Html)
-import Html.Events.Extra.Mouse as Mouse
-import Html.Events.Extra.Touch as Touch
+import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Extra exposing (findIndex)
 import Maybe as Maybe exposing (withDefault)
@@ -170,17 +169,9 @@ update config onChange tracking currentValue dialAction =
             )
 
 
-touchCoordinates : Touch.Event -> ( Float, Float )
-touchCoordinates touchEvent =
-    List.head touchEvent.changedTouches
-        |> Maybe.map .clientPos
-        |> Maybe.withDefault ( 0, 0 )
-
-
-
--- mouseCoordinates : Mouse.Event -> ( Float, Float )
--- mouseCoordinates mouseEvent =
---     mouseEvent.offsetPos
+pointerCoordinates : Pointer.Event -> ( Float, Float )
+pointerCoordinates event =
+    event.pointer.offsetPos
 
 
 view :
@@ -325,14 +316,6 @@ view config toMsg tracking value =
             ]
         , g
             [ class [ css .track, active ]
-
-            -- , Mouse.onMove <|
-            --     mouseCoordinates
-            --         >> adjustDragPosition
-            --         >> Drag
-            --         >> toMsg
-            -- , Mouse.onUp (\event -> Finish |> toMsg)
-            -- , Mouse.onOut (\event -> Cancel |> toMsg)
             ]
             [ rect
                 [ x <| px (-1.0 * dialRadius)
@@ -358,23 +341,17 @@ view config toMsg tracking value =
           in
           g
             [ class [ css .thumb, active ]
-
-            -- , Mouse.onDown <|
-            --     mouseCoordinates
-            --         >> adjustStartPosition
-            --         >> Start
-            --         >> toMsg
-            , Touch.onStart <|
-                touchCoordinates
+            , Pointer.onDown <|
+                pointerCoordinates
                     >> adjustThumbPosition
                     >> Start
                     >> toMsg
-            , Touch.onMove <|
-                touchCoordinates
+            , Pointer.onMove <|
+                pointerCoordinates
                     >> adjustThumbPosition
                     >> Drag
                     >> toMsg
-            , Touch.onEnd (\event -> Finish |> toMsg)
+            , Pointer.onUp (\event -> Finish |> toMsg)
             ]
             [ rect
                 [ x <| px (-1.0 * dialRadius)
