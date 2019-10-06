@@ -177,9 +177,10 @@ touchCoordinates touchEvent =
         |> Maybe.withDefault ( 0, 0 )
 
 
-mouseCoordinates : Mouse.Event -> ( Float, Float )
-mouseCoordinates mouseEvent =
-    mouseEvent.offsetPos
+
+-- mouseCoordinates : Mouse.Event -> ( Float, Float )
+-- mouseCoordinates mouseEvent =
+--     mouseEvent.offsetPos
 
 
 view :

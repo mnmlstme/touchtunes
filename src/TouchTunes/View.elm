@@ -2,6 +2,7 @@ module TouchTunes.View exposing (view)
 
 import Array exposing (Array)
 import CssModules exposing (css)
+import Debug exposing (log)
 import Html
     exposing
         ( Html
@@ -19,7 +20,7 @@ import Html
         , text
         )
 import Html.Attributes exposing (class)
-import Html.Events exposing (on, onMouseUp)
+import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import Music.Measure.Layout as Layout
     exposing
@@ -123,7 +124,7 @@ viewPart editor i part =
     in
     section
         [ styles.class .part
-        , onMouseUp Action.FinishEdit
+        , Pointer.onUp (\_ -> Action.FinishEdit)
         ]
         [ header [ styles.class .header ]
             [ h3 [ styles.class .abbrev ]
@@ -137,11 +138,9 @@ viewPart editor i part =
         ]
 
 
-mouseOffset : Decoder ( Int, Int )
-mouseOffset =
-    Decode.map2 pair
-        (field "offsetX" int)
-        (field "offsetY" int)
+pointerCoordinates : Pointer.Event -> ( Float, Float )
+pointerCoordinates event =
+    event.pointer.offsetPos
 
 
 viewMeasure : Editor -> Int -> Int -> Measure -> Html Msg
@@ -176,9 +175,11 @@ viewMeasure editor i j measure =
     in
     div
         [ styles.class .editor
-        , on "mousedown" <|
-            Decode.map (Action.StartEdit i j) <|
-                Decode.map toLocation mouseOffset
+        , Pointer.onDown <|
+            pointerCoordinates
+                >> Tuple.mapBoth floor floor
+                >> toLocation
+                >> Action.StartEdit i j
         ]
         [ case selection of
             Just beat ->
