@@ -27,12 +27,13 @@ module Music.Measure.Layout exposing
     , unscalePitch
     , unscaleStep
     , width
+    , zoomed
     )
 
 import Browser
 import Music.Pitch as Pitch exposing (Pitch, StepNumber)
+import Music.Staff.Model exposing (Staff)
 import Music.Time as Time exposing (Beat, Time)
-import String
 import Tuple exposing (first, second)
 import TypedSvg.Types exposing (Length, px)
 
@@ -57,6 +58,17 @@ type alias Pixels =
 type alias Tenths =
     { ths : Float
     }
+
+
+standard : Staff -> Time -> Layout
+standard staff =
+    -- layout for given staff and time at standard zoom level
+    Layout 2.0 staff.basePitch
+
+
+zoomed : Float -> Staff -> Time -> Layout
+zoomed zoom staff =
+    Layout zoom staff.basePitch
 
 
 toPixels : Layout -> Tenths -> Pixels
@@ -298,9 +310,3 @@ unscaleBeat layout x =
             beatSpacing layout
     in
     floor ((x.px - m.left.px) / bs.px)
-
-
-standard : Pitch -> Time -> Layout
-standard =
-    -- layout for standard (zoom level)
-    Layout 2.0

@@ -16,6 +16,7 @@ import Music.Measure.Layout as Layout
 import Music.Measure.Model exposing (..)
 import Music.Note.View as NoteView
 import Music.Staff.Model as Staff
+import Music.Staff.View as StaffView
 import String
 import TypedSvg exposing (g, svg)
 import TypedSvg.Attributes as SvgAttr
@@ -41,7 +42,7 @@ fixedLayoutFor measure =
         staff =
             Staff.treble
     in
-    Layout.standard staff.basePitch t
+    Layout.standard staff t
 
 
 layoutFor : Measure -> Layout
@@ -53,7 +54,7 @@ layoutFor measure =
         staff =
             Staff.treble
     in
-    Layout.standard staff.basePitch t
+    Layout.standard staff t
 
 
 view : Measure -> Html msg
@@ -123,7 +124,7 @@ view measure =
                         (Layout.margins layout).top.px
                     ]
                 ]
-                [ Staff.draw layout ]
+                [ StaffView.draw layout ]
             , g
                 []
               <|

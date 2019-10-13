@@ -15,7 +15,11 @@ import Music.Duration
         , quarter
         , whole
         )
+import Music.Measure.Layout as Layout exposing (Layout)
 import Music.Note.View exposing (StemOrientation(..), isWhole, viewNote)
+import Music.Pitch as Pitch
+import Music.Staff.Model as Staff
+import Music.Time as Time
 import TouchTunes.Action exposing (Msg(..))
 import TouchTunes.Dial as Dial
 import TypedSvg exposing (g)
@@ -33,6 +37,11 @@ inactive : Tracking
 inactive =
     Tracking
         Nothing
+
+
+layout : Layout
+layout =
+    Layout.zoomed 1.0 Staff.treble Time.common
 
 
 durationDial : Dial.Config Duration msg
@@ -62,13 +71,17 @@ updateDurationDial =
 viewDuration : Duration -> Svg msg
 viewDuration d =
     let
-        valign =
+        -- choose a pitch which centers the note+stem on staff
+        pitch =
             if isWhole d then
-                0
+                Pitch.b 4
 
             else
-                20
+                Pitch.e_ 4
+
+        staffHeight =
+            Layout.height layout
     in
     g
-        [ transform [ Translate 0 valign ] ]
-        [ viewNote d StemUp ]
+        [ transform [ Translate 0 (-0.5 * staffHeight.px) ] ]
+        [ viewNote layout d pitch ]

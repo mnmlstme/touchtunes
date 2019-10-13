@@ -92,18 +92,38 @@ ledgerLine =
     svgAsset "./Music/Note/tt-ledger-line.svg"
 
 
+stemUp =
+    svgAsset "./Music/Note/tt-stem-up.svg"
+
+
+stemDown =
+    svgAsset "./Music/Note/tt-stem-down.svg"
+
+
 isWhole : Duration -> Bool
 isWhole d =
     d.count // d.divisor == 1
 
 
-notehead : Duration -> SvgAsset
-notehead d =
+noteHead : Duration -> SvgAsset
+noteHead d =
     if toFloat d.divisor / toFloat d.count > 2.0 then
         noteheadClosed
 
     else
         noteheadOpen
+
+
+noteStem : Layout -> Duration -> Pitch -> Maybe SvgAsset
+noteStem layout d p =
+    if isWhole d then
+        Nothing
+
+    else if positionOnStaff layout p > -3 then
+        Just stemDown
+
+    else
+        Just stemUp
 
 
 restSymbol : Duration -> SvgAsset
@@ -145,19 +165,6 @@ alteration p =
 
     else
         Nothing
-
-
-stemOrientation : Layout -> Pitch -> StemOrientation
-stemOrientation layout p =
-    let
-        n =
-            positionOnStaff layout p
-    in
-    if n > -3 then
-        StemDown
-
-    else
-        StemUp
 
 
 ledgerLines : Layout -> Pitch -> List Pixels
@@ -246,15 +253,15 @@ view layout beat note =
         ]
         [ case note.do of
             Play p ->
-                viewPitch layout beat d p
+                viewNote layout d p
 
             Rest ->
-                viewRest layout beat d
+                viewRest layout d
         ]
 
 
-viewRest : Layout -> Beat -> Duration -> Svg msg
-viewRest layout beat d =
+viewRest : Layout -> Duration -> Svg msg
+viewRest layout d =
     let
         sp =
             spacing layout
@@ -273,8 +280,8 @@ viewRest layout beat d =
         ]
 
 
-viewPitch : Layout -> Beat -> Duration -> Pitch -> Svg msg
-viewPitch layout beat d p =
+viewNote : Layout -> Duration -> Pitch -> Svg msg
+viewNote layout d p =
     let
         sp =
             spacing layout
@@ -293,8 +300,11 @@ viewPitch layout beat d p =
                     ]
                 )
 
-        stemDir =
-            stemOrientation layout p
+        note =
+            noteHead d
+
+        stem =
+            noteStem layout d p
 
         ledgers =
             ledgerLines layout p
@@ -309,7 +319,14 @@ viewPitch layout beat d p =
     g
         [ transform [ Translate 0 ypos.px ]
         ]
-        [ viewNote d stemDir
+        [ SvgAsset.view note
+        , viewDot d
+        , case stem of
+            Just theStem ->
+                SvgAsset.view theStem
+
+            Nothing ->
+                text_ [] []
         , g [ class [ css .ledger ] ]
             (List.map viewLedger ledgers)
         , case alt of
@@ -319,67 +336,6 @@ viewPitch layout beat d p =
 
             Nothing ->
                 text_ [] []
-        ]
-
-
-viewNote : Duration -> StemOrientation -> Svg msg
-viewNote d stemDir =
-    let
-        sp =
-            20.0
-
-        w =
-            1.5 * sp
-
-        stemLength =
-            3.0 * sp
-
-        note =
-            notehead d
-
-        stemless =
-            isWhole d
-
-        xstem =
-            case stemDir of
-                StemUp ->
-                    0.5 * w
-
-                StemDown ->
-                    -0.5 * w
-
-        y1stem =
-            case stemDir of
-                StemUp ->
-                    -0.25 * sp
-
-                StemDown ->
-                    0.25 * sp
-
-        y2stem =
-            case stemDir of
-                StemUp ->
-                    y1stem - stemLength
-
-                StemDown ->
-                    y1stem + stemLength
-    in
-    g
-        []
-        [ SvgAsset.view note
-        , if stemless then
-            text_ [] []
-
-          else
-            line
-                [ class [ css .stem ]
-                , x1 <| px xstem
-                , y1 <| px y1stem
-                , x2 <| px xstem
-                , y2 <| px y2stem
-                ]
-                []
-        , viewDot d
         ]
 
 
