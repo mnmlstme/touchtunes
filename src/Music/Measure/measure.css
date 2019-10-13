@@ -8,6 +8,7 @@ svg.staff {
     overflow: visible;
     stroke: #333;
     fill: #333;
+    pointer-events: none;
 }
 
 .overflow {

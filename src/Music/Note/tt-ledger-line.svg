@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="60px" height="12px" viewBox="0 0 60 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 57.1 (83088) - https://sketch.com -->
+    <title>tt-ledger-line</title>
+    <desc>Created with Sketch.</desc>
+    <g id="tt-ledger-line" stroke="none" stroke-width="1" fill-rule="evenodd">
+        <g id="Group" transform="translate(0.000000, 3.666667)">
+            <path d="M0.0278341524,5.34301841 C-0.030400978,3.59120225 -0.030400978,4 3.66449603,3.26870312 C3.66449603,3.26870312 11.1022983,1.82291205 30.4346358,0.99723794 C37.4916986,0.695834447 59.7899416,0.620646762 59.8096581,1.21375506 C59.8293746,1.80686335 60,4.14859349 58.181189,4 C56.3623779,3.85140651 21.0624642,4.14859349 13.9429846,5.6533014 C6.82350508,7.15800932 5.32308215,7.78015614 2.96236032,7.29480146 C0.601638488,6.80944677 0.0278341524,5.34301841 0.0278341524,5.34301841 Z" id="Rectangle-3"></path>
+        </g>
+    </g>
+</svg>

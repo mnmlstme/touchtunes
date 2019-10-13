@@ -88,6 +88,10 @@ flat =
     svgAsset "./Music/Note/tt-flat.svg"
 
 
+ledgerLine =
+    svgAsset "./Music/Note/tt-ledger-line.svg"
+
+
 isWhole : Duration -> Bool
 isWhole d =
     d.count // d.divisor == 1
@@ -299,13 +303,8 @@ viewPitch layout beat d p =
             alteration p
 
         viewLedger y =
-            line
-                [ x1 <| px <| -0.35 * w
-                , x2 <| px <| 1.35 * w
-                , y1 <| inPx y
-                , y2 <| inPx y
-                ]
-                []
+            g [ transform [ Translate 0 y.px ] ]
+                [ SvgAsset.view ledgerLine ]
     in
     g
         [ transform [ Translate 0 ypos.px ]
