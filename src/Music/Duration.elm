@@ -1,26 +1,20 @@
 module Music.Duration exposing
     ( Duration
     , add
-    , beats
     , dotted
     , eighth
     , equal
-    , fromTimeBeats
     , half
     , longerThan
     , quarter
-    , setBeats
-    , shortenBy
     , shorterThan
     , sixteenth
     , sixtyfourth
+    , subtract
     , thirtysecond
     , whole
+    , zero
     )
-
-import Music.Time exposing (Beat, Time)
-
-
 
 -- Duration expressed as a certain integer number of
 -- divisions (typically 1, 2, 4, 8, 16, ... but left open
@@ -29,15 +23,9 @@ import Music.Time exposing (Beat, Time)
 
 
 type alias Duration =
-    -- TODO: reverse the order so count is last argument to constructor
     { count : Int
     , divisor : Int
     }
-
-
-fromTimeBeats : Time -> Beat -> Duration
-fromTimeBeats time beat =
-    Duration beat time.divisor
 
 
 division : Int -> Duration
@@ -80,23 +68,14 @@ sixtyfourth =
     division 64
 
 
+zero : Duration
+zero =
+    Duration 0 1
+
+
 dotted : Duration -> Duration
 dotted d =
     Duration (d.count * 3) (d.divisor * 2)
-
-
-beats : Time -> Duration -> Beat
-beats time d =
-    d.count * (time.divisor // d.divisor)
-
-
-setBeats : Time -> Beat -> Duration -> Duration
-setBeats time b d =
-    let
-        count =
-            b * (d.divisor // time.divisor)
-    in
-    Duration count d.divisor
 
 
 commonDivisor : Duration -> Duration -> Int
@@ -125,7 +104,7 @@ longerThan a b =
         ( ac, bc ) =
             makeCommon ( a, b )
     in
-    ac.count > bc.count
+    ac.count < bc.count
 
 
 shorterThan : Duration -> Duration -> Bool
@@ -134,7 +113,7 @@ shorterThan a b =
         ( ac, bc ) =
             makeCommon ( a, b )
     in
-    ac.count < bc.count
+    ac.count > bc.count
 
 
 equal : Duration -> Duration -> Bool
@@ -155,6 +134,10 @@ add a b =
     { bc | count = ac.count + bc.count }
 
 
-shortenBy : Beat -> Duration -> Duration
-shortenBy n d =
-    { d | count = d.count - n }
+subtract : Duration -> Duration -> Duration
+subtract a b =
+    let
+        ( ac, bc ) =
+            makeCommon ( a, b )
+    in
+    { bc | count = ac.count - bc.count }

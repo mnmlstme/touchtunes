@@ -2,6 +2,7 @@ module TouchTunes.Update exposing (update)
 
 import Array as Array
 import Debug exposing (log)
+import Music.Beat as Beat
 import Music.Measure.Model exposing (Measure, modifyNote)
 import Music.Note.Model exposing (Note, What(..))
 import Music.Pitch exposing (Pitch, fromStepNumber, stepNumber)
@@ -25,7 +26,7 @@ update msg editor =
         StartEdit partNum measureNum loc ->
             let
                 beat =
-                    loc.beat
+                    Beat.roundTo editor.durationSetting loc.beat
 
                 pitch =
                     fromStepNumber loc.step
@@ -136,7 +137,7 @@ update msg editor =
         ChangeDuration dur ->
             { editor | durationSetting = dur }
 
-        DurationControl dialAction ->
+        DurationMsg dialAction ->
             let
                 ( act, maybeMsg ) =
                     Controls.updateDurationDial

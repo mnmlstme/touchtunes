@@ -6,6 +6,7 @@ module Music.Note.View exposing
     )
 
 import CssModules as CssModules
+import Debug exposing (log)
 import Icon.SvgAsset as SvgAsset exposing (SvgAsset, svgAsset)
 import Music.Duration as Duration exposing (Duration)
 import Music.Measure.Layout
@@ -23,7 +24,7 @@ import Music.Measure.Layout
         )
 import Music.Note.Model exposing (..)
 import Music.Pitch as Pitch exposing (Pitch)
-import Music.Time as Time exposing (Beat, Time)
+import Music.Time as Time exposing (Time)
 import String
 import TypedSvg
     exposing
@@ -68,6 +69,10 @@ quarterRest =
     svgAsset "./Music/Note/tt-rest-quarter.svg"
 
 
+eighthRest =
+    svgAsset "./Music/Note/tt-rest-eighth.svg"
+
+
 noteheadClosed =
     svgAsset "./Music/Note/tt-notehead-closed.svg"
 
@@ -100,6 +105,14 @@ stemDown =
     svgAsset "./Music/Note/tt-stem-down.svg"
 
 
+stemUp1Flag =
+    svgAsset "./Music/Note/tt-stem-up-1flag.svg"
+
+
+stemDown1Flag =
+    svgAsset "./Music/Note/tt-stem-down-1flag.svg"
+
+
 isWhole : Duration -> Bool
 isWhole d =
     d.count // d.divisor == 1
@@ -116,30 +129,49 @@ noteHead d =
 
 noteStem : Layout -> Duration -> Pitch -> Maybe SvgAsset
 noteStem layout d p =
+    let
+        down =
+            positionOnStaff layout p > -3
+    in
     if isWhole d then
         Nothing
 
-    else if positionOnStaff layout p > -3 then
-        Just stemDown
+    else if toFloat d.divisor / toFloat d.count > 4.0 then
+        Just
+            (if down then
+                stemDown1Flag
+
+             else
+                stemUp1Flag
+            )
 
     else
-        Just stemUp
+        Just
+            (if down then
+                stemDown
+
+             else
+                stemUp
+            )
 
 
 restSymbol : Duration -> SvgAsset
 restSymbol d =
     let
-        b =
-            d.count
+        div =
+            toFloat d.divisor / toFloat d.count
     in
-    if isWhole d then
+    if div <= 1.0 then
         wholeRest
 
-    else if b < 2 then
+    else if div <= 2.0 then
+        halfRest
+
+    else if div <= 4.0 then
         quarterRest
 
     else
-        halfRest
+        eighthRest
 
 
 dotted : Duration -> Maybe SvgAsset
@@ -222,14 +254,14 @@ css =
             }
 
 
-view : Layout -> Beat -> Note -> Svg msg
-view layout beat note =
+view : Layout -> Float -> Note -> Svg msg
+view layout pos note =
     let
         d =
-            note.duration
+            log "note duration" note.duration
 
         xpos =
-            scaleBeat layout beat
+            scaleBeat layout (log "note pos" pos)
 
         dx =
             case getShiftX note of

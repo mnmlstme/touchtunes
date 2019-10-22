@@ -1,24 +1,17 @@
 module Music.Time exposing
-    ( Beat
-    , Time
+    ( Time
     , common
     , cut
-    , longer
+    , toDuration
     )
+
+import Music.Duration exposing (Duration)
 
 
 type alias Time =
-    { beats : Beat
-    , divisor : Divisor
+    { beatsPerMeasure : Int
+    , getsOneBeat : Int
     }
-
-
-type alias Beat =
-    Int
-
-
-type alias Divisor =
-    Int
 
 
 common : Time
@@ -31,10 +24,6 @@ cut =
     Time 2 2
 
 
-longer : Time -> Beat -> Time
-longer time beat =
-    let
-        b =
-            max time.beats beat
-    in
-    Time b time.divisor
+toDuration : Time -> Duration
+toDuration time =
+    Duration time.beatsPerMeasure time.getsOneBeat

@@ -27,7 +27,7 @@ import Music.Measure.Layout as Layout
         ( beatSpacing
         , inPx
         , positionToLocation
-        , scaleStartBeat
+        , scaleBeat
         )
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.View as MeasureView exposing (layoutFor)
@@ -199,7 +199,7 @@ viewMeasure editor i j measure =
                     ]
                     [ rect
                         [ width <| inPx <| beatSpacing layout
-                        , x <| inPx <| scaleStartBeat layout beat
+                        , x <| inPx <| scaleBeat layout beat
                         , y <| px 0
                         , height <| inPx <| Layout.height layout
                         ]

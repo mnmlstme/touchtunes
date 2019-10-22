@@ -2,6 +2,7 @@ module TouchTunes.Ruler exposing (view)
 
 import CssModules as CssModules
 import Html exposing (Html)
+import Music.Beat as Beat
 import Music.Measure.Layout as Layout exposing (inPx)
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.View exposing (layoutFor)
@@ -43,12 +44,12 @@ view measure =
             sp.px / 8.0
 
         beats =
-            Measure.length measure
+            ceiling <| Beat.toFloat <| Measure.length measure
 
         viewSegment b =
             let
                 xmid =
-                    Layout.scaleBeat layout b
+                    Layout.scaleBeat layout <| Beat.toFloat b
             in
             rect
                 [ x <| px <| xmid.px - bsp.px / 2.0 + pad
@@ -65,5 +66,7 @@ view measure =
         ]
         (List.map
             viewSegment
-            (List.range 0 (beats - 1))
+         <|
+            List.map Beat.fullBeat <|
+                List.range 0 (beats - 1)
         )

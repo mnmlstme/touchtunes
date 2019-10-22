@@ -11,6 +11,7 @@ import Music.Duration
     exposing
         ( Duration
         , dotted
+        , eighth
         , half
         , quarter
         , whole
@@ -48,7 +49,8 @@ durationDial : Dial.Config Duration msg
 durationDial =
     { options =
         Array.fromList
-            [ quarter
+            [ eighth
+            , quarter
             , dotted quarter
             , half
             , dotted half
@@ -61,7 +63,7 @@ durationDial =
 
 
 viewDurationDial =
-    Dial.view durationDial DurationControl
+    Dial.view durationDial DurationMsg
 
 
 updateDurationDial =

@@ -1,24 +1,24 @@
-module Music.Measure.Model
-    exposing
-        ( Measure
-        , Sequence
-        , aggregateRests
-        , fitTime
-        , fromNotes
-        , fromSequence
-        , length
-        , modifyNote
-        , new
-        , notesLength
-        , time
-        , toSequence
-        )
+module Music.Measure.Model exposing
+    ( Measure
+    , Sequence
+    , aggregateRests
+    , fitTime
+    , fromNotes
+    , fromSequence
+    , length
+    , modifyNote
+    , new
+    , notesLength
+    , time
+    , toSequence
+    )
 
-import List.Nonempty as Nonempty exposing (Nonempty)
 import List.Extra exposing (scanl)
-import Music.Duration as Duration
+import List.Nonempty as Nonempty exposing (Nonempty)
+import Music.Beat as Beat exposing (Beat)
+import Music.Duration as Duration exposing (Duration)
 import Music.Note.Model as Note exposing (Note)
-import Music.Time as Time exposing (Beat, Time)
+import Music.Time as Time exposing (Time)
 
 
 type alias Measure =
@@ -50,17 +50,14 @@ time measure =
     Time.common
 
 
-notesLength : Measure -> Beat
+notesLength : Measure -> Duration
 notesLength measure =
-    -- sum of the number of beats of all notes in measure
+    -- sum of the duration of all notes in measure
     let
-        t =
-            time measure
-
-        beats =
-            Nonempty.map (Duration.beats t << .duration) measure.notes
+        durs =
+            Nonempty.map .duration measure.notes
     in
-        Nonempty.foldl1 (+) beats
+    Nonempty.foldl1 Duration.add durs
 
 
 length : Measure -> Beat
@@ -69,8 +66,18 @@ length measure =
     let
         t =
             time measure
+
+        tdur =
+            Time.toDuration t
+
+        mdur =
+            notesLength measure
     in
-        max t.beats <| notesLength measure
+    if Duration.longerThan tdur mdur then
+        Beat.fromDuration t <| mdur
+
+    else
+        Beat.fullBeat t.beatsPerMeasure
 
 
 fitTime : Measure -> Time
@@ -83,26 +90,28 @@ fitTime measure =
         beats =
             length measure
     in
-        Time.longer t beats
+    Beat.fitToTime t beats
 
 
-cumulativeBeats : Measure -> Nonempty Beat
-cumulativeBeats measure =
-    -- gives the start beat for each note in measure
+startingBeats : Measure -> Nonempty Beat
+startingBeats measure =
+    -- gives the starting beat for each note
     let
         t =
             time measure
 
         beats =
-            Nonempty.map (Duration.beats t << .duration) measure.notes
+            Nonempty.map .duration measure.notes
 
         head =
             Nonempty.head beats
 
         tail =
-            scanl (+) head <| Nonempty.tail beats
+            List.map (Beat.fromDuration t) <|
+                scanl Duration.add head <|
+                    Nonempty.tail beats
     in
-        Nonempty.Nonempty 0 tail
+    Nonempty.Nonempty Beat.zero tail
 
 
 type alias Sequence =
@@ -114,10 +123,10 @@ toSequence : Measure -> Sequence
 toSequence measure =
     let
         startsAt =
-            cumulativeBeats measure
+            startingBeats measure
     in
-        Nonempty.toList <|
-            Nonempty.map2 (\a b -> ( a, b )) startsAt measure.notes
+    Nonempty.toList <|
+        Nonempty.map2 (\a b -> ( a, b )) startsAt measure.notes
 
 
 fromSequence : Sequence -> Measure
@@ -126,18 +135,19 @@ fromSequence sequence =
         justNotes seq =
             List.map (\( b, n ) -> n) seq
     in
-        fromNotes <| justNotes sequence
+    fromNotes <| justNotes sequence
 
 
 openSequence : Beat -> Sequence -> ( Sequence, Note, Sequence )
 openSequence beat sequence =
     let
-        -- TODO: need to get time tfrom measure:
+        -- TODO: need to get time from measure:
         t =
             Time.common
 
         precedes ( b, n ) =
-            b + Duration.beats t n.duration <= beat
+            Beat.earlierThan beat <|
+                Beat.add t n.duration b
 
         ( before, after ) =
             List.partition precedes sequence
@@ -148,41 +158,39 @@ openSequence beat sequence =
                     ( Nothing, Note.restFor Duration.quarter )
 
                 Just ( b, n ) ->
-                    if b == beat then
+                    if Beat.equal b beat then
                         ( Nothing, n )
+
                     else
                         let
                             durBefore =
-                                Duration.fromTimeBeats t <|
-                                    beat
-                                        - b
+                                Beat.durationFrom t b beat
 
                             durAfter =
-                                Duration.fromTimeBeats t <|
-                                    Duration.beats t n.duration
-                                        - (beat - b)
+                                Beat.durationFrom t beat <|
+                                    Beat.add t n.duration b
                         in
-                            ( Just
-                                ( beat - b
-                                , { n | duration = durBefore }
-                                )
-                            , { n | duration = durAfter }
+                        ( Just
+                            ( b
+                            , { n | duration = durBefore }
                             )
+                        , { n | duration = durAfter }
+                        )
     in
-        ( case maybeBefore of
-            Nothing ->
-                before
+    ( case maybeBefore of
+        Nothing ->
+            before
 
-            Just tuple ->
-                List.append before [ tuple ]
-        , note
-        , case List.tail after of
-            Nothing ->
-                []
+        Just tuple ->
+            List.append before [ tuple ]
+    , note
+    , case List.tail after of
+        Nothing ->
+            []
 
-            Just list ->
-                list
-        )
+        Just list ->
+            list
+    )
 
 
 modifyNote : (Note -> Note) -> Beat -> Measure -> Measure
@@ -200,31 +208,23 @@ modifyNote f beat measure =
         newNote =
             f note
 
-        noteBeats =
-            Duration.beats t note.duration
-
-        newBeats =
-            Duration.beats t newNote.duration
-
-        delta =
-            newBeats - noteBeats
-
-        -- any duration remaining from original note is filled with rest
         maybeRemainder =
-            if delta < 0 then
+            if Duration.longerThan note.duration newNote.duration then
                 Just
-                    ( beat - newBeats
+                    ( Beat.subtract t newNote.duration beat
                     , Note.restFor <|
-                        Duration.fromTimeBeats t (0 - delta)
+                        Duration.subtract newNote.duration note.duration
                     )
+
             else
                 Nothing
 
         endBeat =
-            beat + newBeats
+            Beat.add t newNote.duration beat
 
         follows ( b, n ) =
-            b + Duration.beats t n.duration > endBeat
+            Beat.laterThan endBeat <|
+                Beat.add t n.duration b
 
         following =
             List.filter follows after
@@ -233,14 +233,14 @@ modifyNote f beat measure =
         maybeClipped =
             case List.head following of
                 Just ( b, n ) ->
-                    if b < endBeat then
+                    if Beat.laterThan endBeat b then
                         let
                             d =
-                                Duration.fromTimeBeats t <|
-                                    Duration.beats t n.duration
-                                        - (endBeat - b)
+                                Duration.subtract n.duration <|
+                                    Beat.durationFrom t b endBeat
                         in
-                            Just ( endBeat, { n | duration = d } )
+                        Just ( endBeat, { n | duration = d } )
+
                     else
                         Nothing
 
@@ -266,15 +266,16 @@ modifyNote f beat measure =
         newSequence =
             List.concat
                 [ before
-                , if newBeats == 0 then
+                , if newNote.duration.count == 0 then
                     []
+
                   else
                     [ ( beat, newNote ) ]
                 , rest
                 ]
     in
-        fromSequence newSequence
-            |> aggregateRests
+    fromSequence newSequence
+        |> aggregateRests
 
 
 aggregateRests : Measure -> Measure
@@ -290,19 +291,19 @@ aggregateRests measure =
                 prevNote =
                     Nonempty.head sofar
             in
-                case ( prevNote.do, note.do ) of
-                    ( Note.Rest, Note.Rest ) ->
-                        Nonempty.replaceHead
-                            { prevNote
-                                | duration =
-                                    Duration.add prevNote.duration note.duration
-                            }
-                            sofar
+            case ( prevNote.do, note.do ) of
+                ( Note.Rest, Note.Rest ) ->
+                    Nonempty.replaceHead
+                        { prevNote
+                            | duration =
+                                Duration.add prevNote.duration note.duration
+                        }
+                        sofar
 
-                    _ ->
-                        Nonempty.cons note sofar
+                _ ->
+                    Nonempty.cons note sofar
     in
-        Nonempty.map Nonempty.fromElement measure.notes
-            |> Nonempty.reverse
-            |> Nonempty.foldl1 agg
-            |> Measure
+    Nonempty.map Nonempty.fromElement measure.notes
+        |> Nonempty.reverse
+        |> Nonempty.foldl1 agg
+        |> Measure

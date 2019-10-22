@@ -1,12 +1,13 @@
 module Music.Measure.View exposing
-    ( fixedLayoutFor
-    , layoutFor
+    ( layoutFor
     , view
     )
 
 import CssModules as CssModules
+import Debug exposing (log)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, style)
+import Music.Beat as Beat
 import Music.Measure.Layout as Layout
     exposing
         ( Layout
@@ -75,7 +76,7 @@ view measure =
             fitTime measure
 
         overflowBeats =
-            t.beats - givenTime.beats
+            t.beatsPerMeasure - givenTime.beatsPerMeasure
 
         layout =
             layoutFor measure
@@ -98,10 +99,11 @@ view measure =
                 + (Layout.margins layout).right.px
 
         drawNote =
-            \( beat, note ) -> NoteView.view fixedLayout beat note
+            \( beat, note ) ->
+                NoteView.view fixedLayout (Beat.toFloat beat) note
 
         noteSequence =
-            toSequence measure
+            log "measure sequence" <| toSequence measure
     in
     div [ class <| css .measure ]
         [ if overflowBeats > 0 then

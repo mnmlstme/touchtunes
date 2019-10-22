@@ -13,10 +13,7 @@ module Music.Measure.Layout exposing
     , positionOnStaff
     , positionToLocation
     , scaleBeat
-    , scaleEndBeat
-    , scaleFractionalBeat
     , scalePitch
-    , scaleStartBeat
     , scaleStep
     , spacing
     , standard
@@ -33,7 +30,7 @@ module Music.Measure.Layout exposing
 import Browser
 import Music.Pitch as Pitch exposing (Pitch, StepNumber)
 import Music.Staff.Model exposing (Staff)
-import Music.Time as Time exposing (Beat, Time)
+import Music.Time as Time exposing (Time)
 import Tuple exposing (first, second)
 import TypedSvg.Types exposing (Length, px)
 
@@ -88,7 +85,7 @@ inPx =
 
 type alias Location =
     { step : StepNumber
-    , beat : Beat
+    , beat : Float
     , shiftx : Tenths
     , shifty : Tenths
     }
@@ -170,7 +167,7 @@ width layout =
             margins layout
 
         b =
-            toFloat layout.time.beats
+            toFloat layout.time.getsOneBeat
 
         bs =
             beatSpacing layout
@@ -268,27 +265,9 @@ unscalePitch layout y =
         |> Pitch.fromStepNumber
 
 
-scaleBeat : Layout -> Beat -> Pixels
-scaleBeat layout b =
-    -- location of the center of the note on the staff
-    scaleFractionalBeat layout <| 0.5 + toFloat b
-
-
-scaleStartBeat : Layout -> Beat -> Pixels
-scaleStartBeat layout b =
+scaleBeat : Layout -> Float -> Pixels
+scaleBeat layout beat =
     -- location of the left edge of the beat on the staff
-    scaleFractionalBeat layout <| toFloat b
-
-
-scaleEndBeat : Layout -> Beat -> Pixels
-scaleEndBeat layout b =
-    -- location of the right edge of the beat on the staff
-    scaleFractionalBeat layout <| toFloat (b + 1)
-
-
-scaleFractionalBeat : Layout -> Float -> Pixels
-scaleFractionalBeat layout x =
-    -- scaled location of a specific moment within the beat
     let
         m =
             margins layout
@@ -296,10 +275,10 @@ scaleFractionalBeat layout x =
         bs =
             beatSpacing layout
     in
-    m.left.px + bs.px * x |> Pixels
+    m.left.px + bs.px * beat + bs.px / 2.0 |> Pixels
 
 
-unscaleBeat : Layout -> Pixels -> Beat
+unscaleBeat : Layout -> Pixels -> Float
 unscaleBeat layout x =
     -- return the beat, given X pixels from left of layout
     let
@@ -309,4 +288,4 @@ unscaleBeat layout x =
         bs =
             beatSpacing layout
     in
-    floor ((x.px - m.left.px) / bs.px)
+    (x.px - m.left.px - bs.px / 2.0) / bs.px

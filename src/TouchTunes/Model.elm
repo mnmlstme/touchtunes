@@ -5,10 +5,10 @@ module TouchTunes.Model exposing
     )
 
 import Array exposing (Array)
+import Music.Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration)
 import Music.Measure.Model exposing (Measure)
 import Music.Score.Model as Score exposing (Score)
-import Music.Time exposing (Beat)
 import String
 import TouchTunes.Controls as Controls
 
