@@ -2,7 +2,6 @@ module TouchTunes.Update exposing (update)
 
 import Array as Array
 import Debug exposing (log)
-import Music.Beat as Beat
 import Music.Measure.Model exposing (Measure, modifyNote)
 import Music.Note.Model exposing (Note, What(..))
 import Music.Pitch exposing (Pitch, fromStepNumber, stepNumber)
@@ -25,17 +24,17 @@ update msg editor =
     case log "msg" msg of
         StartEdit partNum measureNum loc ->
             let
+                measure =
+                    Score.measure partNum measureNum editor.score
+
                 beat =
-                    Beat.roundTo editor.durationSetting loc.beat
+                    loc.beat
 
                 pitch =
                     fromStepNumber loc.step
 
                 note =
                     Note (Play pitch) editor.durationSetting []
-
-                measure =
-                    Score.measure partNum measureNum editor.score
             in
             update (ReplaceNote note beat)
                 { editor
@@ -73,7 +72,7 @@ update msg editor =
                     { editor
                         | measure =
                             Just <|
-                                modifyNote modifier at theMeasure
+                                modifyNote modifier (log "at" at) theMeasure
                     }
 
                 Nothing ->

@@ -9,11 +9,13 @@ module Music.Measure.Model exposing
     , modifyNote
     , new
     , notesLength
+    , startingBeats
     , time
     , toSequence
     )
 
-import List.Extra exposing (scanl)
+import Debug exposing (log)
+import List.Extra exposing (find, scanl)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Beat as Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration)
@@ -138,144 +140,90 @@ fromSequence sequence =
     fromNotes <| justNotes sequence
 
 
-openSequence : Beat -> Sequence -> ( Sequence, Note, Sequence )
-openSequence beat sequence =
-    let
-        -- TODO: need to get time from measure:
-        t =
-            Time.common
-
-        precedes ( b, n ) =
-            Beat.earlierThan beat <|
-                Beat.add t n.duration b
-
-        ( before, after ) =
-            List.partition precedes sequence
-
-        ( maybeBefore, note ) =
-            case List.head after of
-                Nothing ->
-                    ( Nothing, Note.restFor Duration.quarter )
-
-                Just ( b, n ) ->
-                    if Beat.equal b beat then
-                        ( Nothing, n )
-
-                    else
-                        let
-                            durBefore =
-                                Beat.durationFrom t b beat
-
-                            durAfter =
-                                Beat.durationFrom t beat <|
-                                    Beat.add t n.duration b
-                        in
-                        ( Just
-                            ( b
-                            , { n | duration = durBefore }
-                            )
-                        , { n | duration = durAfter }
-                        )
-    in
-    ( case maybeBefore of
-        Nothing ->
-            before
-
-        Just tuple ->
-            List.append before [ tuple ]
-    , note
-    , case List.tail after of
-        Nothing ->
-            []
-
-        Just list ->
-            list
-    )
-
-
 modifyNote : (Note -> Note) -> Beat -> Measure -> Measure
 modifyNote f beat measure =
     let
-        sequence =
+        seq =
             toSequence measure
 
         t =
             time measure
 
-        ( before, note, after ) =
-            openSequence beat sequence
-
-        newNote =
-            f note
-
-        maybeRemainder =
-            if Duration.longerThan note.duration newNote.duration then
-                Just
-                    ( Beat.subtract t newNote.duration beat
-                    , Note.restFor <|
-                        Duration.subtract newNote.duration note.duration
-                    )
-
-            else
-                Nothing
-
-        endBeat =
-            Beat.add t newNote.duration beat
-
-        follows ( b, n ) =
-            Beat.laterThan endBeat <|
+        precedes ( b, n ) =
+            Beat.earlierThan beat <|
                 Beat.add t n.duration b
 
-        following =
-            List.filter follows after
-
-        -- the first note following may be clipped
-        maybeClipped =
-            case List.head following of
-                Just ( b, n ) ->
-                    if Beat.laterThan endBeat b then
-                        let
-                            d =
-                                Duration.subtract n.duration <|
-                                    Beat.durationFrom t b endBeat
-                        in
-                        Just ( endBeat, { n | duration = d } )
-
-                    else
-                        Nothing
+        note =
+            case find (not << precedes) seq of
+                Just ( _, n ) ->
+                    n
 
                 Nothing ->
-                    Nothing
-
-        rest =
-            case maybeClipped of
-                Just bn ->
-                    bn
-                        :: (Maybe.withDefault [] <|
-                                List.tail following
-                           )
-
-                Nothing ->
-                    case maybeRemainder of
-                        Just bn ->
-                            bn :: following
-
-                        Nothing ->
-                            following
-
-        newSequence =
-            List.concat
-                [ before
-                , if newNote.duration.count == 0 then
-                    []
-
-                  else
-                    [ ( beat, newNote ) ]
-                , rest
-                ]
+                    Note.restFor Duration.quarter
     in
-    fromSequence newSequence
+    spliceSequence t ( beat, f note ) seq
+        |> fromSequence
         |> aggregateRests
+
+
+spliceNote : Time -> ( Beat, Note ) -> ( Beat, Note ) -> Sequence
+spliceNote t ( b0, n0 ) ( b1, n1 ) =
+    let
+        e0 =
+            Beat.add t n0.duration b0
+
+        e1 =
+            Beat.add t n1.duration b1
+
+        clipFromTo b e n =
+            { n | duration = Beat.durationFrom t b e }
+    in
+    if not <| Beat.laterThan b0 e1 then
+        -- no intersection
+        [ ( b1, n1 ) ]
+
+    else if not <| Beat.laterThan b1 e0 then
+        -- no intersection
+        [ ( b1, n1 ) ]
+
+    else if Beat.equal b0 b1 then
+        if Beat.earlierThan e1 e0 then
+            -- insert n0 and clip off beginning of n1
+            [ ( b0, n0 )
+            , ( e0, clipFromTo e0 e1 n1 )
+            ]
+
+        else
+            -- replace n1 with n0
+            [ ( b0, n0 ) ]
+
+    else if Beat.earlierThan b0 b1 then
+        if Beat.earlierThan e1 e0 then
+            -- split n1 into two and insert n0 in the middle
+            [ ( b1, clipFromTo b1 b0 n1 )
+            , ( b0, n0 )
+            , ( e0, clipFromTo e0 e1 n1 )
+            ]
+
+        else
+            -- clip off end of n1 and insert n0
+            [ ( b1, clipFromTo b1 b0 n1 )
+            , ( b0, n0 )
+            ]
+
+    else if Beat.earlierThan e1 e0 then
+        -- clip off beginning of n1
+        [ ( e0, clipFromTo e0 e1 n1 ) ]
+
+    else
+        -- completely spliced out
+        []
+
+
+spliceSequence : Time -> ( Beat, Note ) -> Sequence -> Sequence
+spliceSequence t bn seq =
+    List.map (spliceNote t bn) seq
+        |> List.concat
 
 
 aggregateRests : Measure -> Measure

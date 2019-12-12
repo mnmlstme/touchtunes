@@ -7,8 +7,8 @@ module Music.Beat exposing
     , fitToTime
     , fromDuration
     , fullBeat
+    , halfBeat
     , laterThan
-    , roundTo
     , subtract
     , toDuration
     , toFloat
@@ -20,20 +20,25 @@ import Music.Time exposing (Time)
 
 
 type alias Beat =
-    { parts : Int
+    { full : Int
+    , parts : Int
     , divisor : Int
-    , full : Int
     }
 
 
 zero : Beat
 zero =
-    Beat 0 0 0
+    Beat 0 0 1
 
 
 fullBeat : Int -> Beat
-fullBeat =
-    Beat 0 0
+fullBeat n =
+    Beat n 0 1
+
+
+halfBeat : Int -> Beat
+halfBeat n =
+    Beat 0 n 2
 
 
 toFloat : Beat -> Float
@@ -86,7 +91,7 @@ subtract t d b =
 
 durationFrom : Time -> Beat -> Beat -> Duration
 durationFrom t a b =
-    Duration.subtract (toDuration t b) (toDuration t a)
+    Duration.subtract (toDuration t a) (toDuration t b)
 
 
 laterThan : Beat -> Beat -> Bool
@@ -120,18 +125,3 @@ fitToTime time beats =
                 )
     in
     Time b time.getsOneBeat
-
-
-roundTo : Duration -> Float -> Beat
-roundTo dur x =
-    let
-        divisor =
-            dur.divisor
-
-        totalParts =
-            floor (x * Basics.toFloat divisor)
-    in
-    { full = totalParts // divisor
-    , parts = modBy divisor totalParts
-    , divisor = divisor
-    }

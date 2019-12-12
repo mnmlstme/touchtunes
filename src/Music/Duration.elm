@@ -1,6 +1,7 @@
 module Music.Duration exposing
     ( Duration
     , add
+    , divideBy
     , dotted
     , eighth
     , equal
@@ -12,6 +13,7 @@ module Music.Duration exposing
     , sixtyfourth
     , subtract
     , thirtysecond
+    , times
     , whole
     , zero
     )
@@ -71,6 +73,16 @@ sixtyfourth =
 zero : Duration
 zero =
     Duration 0 1
+
+
+times : Int -> Duration -> Duration
+times multiplier dur =
+    { dur | count = multiplier * dur.count }
+
+
+divideBy : Int -> Duration -> Duration
+divideBy divisor dur =
+    { dur | divisor = divisor * dur.divisor }
 
 
 dotted : Duration -> Duration
@@ -140,4 +152,4 @@ subtract a b =
         ( ac, bc ) =
             makeCommon ( a, b )
     in
-    { bc | count = ac.count - bc.count }
+    { bc | count = bc.count - ac.count }

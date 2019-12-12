@@ -8,6 +8,7 @@ module Music.Note.View exposing
 import CssModules as CssModules
 import Debug exposing (log)
 import Icon.SvgAsset as SvgAsset exposing (SvgAsset, svgAsset)
+import Music.Beat as Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration)
 import Music.Measure.Layout
     exposing
@@ -254,14 +255,29 @@ css =
             }
 
 
-view : Layout -> Float -> Note -> Svg msg
-view layout pos note =
+notePlacement : Time -> Duration -> Beat -> Beat
+notePlacement time dur beat =
+    -- place the note in the center of its duration
+    let
+        half =
+            if dur.divisor > time.getsOneBeat then
+                Duration.divideBy 2 dur
+
+            else
+                Beat.toDuration time (Beat.halfBeat 1)
+    in
+    Beat.add time half beat
+
+
+view : Layout -> Beat -> Note -> Svg msg
+view layout beat note =
     let
         d =
-            log "note duration" note.duration
+            note.duration
 
         xpos =
-            scaleBeat layout (log "note pos" pos)
+            scaleBeat layout <|
+                notePlacement layout.time d beat
 
         dx =
             case getShiftX note of

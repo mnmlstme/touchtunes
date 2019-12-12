@@ -20,14 +20,15 @@ module Music.Measure.Layout exposing
     , toPixels
     , toTenths
     , topStep
-    , unscaleBeat
-    , unscalePitch
-    , unscaleStep
     , width
+    , withDivisors
     , zoomed
     )
 
 import Browser
+import List.Extra exposing (initialize)
+import List.Nonempty as Nonempty exposing (Nonempty)
+import Music.Beat as Beat exposing (Beat)
 import Music.Pitch as Pitch exposing (Pitch, StepNumber)
 import Music.Staff.Model exposing (Staff)
 import Music.Time as Time exposing (Time)
@@ -44,6 +45,7 @@ type alias Layout =
     { zoom : Float
     , basePitch : Pitch
     , time : Time
+    , divisors : Nonempty Int
     }
 
 
@@ -57,15 +59,29 @@ type alias Tenths =
     }
 
 
+unitDivisors : Time -> Nonempty Int
+unitDivisors time =
+    let
+        ones =
+            initialize time.beatsPerMeasure (\_ -> 1)
+    in
+    Maybe.withDefault (Nonempty.fromElement 1) (Nonempty.fromList ones)
+
+
 standard : Staff -> Time -> Layout
-standard staff =
+standard =
     -- layout for given staff and time at standard zoom level
-    Layout 2.0 staff.basePitch
+    zoomed 2.0
 
 
 zoomed : Float -> Staff -> Time -> Layout
-zoomed zoom staff =
-    Layout zoom staff.basePitch
+zoomed zoom staff time =
+    Layout zoom staff.basePitch time (unitDivisors time)
+
+
+withDivisors : List Int -> Layout -> Layout
+withDivisors divs layout =
+    { layout | divisors = Maybe.withDefault (Nonempty.fromElement 1) (Nonempty.fromList divs) }
 
 
 toPixels : Layout -> Tenths -> Pixels
@@ -85,9 +101,7 @@ inPx =
 
 type alias Location =
     { step : StepNumber
-    , beat : Float
-    , shiftx : Tenths
-    , shifty : Tenths
+    , beat : Beat
     }
 
 
@@ -100,22 +114,14 @@ positionToLocation layout offset =
         beat =
             unscaleBeat layout x
 
-        xb =
-            scaleBeat layout beat
-
         y =
             Pixels <| toFloat <| second offset
 
         step =
             unscaleStep layout y
-
-        ys =
-            scaleStep layout step
     in
     { step = step
     , beat = beat
-    , shiftx = toTenths layout <| Pixels <| x.px - xb.px
-    , shifty = toTenths layout <| Pixels <| y.px - ys.px
     }
 
 
@@ -265,7 +271,7 @@ unscalePitch layout y =
         |> Pitch.fromStepNumber
 
 
-scaleBeat : Layout -> Float -> Pixels
+scaleBeat : Layout -> Beat -> Pixels
 scaleBeat layout beat =
     -- location of the left edge of the beat on the staff
     let
@@ -275,10 +281,10 @@ scaleBeat layout beat =
         bs =
             beatSpacing layout
     in
-    m.left.px + bs.px * beat + bs.px / 2.0 |> Pixels
+    m.left.px + bs.px * Beat.toFloat beat |> Pixels
 
 
-unscaleBeat : Layout -> Pixels -> Float
+unscaleBeat : Layout -> Pixels -> Beat
 unscaleBeat layout x =
     -- return the beat, given X pixels from left of layout
     let
@@ -287,5 +293,17 @@ unscaleBeat layout x =
 
         bs =
             beatSpacing layout
+
+        scaled =
+            (x.px - m.left.px) / bs.px
+
+        divisor =
+            Nonempty.get (floor scaled) layout.divisors
+
+        totalDivs =
+            floor (scaled * toFloat divisor)
     in
-    (x.px - m.left.px - bs.px / 2.0) / bs.px
+    { full = totalDivs // divisor
+    , parts = modBy divisor totalDivs
+    , divisor = divisor
+    }

@@ -7,6 +7,8 @@ import CssModules as CssModules
 import Debug exposing (log)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, style)
+import List.Extra exposing (initialize)
+import List.Nonempty as Nonempty
 import Music.Beat as Beat
 import Music.Measure.Layout as Layout
     exposing
@@ -14,7 +16,7 @@ import Music.Measure.Layout as Layout
         , Pixels
         , inPx
         )
-import Music.Measure.Model exposing (..)
+import Music.Measure.Model as Measure exposing (..)
 import Music.Note.View as NoteView
 import Music.Staff.Model as Staff
 import Music.Staff.View as StaffView
@@ -36,6 +38,7 @@ import TypedSvg.Types exposing (Transform(..))
 
 fixedLayoutFor : Measure -> Layout
 fixedLayoutFor measure =
+    -- this layout does not account for the notes in the measure
     let
         t =
             time measure
@@ -48,14 +51,27 @@ fixedLayoutFor measure =
 
 layoutFor : Measure -> Layout
 layoutFor measure =
+    -- the layout accounts for the notes in the measure
     let
         t =
             fitTime measure
 
         staff =
             Staff.treble
+
+        divs =
+            initialize t.beatsPerMeasure (divisorFor measure)
     in
     Layout.standard staff t
+        |> Layout.withDivisors divs
+
+
+divisorFor : Measure -> Int -> Int
+divisorFor measure i =
+    Measure.startingBeats measure
+        |> Nonempty.filter (\b -> b.full == i) (Beat.fullBeat 1)
+        |> Nonempty.map (\b -> b.divisor)
+        |> Nonempty.foldl max 1
 
 
 view : Measure -> Html msg
@@ -100,10 +116,10 @@ view measure =
 
         drawNote =
             \( beat, note ) ->
-                NoteView.view fixedLayout (Beat.toFloat beat) note
+                NoteView.view fixedLayout beat note
 
         noteSequence =
-            log "measure sequence" <| toSequence measure
+            toSequence measure
     in
     div [ class <| css .measure ]
         [ if overflowBeats > 0 then
