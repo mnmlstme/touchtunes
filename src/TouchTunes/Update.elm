@@ -41,9 +41,23 @@ update msg editor =
                     | partNum = partNum
                     , measureNum = measureNum
                     , measure = measure
-                    , savedMeasure = Nothing
+                    , savedMeasure = measure
                     , selection = Just beat
                 }
+
+        DragEdit partNum measureNum loc ->
+            if partNum == editor.partNum && measureNum == editor.measureNum then
+                let
+                    beat =
+                        loc.beat
+
+                    pitch =
+                        fromStepNumber loc.step
+                in
+                update (RepitchNote pitch beat) editor
+
+            else
+                update FinishEdit editor
 
         FinishEdit ->
             { editor

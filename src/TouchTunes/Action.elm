@@ -10,6 +10,7 @@ import TouchTunes.Dial as Dial
 
 type Msg
     = StartEdit Int Int Location
+    | DragEdit Int Int Location
     | FinishEdit
     | ReplaceNote Note Beat
     | StretchNote Duration Beat

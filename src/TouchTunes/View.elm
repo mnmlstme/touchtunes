@@ -189,6 +189,11 @@ viewMeasure editor i j measure =
                 >> Tuple.mapBoth floor floor
                 >> toLocation
                 >> Action.StartEdit i j
+        , Pointer.onMove <|
+            pointerCoordinates
+                >> Tuple.mapBoth floor floor
+                >> toLocation
+                >> Action.DragEdit i j
         ]
         [ case selection of
             Just beat ->
