@@ -149,12 +149,11 @@ modifyNote f beat measure =
         t =
             time measure
 
-        precedes ( b, n ) =
-            Beat.earlierThan beat <|
-                Beat.add t n.duration b
+        sameBeat ( b, _ ) =
+            Beat.equal beat b
 
         note =
-            case find (not << precedes) seq of
+            case find sameBeat seq of
                 Just ( _, n ) ->
                     n
 

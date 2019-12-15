@@ -143,7 +143,7 @@ add a b =
         ( ac, bc ) =
             makeCommon ( a, b )
     in
-    { bc | count = ac.count + bc.count }
+    reduce { bc | count = ac.count + bc.count }
 
 
 subtract : Duration -> Duration -> Duration
@@ -152,4 +152,20 @@ subtract a b =
         ( ac, bc ) =
             makeCommon ( a, b )
     in
-    { bc | count = bc.count - ac.count }
+    reduce { bc | count = bc.count - ac.count }
+
+
+reduce : Duration -> Duration
+reduce d =
+    -- TODO this properly by finding greatest common factor
+    if modBy d.divisor d.count == 0 then
+        Duration (d.count // d.divisor) 1
+
+    else if modBy (d.divisor // 2) d.count == 0 then
+        Duration (2 * d.count // d.divisor) 2
+
+    else if modBy (d.divisor // 4) d.count == 0 then
+        Duration (4 * d.count // d.divisor) 4
+
+    else
+        d

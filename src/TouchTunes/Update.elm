@@ -49,7 +49,12 @@ update msg editor =
             if partNum == editor.partNum && measureNum == editor.measureNum then
                 let
                     beat =
-                        loc.beat
+                        case editor.selection of
+                            Just b ->
+                                b
+
+                            Nothing ->
+                                loc.beat
 
                     pitch =
                         fromStepNumber loc.step
@@ -74,6 +79,7 @@ update msg editor =
                             editor.score
                 , measure = Nothing
                 , savedMeasure = editor.measure
+                , selection = Nothing
             }
 
         ReplaceNote note at ->
