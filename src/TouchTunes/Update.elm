@@ -103,7 +103,7 @@ update msg editor =
                 modifier note =
                     { note | duration = dur }
             in
-            case editor.measure of
+            case editor.savedMeasure of
                 Just theMeasure ->
                     { editor
                         | measure =
@@ -119,7 +119,7 @@ update msg editor =
                 modifier note =
                     { note | do = Play pitch }
             in
-            case editor.measure of
+            case editor.savedMeasure of
                 Just theMeasure ->
                     { editor
                         | measure =
@@ -154,7 +154,16 @@ update msg editor =
                     editor
 
         ChangeDuration dur ->
-            { editor | durationSetting = dur }
+            let
+                ed =
+                    { editor | durationSetting = dur }
+            in
+            case ed.selection of
+                Just theBeat ->
+                    update (StretchNote dur theBeat) ed
+
+                Nothing ->
+                    ed
 
         DurationMsg dialAction ->
             let
