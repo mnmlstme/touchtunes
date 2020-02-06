@@ -1,7 +1,9 @@
 module TouchTunes.Controls exposing
     ( Tracking
     , inactive
+    , updateAlterationDial
     , updateDurationDial
+    , viewAlterationDial
     , viewDurationDial
     )
 
@@ -18,7 +20,7 @@ import Music.Duration
         )
 import Music.Measure.Layout as Layout exposing (Layout)
 import Music.Note.View exposing (StemOrientation(..), isWhole, viewNote)
-import Music.Pitch as Pitch
+import Music.Pitch as Pitch exposing (Semitones, alter)
 import Music.Staff.Model as Staff
 import Music.Time as Time
 import TouchTunes.Action exposing (Msg(..))
@@ -31,6 +33,7 @@ import TypedSvg.Types exposing (Transform(..), px)
 
 type alias Tracking =
     { durationDial : Dial.Tracking
+    , alterationDial : Dial.Tracking
     }
 
 
@@ -38,11 +41,16 @@ inactive : Tracking
 inactive =
     Tracking
         Nothing
+        Nothing
 
 
 layout : Layout
 layout =
     Layout.zoomed 1.0 Staff.treble Time.common
+
+
+
+-- durationDial: sets duration of note (quarter/half/eighth...)
 
 
 durationDial : Dial.Config Duration msg
@@ -87,3 +95,39 @@ viewDuration d =
     g
         [ transform [ Translate 0 (-0.5 * staffHeight.px) ] ]
         [ viewNote layout d pitch ]
+
+
+
+-- alterationDial: sets alteration (sharp/flat/natural)
+
+
+alterationDial : Dial.Config Semitones msg
+alterationDial =
+    { options =
+        Array.fromList [ 2, 1, 0, -1, -2 ]
+    , segments = 12
+    , viewValue = viewAlteration
+    }
+
+
+viewAlterationDial =
+    Dial.view alterationDial AlterationMsg
+
+
+updateAlterationDial =
+    Dial.update alterationDial ChangeAlteration
+
+
+viewAlteration : Semitones -> Svg msg
+viewAlteration alt =
+    let
+        -- choose a pitch which centers the alter+note+stem on staff
+        pitch =
+            alter alt Pitch.f 4
+
+        staffHeight =
+            Layout.height layout
+    in
+    g
+        [ transform [ Translate 0 (-0.5 * staffHeight.px) ] ]
+        [ viewNote layout quarter pitch ]

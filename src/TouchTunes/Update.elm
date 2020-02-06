@@ -20,6 +20,9 @@ update msg editor =
 
         activateDurationDial activation =
             { tracking | durationDial = activation }
+
+        activateAlterationDial activation =
+            { tracking | alterationDial = activation }
     in
     case log "msg" msg of
         StartEdit partNum measureNum loc ->
@@ -175,6 +178,36 @@ update msg editor =
 
                 updated =
                     { editor | tracking = activateDurationDial act }
+            in
+            case maybeMsg of
+                Just theMsg ->
+                    update theMsg updated
+
+                Nothing ->
+                    updated
+
+        ChangeAlteration alt ->
+            let
+                ed =
+                    { editor | alterationSetting = alt }
+            in
+            case ed.selection of
+                Just theBeat ->
+                    update (AlterNote alt theBeat) ed
+
+                Nothing ->
+                    ed
+
+        AlterationMsg dialAction ->
+            let
+                ( act, maybeMsg ) =
+                    Controls.updateAlterationDial
+                        tracking.alterationDial
+                        editor.alterationSetting
+                        dialAction
+
+                updated =
+                    { editor | tracking = activateAlterationDial act }
             in
             case maybeMsg of
                 Just theMsg ->

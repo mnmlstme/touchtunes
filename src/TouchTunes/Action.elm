@@ -18,3 +18,5 @@ type Msg
     | AlterNote Semitones Beat
     | DurationMsg Dial.Action
     | ChangeDuration Duration
+    | AlterationMsg Dial.Action
+    | ChangeAlteration Semitones

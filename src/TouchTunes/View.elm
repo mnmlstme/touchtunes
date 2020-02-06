@@ -114,6 +114,9 @@ view editor =
             [ Controls.viewDurationDial
                 tracking.durationDial
                 editor.durationSetting
+            , Controls.viewAlterationDial
+                tracking.alterationDial
+                editor.alterationSetting
             ]
         ]
 

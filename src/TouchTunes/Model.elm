@@ -8,6 +8,7 @@ import Array exposing (Array)
 import Music.Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration)
 import Music.Measure.Model exposing (Measure)
+import Music.Pitch exposing (Semitones)
 import Music.Score.Model as Score exposing (Score)
 import String
 import TouchTunes.Controls as Controls
@@ -21,6 +22,7 @@ type alias Editor =
     , savedMeasure : Maybe Measure
     , selection : Maybe Beat
     , durationSetting : Duration
+    , alterationSetting : Semitones
     , tracking : Controls.Tracking
     }
 
@@ -35,6 +37,7 @@ empty =
         Nothing
         Nothing
         Duration.quarter
+        0
         Controls.inactive
 
 
@@ -48,4 +51,5 @@ open score =
         Nothing
         Nothing
         Duration.quarter
+        0
         Controls.inactive

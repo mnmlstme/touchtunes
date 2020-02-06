@@ -1,25 +1,26 @@
-module Music.Pitch
-    exposing
-        ( Pitch
-        , Semitones
-        , StepNumber
-        , a
-        , alter
-        , b
-        , c
-        , d
-        , doubleFlat
-        , doubleSharp
-          -- Basics.e is Euler's constant :(
-        , e_
-        , f
-        , flat
-        , fromStepNumber
-        , g
-        , sharp
-        , stepNumber
-        , toString
-        )
+module Music.Pitch exposing
+    ( Pitch
+    , Semitones
+    , StepNumber
+    , a
+    , alter
+    , b
+    , c
+    , d
+    , doubleFlat
+    ,  doubleSharp
+       -- Basics.e is Euler's constant :(
+
+    , e_
+    , f
+    , flat
+    , fromStepNumber
+    , g
+    , natural
+    , sharp
+    , stepNumber
+    , toString
+    )
 
 import Array
 import String
@@ -79,7 +80,7 @@ stepNumber p =
                 B ->
                     6
     in
-        7 * p.octave + offset
+    7 * p.octave + offset
 
 
 stepFromNumber : Int -> Step
@@ -88,12 +89,12 @@ stepFromNumber n =
         steps =
             Array.fromList [ C, D, E, F, G, A, B ]
     in
-        case Array.get (modBy 7 n) steps of
-            Just step ->
-                step
+    case Array.get (modBy 7 n) steps of
+        Just step ->
+            step
 
-            Nothing ->
-                C
+        Nothing ->
+            C
 
 
 fromStepNumber : StepNumber -> Pitch
@@ -105,7 +106,7 @@ fromStepNumber number =
         step =
             stepFromNumber number
     in
-        Pitch step 0 octave
+    Pitch step 0 octave
 
 
 
@@ -172,7 +173,12 @@ alter semi base =
         alteration p =
             { p | alter = p.alter + semi }
     in
-        \oct -> base oct |> alteration
+    \oct -> base oct |> alteration
+
+
+natural : (Octave -> Pitch) -> (Octave -> Pitch)
+natural =
+    alter 0
 
 
 sharp : (Octave -> Pitch) -> (Octave -> Pitch)
@@ -224,8 +230,10 @@ toString p =
         alteration =
             if p.alter > 0 then
                 "♯"
+
             else if p.alter < 0 then
                 "♭"
+
             else
                 ""
 
@@ -235,6 +243,6 @@ toString p =
         octave =
             String.fromInt p.octave
     in
-        step
-            ++ String.repeat times alteration
-            ++ octave
+    step
+        ++ String.repeat times alteration
+        ++ octave
