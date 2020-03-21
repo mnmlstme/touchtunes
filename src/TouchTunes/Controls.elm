@@ -25,6 +25,7 @@ import Music.Staff.Model as Staff
 import Music.Time as Time
 import TouchTunes.Action exposing (Msg(..))
 import TouchTunes.Dial as Dial
+import TouchTunes.Overlay as Overlay
 import TypedSvg exposing (g)
 import TypedSvg.Attributes exposing (transform)
 import TypedSvg.Core exposing (Svg)
@@ -34,12 +35,14 @@ import TypedSvg.Types exposing (Transform(..), px)
 type alias Tracking =
     { durationDial : Dial.Tracking
     , alterationDial : Dial.Tracking
+    , overlay : Overlay.Tracking
     }
 
 
 inactive : Tracking
 inactive =
     Tracking
+        Nothing
         Nothing
         Nothing
 

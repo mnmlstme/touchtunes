@@ -101,61 +101,52 @@ update config onChange tracking currentValue dialAction =
             )
 
         Drag coord ->
-            let
-                ( _, y ) =
-                    coord
+            case tracking of
+                Nothing ->
+                    ( Nothing, Nothing )
 
-                offset =
-                    case tracking of
-                        Just theTrack ->
+                Just theTrack ->
+                    let
+                        ( _, y ) =
+                            coord
+
+                        offset =
                             theTrack.positionOffset
 
-                        Nothing ->
-                            y
+                        rotation =
+                            -2.0 * (y - offset)
 
-                rotation =
-                    -2.0 * (y - offset)
+                        sect =
+                            360 // config.segments
 
-                sect =
-                    360 // config.segments
+                        shift =
+                            log "shift" <|
+                                floor <|
+                                    rotation
+                                        / toFloat sect
+                                        + 0.5
 
-                shift =
-                    log "shift" <|
-                        floor <|
-                            rotation
-                                / toFloat sect
-                                + 0.5
+                        selected =
+                            Array.get (i0 + shift) config.options
 
-                selected =
-                    Array.get (i0 + shift) config.options
+                        change =
+                            case selected of
+                                Just theValue ->
+                                    if theValue == currentValue then
+                                        Nothing
 
-                change =
-                    case selected of
-                        Just theValue ->
-                            if theValue == currentValue then
-                                Nothing
+                                    else
+                                        selected
 
-                            else
-                                selected
-
-                        Nothing ->
-                            Nothing
-            in
-            ( Just
-                (case tracking of
-                    Just theTrack ->
+                                Nothing ->
+                                    Nothing
+                    in
+                    ( Just
                         { theTrack
                             | position = y - offset
                         }
-
-                    Nothing ->
-                        { position = 0.0
-                        , originalIndex = i0
-                        , positionOffset = offset
-                        }
-                )
-            , Maybe.map onChange change
-            )
+                    , Maybe.map onChange change
+                    )
 
         Finish ->
             ( Nothing

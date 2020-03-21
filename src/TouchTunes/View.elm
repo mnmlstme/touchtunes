@@ -24,10 +24,7 @@ import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import Music.Measure.Layout as Layout
     exposing
-        ( beatSpacing
-        , inPx
-        , positionToLocation
-        , scaleBeat
+        ( positionToLocation
         )
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.View as MeasureView exposing (layoutFor)
@@ -37,19 +34,9 @@ import TouchTunes.Action as Action exposing (Msg(..))
 import TouchTunes.Controls as Controls
 import TouchTunes.Dial as Dial
 import TouchTunes.Model as Editor exposing (Editor)
+import TouchTunes.Overlay as Overlay
 import TouchTunes.Ruler as Ruler
 import Tuple exposing (pair)
-import TypedSvg exposing (circle, g, rect, svg)
-import TypedSvg.Attributes
-    exposing
-        ( height
-        , transform
-        , width
-        , x
-        , y
-        )
-import TypedSvg.Core exposing (Svg)
-import TypedSvg.Types exposing (Transform(..), px)
 
 
 view : Editor -> Html Msg
@@ -160,9 +147,7 @@ viewMeasure editor i j measure =
         css =
             .toString <|
                 CssModules.css "./TouchTunes/editor.css"
-                    { editor = "editor"
-                    , selection = "selection"
-                    }
+                    { editor = "editor" }
 
         m =
             case editor.measure of
@@ -183,7 +168,11 @@ viewMeasure editor i j measure =
             positionToLocation layout
 
         selection =
-            Nothing
+            if editor.partNum == i && editor.measureNum == j then
+                editor.selection
+
+            else
+                Nothing
     in
     div
         [ class <| css .editor
@@ -198,24 +187,12 @@ viewMeasure editor i j measure =
                 >> toLocation
                 >> Action.DragEdit i j
         ]
-        [ case selection of
+        [ MeasureView.view m
+        , case selection of
             Just beat ->
-                svg
-                    [ class <| css .selection
-                    , height <| inPx <| Layout.height layout
-                    , width <| inPx <| Layout.width layout
-                    ]
-                    [ rect
-                        [ width <| inPx <| beatSpacing layout
-                        , x <| inPx <| scaleBeat layout beat
-                        , y <| px 0
-                        , height <| inPx <| Layout.height layout
-                        ]
-                        []
-                    ]
+                Overlay.view m beat
 
             Nothing ->
                 text ""
-        , MeasureView.view m
         , Ruler.view measure
         ]

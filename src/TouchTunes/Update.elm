@@ -10,6 +10,7 @@ import TouchTunes.Action exposing (Msg(..))
 import TouchTunes.Controls as Controls
 import TouchTunes.Dial as Dial
 import TouchTunes.Model exposing (Editor)
+import TouchTunes.Overlay as Overlay
 
 
 update : Msg -> Editor -> Editor
@@ -23,6 +24,9 @@ update msg editor =
 
         activateAlterationDial activation =
             { tracking | alterationDial = activation }
+
+        activateOverlay activation =
+            { tracking | overlay = activation }
     in
     case log "msg" msg of
         StartEdit partNum measureNum loc ->
@@ -33,11 +37,14 @@ update msg editor =
                 beat =
                     loc.beat
 
+                duration =
+                    editor.durationSetting
+
                 pitch =
                     fromStepNumber loc.step
 
                 note =
-                    Note (Play pitch) editor.durationSetting []
+                    Note (Play pitch) duration []
             in
             update (ReplaceNote note beat)
                 { editor
@@ -46,26 +53,35 @@ update msg editor =
                     , measure = measure
                     , savedMeasure = measure
                     , selection = Just beat
+                    , tracking =
+                        activateOverlay <|
+                            Just <|
+                                Overlay.Track beat loc
                 }
 
         DragEdit partNum measureNum loc ->
-            if partNum == editor.partNum && measureNum == editor.measureNum then
-                let
-                    beat =
-                        case editor.selection of
-                            Just b ->
-                                b
+            case tracking.overlay of
+                Just overlay ->
+                    if
+                        partNum
+                            == editor.partNum
+                            && measureNum
+                            == editor.measureNum
+                    then
+                        let
+                            beat =
+                                overlay.beat
 
-                            Nothing ->
-                                loc.beat
+                            pitch =
+                                fromStepNumber loc.step
+                        in
+                        update (RepitchNote pitch beat) editor
 
-                    pitch =
-                        fromStepNumber loc.step
-                in
-                update (RepitchNote pitch beat) editor
+                    else
+                        update FinishEdit editor
 
-            else
-                update FinishEdit editor
+                Nothing ->
+                    update FinishEdit editor
 
         FinishEdit ->
             { editor
@@ -82,7 +98,7 @@ update msg editor =
                             editor.score
                 , measure = Nothing
                 , savedMeasure = editor.measure
-                , selection = Nothing
+                , tracking = activateOverlay Nothing
             }
 
         ReplaceNote note at ->

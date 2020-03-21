@@ -14,10 +14,14 @@
     fill: #d4e6f5;
 }
 
-.selection {
+.overlay {
     position: absolute;
     top: 0;
     left: 0;
     cursor: cell;
-    fill: #d4e6f5;
+}
+
+.selection {
+    fill: none;
+    stroke: #0072d7;
 }

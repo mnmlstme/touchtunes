@@ -6,6 +6,7 @@ module Music.Measure.Layout exposing
     , Tenths
     , beatSpacing
     , bottomStep
+    , durationSpacing
     , halfSpacing
     , height
     , inPx
@@ -29,6 +30,7 @@ import Browser
 import List.Extra exposing (initialize)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Beat as Beat exposing (Beat)
+import Music.Duration as Duration exposing (Duration)
 import Music.Pitch as Pitch exposing (Pitch, StepNumber)
 import Music.Staff.Model exposing (Staff)
 import Music.Time as Time exposing (Time)
@@ -163,6 +165,16 @@ margins layout =
 beatSpacing : Layout -> Pixels
 beatSpacing layout =
     Tenths 40.0 |> toPixels layout
+
+
+durationSpacing : Layout -> Duration -> Pixels
+durationSpacing layout dur =
+    let
+        beats =
+            Beat.toFloat <|
+                Beat.fromDuration layout.time dur
+    in
+    Tenths (40.0 * beats) |> toPixels layout
 
 
 width : Layout -> Pixels
