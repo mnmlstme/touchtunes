@@ -66,6 +66,29 @@ alterNote semitones at =
     modifyNote modifier at
 
 
+commit : Editor -> Editor
+commit editor =
+    let
+        ed =
+            { editor
+                | savedMeasure = editor.measure
+            }
+    in
+    { editor
+        | score =
+            case editor.measure of
+                Just theMeasure ->
+                    Score.setMeasure
+                        editor.partNum
+                        editor.measureNum
+                        (log "commit" theMeasure)
+                        editor.score
+
+                Nothing ->
+                    editor.score
+    }
+
+
 update : Msg -> Editor -> Editor
 update msg editor =
     let
@@ -181,22 +204,10 @@ update msg editor =
                 editor
 
         FinishEdit ->
-            { editor
-                | score =
-                    case editor.measure of
-                        Just theMeasure ->
-                            Score.setMeasure
-                                editor.partNum
-                                editor.measureNum
-                                theMeasure
-                                editor.score
-
-                        Nothing ->
-                            editor.score
-                , measure = Nothing
-                , savedMeasure = Nothing
-                , tracking = activateOverlay Nothing
-            }
+            commit
+                { editor
+                    | tracking = activateOverlay Nothing
+                }
 
         ChangeDuration dur ->
             let
@@ -205,9 +216,10 @@ update msg editor =
             in
             case ed.selection of
                 Just theBeat ->
-                    { ed
-                        | measure = Maybe.map (stretchNote dur theBeat) ed.savedMeasure
-                    }
+                    commit
+                        { ed
+                            | measure = Maybe.map (stretchNote dur theBeat) ed.savedMeasure
+                        }
 
                 Nothing ->
                     ed
@@ -237,9 +249,10 @@ update msg editor =
             in
             case ed.selection of
                 Just theBeat ->
-                    { ed
-                        | measure = Maybe.map (alterNote alt theBeat) ed.savedMeasure
-                    }
+                    commit
+                        { ed
+                            | measure = Maybe.map (alterNote alt theBeat) ed.savedMeasure
+                        }
 
                 Nothing ->
                     ed
