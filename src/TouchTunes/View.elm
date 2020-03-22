@@ -23,9 +23,6 @@ import Html.Attributes exposing (class, classList)
 import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import Music.Measure.Layout as Layout
-    exposing
-        ( positionToLocation
-        )
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.View as MeasureView exposing (layoutFor)
 import Music.Part.Model as Part exposing (Part)
@@ -161,32 +158,37 @@ viewMeasure editor i j measure =
                 Nothing ->
                     measure
 
-        layout =
-            layoutFor m
-
-        toLocation =
-            positionToLocation layout
-
         selection =
             if editor.partNum == i && editor.measureNum == j then
                 editor.selection
 
             else
                 Nothing
+
+        downHandler =
+            Pointer.onDown <|
+                pointerCoordinates
+                    >> Tuple.mapBoth floor floor
+                    >> Action.StartEdit i j
+
+        dragHandler =
+            Pointer.onMove <|
+                pointerCoordinates
+                    >> Tuple.mapBoth floor floor
+                    >> Action.DragEdit i j
+
+        handlers =
+            downHandler
+                :: (case editor.tracking.overlay of
+                        Just _ ->
+                            [ dragHandler ]
+
+                        Nothing ->
+                            []
+                   )
     in
     div
-        [ class <| css .editor
-        , Pointer.onDown <|
-            pointerCoordinates
-                >> Tuple.mapBoth floor floor
-                >> toLocation
-                >> Action.StartEdit i j
-        , Pointer.onMove <|
-            pointerCoordinates
-                >> Tuple.mapBoth floor floor
-                >> toLocation
-                >> Action.DragEdit i j
-        ]
+        ((class <| css .editor) :: handlers)
         [ MeasureView.view m
         , case selection of
             Just beat ->

@@ -2,6 +2,7 @@ module Music.Duration exposing
     ( Duration
     , add
     , divideBy
+    , division
     , dotted
     , eighth
     , equal
