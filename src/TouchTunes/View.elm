@@ -31,7 +31,7 @@ import TouchTunes.Action as Action exposing (Msg(..))
 import TouchTunes.Controls as Controls
 import TouchTunes.Dial as Dial
 import TouchTunes.Model as Editor exposing (Editor)
-import TouchTunes.Overlay as Overlay
+import TouchTunes.Overlay as Overlay exposing (pointerCoordinates)
 import TouchTunes.Ruler as Ruler
 import Tuple exposing (pair)
 
@@ -132,11 +132,6 @@ viewPart editor i part =
         ]
 
 
-pointerCoordinates : Pointer.Event -> ( Float, Float )
-pointerCoordinates event =
-    event.pointer.offsetPos
-
-
 viewMeasure : Editor -> Int -> Int -> Measure -> Html Msg
 viewMeasure editor i j measure =
     let
@@ -169,42 +164,9 @@ viewMeasure editor i j measure =
                 pointerCoordinates
                     >> Tuple.mapBoth floor floor
                     >> Action.StartEdit i j
-
-        upHandler =
-            Pointer.onUp (\_ -> Action.FinishEdit)
-
-        cancelHandler =
-            Pointer.onCancel (\_ -> Action.CancelEdit)
-
-        leaveHandler =
-            cancelHandler
-
-        outHandler =
-            cancelHandler
-
-        moveHandler =
-            Pointer.onMove <|
-                pointerCoordinates
-                    >> Tuple.mapBoth floor floor
-                    >> Action.DragEdit i j
-
-        handlers =
-            downHandler
-                :: (case editor.tracking.overlay of
-                        Just _ ->
-                            [ moveHandler
-                            , upHandler
-                            , cancelHandler
-                            , leaveHandler
-                            , outHandler
-                            ]
-
-                        Nothing ->
-                            []
-                   )
     in
     div
-        ((class <| css .editor) :: handlers)
+        [ class <| css .editor, downHandler ]
         [ MeasureView.view m
         , case cursor of
             Just beat ->

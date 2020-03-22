@@ -1,10 +1,12 @@
 module TouchTunes.Overlay exposing
     ( Track
     , Tracking
+    , pointerCoordinates
     , view
     )
 
 import CssModules as CssModules
+import Html.Events.Extra.Pointer as Pointer
 import List.Extra exposing (find)
 import Music.Beat as Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration, quarter)
@@ -19,6 +21,7 @@ import Music.Measure.Layout as Layout
 import Music.Measure.Model as Measure exposing (Measure, toSequence)
 import Music.Measure.View as MeasureView exposing (layoutFor)
 import TouchTunes.Action as Action exposing (Msg(..))
+import Tuple exposing (pair)
 import TypedSvg
     exposing
         ( circle
@@ -49,6 +52,11 @@ type alias Tracking =
     Maybe Track
 
 
+pointerCoordinates : Pointer.Event -> ( Float, Float )
+pointerCoordinates event =
+    event.pointer.offsetPos
+
+
 view : Measure -> Beat -> Svg Msg
 view measure beat =
     let
@@ -75,11 +83,34 @@ view measure beat =
 
                 Nothing ->
                     quarter
+
+        upHandler =
+            Pointer.onUp (\_ -> Action.FinishEdit)
+
+        cancelHandler =
+            Pointer.onCancel (\_ -> Action.CancelEdit)
+
+        leaveHandler =
+            cancelHandler
+
+        outHandler =
+            cancelHandler
+
+        moveHandler =
+            Pointer.onMove <|
+                pointerCoordinates
+                    >> Tuple.mapBoth floor floor
+                    >> Action.DragEdit
     in
     svg
-        [ class <| [ css .overlay ]
+        [ class [ css .overlay ]
         , height <| inPx <| Layout.height layout
         , width <| inPx <| Layout.width layout
+        , moveHandler
+        , upHandler
+        , cancelHandler
+        , leaveHandler
+        , outHandler
         ]
         [ rect
             [ class <| [ css .selection ]

@@ -174,7 +174,10 @@ spliceNote t ( b0, n0 ) ( b1, n1 ) =
         e1 =
             Beat.add t n1.duration b1
 
-        clipFromTo b e _ =
+        clipFromTo b e n =
+            { n | duration = Beat.durationFrom t b e }
+
+        restFromTo b e _ =
             restFor <| Beat.durationFrom t b e
     in
     if not <| Beat.laterThan b0 e1 then
@@ -187,9 +190,9 @@ spliceNote t ( b0, n0 ) ( b1, n1 ) =
 
     else if Beat.equal b0 b1 then
         if Beat.earlierThan e1 e0 then
-            -- insert n0 and clip off beginning of n1
+            -- insert n0 and rest for the remainder of n1
             [ ( b0, n0 )
-            , ( e0, clipFromTo e0 e1 n1 )
+            , ( e0, restFromTo e0 e1 n1 )
             ]
 
         else

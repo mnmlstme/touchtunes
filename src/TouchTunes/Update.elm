@@ -95,8 +95,8 @@ update msg editor =
                             Overlay.Track at loc
             }
 
-        DragEdit partNum measureNum pos ->
-            case Editor.editingMeasure editor partNum measureNum of
+        DragEdit pos ->
+            case Editor.measure editor of
                 Just measure ->
                     case tracking.overlay of
                         Just overlay ->

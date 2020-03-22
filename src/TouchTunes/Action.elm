@@ -10,7 +10,7 @@ import TouchTunes.Dial as Dial
 
 type Msg
     = StartEdit Int Int ( Int, Int )
-    | DragEdit Int Int ( Int, Int )
+    | DragEdit ( Int, Int )
     | FinishEdit
     | CancelEdit
     | DurationMsg Dial.Action

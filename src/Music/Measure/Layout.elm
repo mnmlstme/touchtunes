@@ -198,12 +198,12 @@ width layout =
             margins layout
 
         b =
-            toFloat layout.time.getsOneBeat
+            Nonempty.length layout.divisors
 
         bs =
             beatSpacing layout
     in
-    m.left.px + m.right.px + b * bs.px |> Pixels
+    m.left.px + m.right.px + toFloat b * bs.px |> Pixels
 
 
 height : Layout -> Pixels
