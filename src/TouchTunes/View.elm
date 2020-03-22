@@ -147,20 +147,20 @@ viewMeasure editor i j measure =
                     { editor = "editor" }
 
         m =
-            case editor.measure of
-                Just theMeasure ->
-                    if editor.partNum == i && editor.measureNum == j then
+            if editor.partNum == i && editor.measureNum == j then
+                case Editor.measure editor of
+                    Just theMeasure ->
                         theMeasure
 
-                    else
+                    Nothing ->
                         measure
 
-                Nothing ->
-                    measure
+            else
+                measure
 
-        selection =
+        cursor =
             if editor.partNum == i && editor.measureNum == j then
-                editor.selection
+                editor.cursor
 
             else
                 Nothing
@@ -190,7 +190,7 @@ viewMeasure editor i j measure =
     div
         ((class <| css .editor) :: handlers)
         [ MeasureView.view m
-        , case selection of
+        , case cursor of
             Just beat ->
                 Overlay.view m beat
 

@@ -19,7 +19,7 @@ import List.Extra exposing (find, scanl)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Beat as Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration)
-import Music.Note.Model as Note exposing (Note)
+import Music.Note.Model as Note exposing (Note, restFor)
 import Music.Time as Time exposing (Time)
 
 
@@ -174,8 +174,8 @@ spliceNote t ( b0, n0 ) ( b1, n1 ) =
         e1 =
             Beat.add t n1.duration b1
 
-        clipFromTo b e n =
-            { n | duration = Beat.durationFrom t b e }
+        clipFromTo b e _ =
+            restFor <| Beat.durationFrom t b e
     in
     if not <| Beat.laterThan b0 e1 then
         -- no intersection

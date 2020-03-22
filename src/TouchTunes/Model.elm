@@ -1,13 +1,17 @@
 module TouchTunes.Model exposing
     ( Editor
+    , editingMeasure
     , empty
+    , measure
     , open
+    , originalMeasure
     )
 
 import Array exposing (Array)
 import Music.Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration)
-import Music.Measure.Model exposing (Measure)
+import Music.Measure.Model exposing (Measure, modifyNote)
+import Music.Note.Model exposing (Note)
 import Music.Pitch exposing (Semitones)
 import Music.Score.Model as Score exposing (Score)
 import String
@@ -18,9 +22,8 @@ type alias Editor =
     { score : Score
     , partNum : Int
     , measureNum : Int
-    , measure : Maybe Measure
-    , savedMeasure : Maybe Measure
-    , selection : Maybe Beat
+    , cursor : Maybe Beat
+    , selection : Maybe Note
     , durationSetting : Duration
     , alterationSetting : Semitones
     , tracking : Controls.Tracking
@@ -33,7 +36,6 @@ empty =
         Score.empty
         0
         0
-        Nothing
         Nothing
         Nothing
         Duration.quarter
@@ -49,7 +51,42 @@ open score =
         0
         Nothing
         Nothing
-        Nothing
         Duration.quarter
         0
         Controls.inactive
+
+
+measure : Editor -> Maybe Measure
+measure editor =
+    let
+        m =
+            originalMeasure editor
+
+        modifier was =
+            Maybe.withDefault was editor.selection
+    in
+    case editor.cursor of
+        Just cursor ->
+            Maybe.map (modifyNote modifier cursor) m
+
+        Nothing ->
+            m
+
+
+originalMeasure : Editor -> Maybe Measure
+originalMeasure editor =
+    Score.measure editor.partNum editor.measureNum editor.score
+
+
+editingMeasure : Editor -> Int -> Int -> Maybe Measure
+editingMeasure editor partNum measureNum =
+    if
+        partNum
+            == editor.partNum
+            && measureNum
+            == editor.measureNum
+    then
+        measure editor
+
+    else
+        Nothing

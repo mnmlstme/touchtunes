@@ -19,64 +19,15 @@ import Music.Time as Time
 import TouchTunes.Action exposing (Msg(..))
 import TouchTunes.Controls as Controls
 import TouchTunes.Dial as Dial
-import TouchTunes.Model exposing (Editor)
+import TouchTunes.Model as Editor exposing (Editor)
 import TouchTunes.Overlay as Overlay
-
-
-replaceNote : Note -> Beat -> Measure -> Measure
-replaceNote note at =
-    let
-        modifier _ =
-            note
-    in
-    modifyNote modifier at
-
-
-stretchNote : Duration -> Beat -> Measure -> Measure
-stretchNote dur at =
-    let
-        modifier note =
-            { note | duration = dur }
-    in
-    modifyNote modifier at
-
-
-repitchNote : Pitch -> Beat -> Measure -> Measure
-repitchNote pitch at =
-    let
-        modifier note =
-            { note | do = Play pitch }
-    in
-    modifyNote modifier at
-
-
-alterNote : Semitones -> Beat -> Measure -> Measure
-alterNote semitones at =
-    let
-        modifier note =
-            case note.do of
-                Play pitch ->
-                    { note
-                        | do = Play { pitch | alter = semitones }
-                    }
-
-                Rest ->
-                    note
-    in
-    modifyNote modifier at
 
 
 commit : Editor -> Editor
 commit editor =
-    let
-        ed =
-            { editor
-                | savedMeasure = editor.measure
-            }
-    in
     { editor
         | score =
-            case editor.measure of
+            case Editor.measure editor of
                 Just theMeasure ->
                     Score.setMeasure
                         editor.partNum
@@ -132,16 +83,12 @@ update msg editor =
 
                 note =
                     Note (Play pitch) duration []
-
-                theMeasure =
-                    Maybe.map (replaceNote note at) measure
             in
             { editor
                 | partNum = partNum
                 , measureNum = measureNum
-                , measure = theMeasure
-                , savedMeasure = theMeasure
-                , selection = Just at
+                , cursor = Just at
+                , selection = Just note
                 , tracking =
                     activateOverlay <|
                         Just <|
@@ -149,59 +96,41 @@ update msg editor =
             }
 
         DragEdit partNum measureNum pos ->
-            if
-                partNum
-                    == editor.partNum
-                    && measureNum
-                    == editor.measureNum
-            then
-                case tracking.overlay of
-                    Just overlay ->
-                        let
-                            layout =
-                                case editor.measure of
-                                    Just m ->
-                                        layoutFor m
-
-                                    Nothing ->
-                                        Layout.standard Staff.treble Time.common
-
-                            loc =
-                                positionToLocation layout pos
-
-                            beat =
-                                overlay.beat
-
-                            pitch =
-                                fromStepNumber loc.step
-                        in
-                        if Beat.equal beat loc.beat then
+            case Editor.editingMeasure editor partNum measureNum of
+                Just measure ->
+                    case tracking.overlay of
+                        Just overlay ->
                             let
-                                theMeasure =
-                                    Maybe.map (repitchNote pitch beat) editor.savedMeasure
-                            in
-                            { editor
-                                | measure = theMeasure
-                                , savedMeasure = theMeasure
-                            }
+                                layout =
+                                    layoutFor measure
 
-                        else
-                            let
+                                loc =
+                                    positionToLocation layout pos
+
                                 nextLoc =
                                     locationAfter layout loc
 
-                                dur =
-                                    durationFrom layout.time beat nextLoc.beat
+                                beat =
+                                    overlay.beat
+
+                                modifier note =
+                                    if Beat.equal beat loc.beat then
+                                        { note
+                                            | do = Play <| fromStepNumber loc.step
+                                        }
+
+                                    else
+                                        { note | duration = durationFrom layout.time beat nextLoc.beat }
                             in
                             { editor
-                                | measure = Maybe.map (stretchNote dur beat) editor.savedMeasure
+                                | selection = Maybe.map modifier editor.selection
                             }
 
-                    Nothing ->
-                        editor
+                        Nothing ->
+                            editor
 
-            else
-                editor
+                Nothing ->
+                    editor
 
         FinishEdit ->
             commit
@@ -213,16 +142,14 @@ update msg editor =
             let
                 ed =
                     { editor | durationSetting = dur }
-            in
-            case ed.selection of
-                Just theBeat ->
-                    commit
-                        { ed
-                            | measure = Maybe.map (stretchNote dur theBeat) ed.savedMeasure
-                        }
 
-                Nothing ->
-                    ed
+                modifier note =
+                    { note | duration = dur }
+            in
+            commit
+                { ed
+                    | selection = Maybe.map modifier ed.selection
+                }
 
         DurationMsg dialAction ->
             let
@@ -242,20 +169,25 @@ update msg editor =
                 Nothing ->
                     updated
 
-        ChangeAlteration alt ->
+        ChangeAlteration semitones ->
             let
                 ed =
-                    { editor | alterationSetting = alt }
-            in
-            case ed.selection of
-                Just theBeat ->
-                    commit
-                        { ed
-                            | measure = Maybe.map (alterNote alt theBeat) ed.savedMeasure
-                        }
+                    { editor | alterationSetting = semitones }
 
-                Nothing ->
-                    ed
+                modifier note =
+                    case note.do of
+                        Play pitch ->
+                            { note
+                                | do = Play { pitch | alter = semitones }
+                            }
+
+                        Rest ->
+                            note
+            in
+            commit
+                { ed
+                    | selection = Maybe.map modifier ed.selection
+                }
 
         AlterationMsg dialAction ->
             let
