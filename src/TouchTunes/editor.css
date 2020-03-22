@@ -19,6 +19,7 @@
     top: 0;
     left: 0;
     cursor: cell;
+    border: 1px dotted #d4e6f5;
 }
 
 .selection {

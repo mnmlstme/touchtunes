@@ -114,13 +114,18 @@ update msg editor =
                                     overlay.beat
 
                                 modifier note =
+                                    let
+                                        dur =
+                                            durationFrom layout.time beat nextLoc.beat
+                                    in
                                     if Beat.equal beat loc.beat then
                                         { note
                                             | do = Play <| fromStepNumber loc.step
+                                            , duration = dur
                                         }
 
                                     else
-                                        { note | duration = durationFrom layout.time beat nextLoc.beat }
+                                        { note | duration = dur }
                             in
                             { editor
                                 | selection = Maybe.map modifier editor.selection
@@ -137,6 +142,11 @@ update msg editor =
                 { editor
                     | tracking = activateOverlay Nothing
                 }
+
+        CancelEdit ->
+            { editor
+                | tracking = activateOverlay Nothing
+            }
 
         ChangeDuration dur ->
             let

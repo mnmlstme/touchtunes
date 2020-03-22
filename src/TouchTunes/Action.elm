@@ -12,6 +12,7 @@ type Msg
     = StartEdit Int Int ( Int, Int )
     | DragEdit Int Int ( Int, Int )
     | FinishEdit
+    | CancelEdit
     | DurationMsg Dial.Action
     | ChangeDuration Duration
     | AlterationMsg Dial.Action

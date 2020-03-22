@@ -119,7 +119,6 @@ viewPart editor i part =
     in
     section
         [ class <| css .part
-        , Pointer.onUp (\_ -> Action.FinishEdit)
         ]
         [ header [ class <| css .header ]
             [ h3 [ class <| css .abbrev ]
@@ -171,7 +170,19 @@ viewMeasure editor i j measure =
                     >> Tuple.mapBoth floor floor
                     >> Action.StartEdit i j
 
-        dragHandler =
+        upHandler =
+            Pointer.onUp (\_ -> Action.FinishEdit)
+
+        cancelHandler =
+            Pointer.onCancel (\_ -> Action.CancelEdit)
+
+        leaveHandler =
+            cancelHandler
+
+        outHandler =
+            cancelHandler
+
+        moveHandler =
             Pointer.onMove <|
                 pointerCoordinates
                     >> Tuple.mapBoth floor floor
@@ -181,7 +192,12 @@ viewMeasure editor i j measure =
             downHandler
                 :: (case editor.tracking.overlay of
                         Just _ ->
-                            [ dragHandler ]
+                            [ moveHandler
+                            , upHandler
+                            , cancelHandler
+                            , leaveHandler
+                            , outHandler
+                            ]
 
                         Nothing ->
                             []
