@@ -13,7 +13,7 @@ type Msg
     | DragEdit ( Int, Int )
     | FinishEdit
     | CancelEdit
-    | DurationMsg Dial.Action
-    | ChangeDuration Duration
+    | SubdivisionMsg Dial.Action
+    | ChangeSubdivision Duration
     | AlterationMsg Dial.Action
     | ChangeAlteration Semitones

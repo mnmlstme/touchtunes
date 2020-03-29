@@ -6,8 +6,6 @@ import List.Nonempty as Nonempty
 import Music.Beat as Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration)
 import Music.Measure.Layout as Layout exposing (Layout, inPx)
-import Music.Measure.Model as Measure exposing (Measure)
-import Music.Measure.View exposing (layoutFor)
 import TypedSvg exposing (g, rect, svg)
 import TypedSvg.Attributes
     exposing
@@ -78,11 +76,11 @@ viewBeat layout divisor fullBeat =
             beats
 
 
-view : Measure -> Html msg
-view measure =
+view : Layout -> Html msg
+view layout =
     let
-        layout =
-            layoutFor measure
+        time =
+            layout.time
 
         sp =
             Layout.spacing layout
@@ -91,9 +89,7 @@ view measure =
             Layout.width layout
 
         beats =
-            ceiling <|
-                Beat.toFloat <|
-                    Measure.length measure
+            time.beatsPerMeasure
     in
     svg
         [ class [ css .ruler ]

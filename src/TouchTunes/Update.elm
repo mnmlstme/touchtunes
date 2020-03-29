@@ -46,8 +46,8 @@ update msg editor =
         tracking =
             editor.tracking
 
-        activateDurationDial activation =
-            { tracking | durationDial = activation }
+        activateSubdivisionDial activation =
+            { tracking | subdivisionDial = activation }
 
         activateAlterationDial activation =
             { tracking | alterationDial = activation }
@@ -69,14 +69,17 @@ update msg editor =
                         Nothing ->
                             Layout.standard Staff.treble Time.common
 
+                duration =
+                    editor.subdivisionSetting
+
                 loc =
-                    positionToLocation layout pos
+                    positionToLocation
+                        -- TODO: depends on time signature
+                        (Layout.subdivide (duration.divisor // 4) layout)
+                        pos
 
                 at =
                     loc.beat
-
-                duration =
-                    editor.durationSetting
 
                 pitch =
                     fromStepNumber loc.step
@@ -105,7 +108,10 @@ update msg editor =
                                     layoutFor measure
 
                                 loc =
-                                    positionToLocation layout pos
+                                    positionToLocation
+                                        -- TODO: depends on time signature
+                                        (Layout.subdivide (editor.subdivisionSetting.divisor // 4) layout)
+                                        pos
 
                                 nextLoc =
                                     locationAfter layout loc
@@ -148,29 +154,19 @@ update msg editor =
                 | tracking = activateOverlay Nothing
             }
 
-        ChangeDuration dur ->
-            let
-                ed =
-                    { editor | durationSetting = dur }
+        ChangeSubdivision dur ->
+            { editor | subdivisionSetting = dur }
 
-                modifier note =
-                    { note | duration = dur }
-            in
-            commit
-                { ed
-                    | selection = Maybe.map modifier ed.selection
-                }
-
-        DurationMsg dialAction ->
+        SubdivisionMsg dialAction ->
             let
                 ( act, maybeMsg ) =
-                    Controls.updateDurationDial
-                        tracking.durationDial
-                        editor.durationSetting
+                    Controls.updateSubdivisionDial
+                        tracking.subdivisionDial
+                        editor.subdivisionSetting
                         dialAction
 
                 updated =
-                    { editor | tracking = activateDurationDial act }
+                    { editor | tracking = activateSubdivisionDial act }
             in
             case maybeMsg of
                 Just theMsg ->

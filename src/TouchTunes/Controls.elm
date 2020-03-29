@@ -2,9 +2,9 @@ module TouchTunes.Controls exposing
     ( Tracking
     , inactive
     , updateAlterationDial
-    , updateDurationDial
+    , updateSubdivisionDial
     , viewAlterationDial
-    , viewDurationDial
+    , viewSubdivisionDial
     )
 
 import Array as Array
@@ -12,11 +12,8 @@ import Html exposing (Html)
 import Music.Duration
     exposing
         ( Duration
-        , dotted
         , eighth
-        , half
         , quarter
-        , whole
         )
 import Music.Measure.Layout as Layout exposing (Layout)
 import Music.Note.View exposing (StemOrientation(..), isWhole, viewNote)
@@ -33,7 +30,7 @@ import TypedSvg.Types exposing (Transform(..), px)
 
 
 type alias Tracking =
-    { durationDial : Dial.Tracking
+    { subdivisionDial : Dial.Tracking
     , alterationDial : Dial.Tracking
     , overlay : Overlay.Tracking
     }
@@ -53,36 +50,32 @@ layout =
 
 
 
--- durationDial: sets duration of note (quarter/half/eighth...)
+-- subdivisionDial: sets subdividion of current beat (quarter/eighth...)
+-- TODO: options depend on time signature
 
 
-durationDial : Dial.Config Duration msg
-durationDial =
+subdivisionDial : Dial.Config Duration msg
+subdivisionDial =
     { options =
         Array.fromList
             [ eighth
             , quarter
-            , dotted quarter
-            , half
-            , dotted half
-            , whole
-            , dotted whole
             ]
     , segments = 18
-    , viewValue = viewDuration
+    , viewValue = viewSubdivision
     }
 
 
-viewDurationDial =
-    Dial.view durationDial DurationMsg
+viewSubdivisionDial =
+    Dial.view subdivisionDial SubdivisionMsg
 
 
-updateDurationDial =
-    Dial.update durationDial ChangeDuration
+updateSubdivisionDial =
+    Dial.update subdivisionDial ChangeSubdivision
 
 
-viewDuration : Duration -> Svg msg
-viewDuration d =
+viewSubdivision : Duration -> Svg msg
+viewSubdivision d =
     let
         -- choose a pitch which centers the note+stem on staff
         pitch =

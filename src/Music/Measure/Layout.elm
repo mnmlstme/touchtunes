@@ -19,6 +19,7 @@ module Music.Measure.Layout exposing
     , scaleStep
     , spacing
     , standard
+    , subdivide
     , toPixels
     , toTenths
     , topStep
@@ -82,9 +83,14 @@ zoomed zoom staff time =
     Layout zoom staff.basePitch time (unitDivisors time)
 
 
-withDivisors : List Int -> Layout -> Layout
+withDivisors : Nonempty Int -> Layout -> Layout
 withDivisors divs layout =
-    { layout | divisors = Maybe.withDefault (Nonempty.fromElement 1) (Nonempty.fromList divs) }
+    { layout | divisors = divs }
+
+
+subdivide : Int -> Layout -> Layout
+subdivide div layout =
+    { layout | divisors = Nonempty.map (\d -> max d div) layout.divisors }
 
 
 toPixels : Layout -> Tenths -> Pixels

@@ -1,5 +1,6 @@
 module Music.Measure.View exposing
-    ( layoutFor
+    ( fixedLayoutFor
+    , layoutFor
     , view
     )
 
@@ -63,7 +64,11 @@ layoutFor measure =
             initialize t.beatsPerMeasure (divisorFor measure)
     in
     Layout.standard staff t
-        |> Layout.withDivisors divs
+        |> Layout.withDivisors
+            (Maybe.withDefault
+                (Nonempty.fromElement 1)
+                (Nonempty.fromList divs)
+            )
 
 
 divisorFor : Measure -> Int -> Int

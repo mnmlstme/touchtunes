@@ -24,7 +24,7 @@ type alias Editor =
     , measureNum : Int
     , cursor : Maybe Beat
     , selection : Maybe Note
-    , durationSetting : Duration
+    , subdivisionSetting : Duration
     , alterationSetting : Semitones
     , tracking : Controls.Tracking
     }

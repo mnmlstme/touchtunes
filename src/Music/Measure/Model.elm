@@ -140,6 +140,19 @@ fromSequence sequence =
     fromNotes <| justNotes sequence
 
 
+findNote : Beat -> Measure -> Maybe Note
+findNote beat measure =
+    let
+        seq =
+            toSequence measure
+
+        sameBeat ( b, _ ) =
+            Beat.equal beat b
+    in
+    Maybe.map (\( _, n ) -> n)
+        (find sameBeat seq)
+
+
 modifyNote : (Note -> Note) -> Beat -> Measure -> Measure
 modifyNote f beat measure =
     let
@@ -149,16 +162,10 @@ modifyNote f beat measure =
         t =
             time measure
 
-        sameBeat ( b, _ ) =
-            Beat.equal beat b
-
         note =
-            case find sameBeat seq of
-                Just ( _, n ) ->
-                    n
-
-                Nothing ->
-                    Note.restFor Duration.quarter
+            Maybe.withDefault
+                (Note.restFor Duration.quarter)
+                (findNote beat measure)
     in
     spliceSequence t ( beat, f note ) seq
         |> fromSequence

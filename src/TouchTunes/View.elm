@@ -22,6 +22,7 @@ import Html
 import Html.Attributes exposing (class, classList)
 import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
+import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Measure.Layout as Layout
 import Music.Measure.Model as Measure exposing (Measure)
 import Music.Measure.View as MeasureView exposing (layoutFor)
@@ -95,9 +96,9 @@ view editor =
                 Array.indexedMap (viewPart editor) editor.score.parts
         , nav
             [ class <| frameCss .controls ]
-            [ Controls.viewDurationDial
-                tracking.durationDial
-                editor.durationSetting
+            [ Controls.viewSubdivisionDial
+                tracking.subdivisionDial
+                editor.subdivisionSetting
             , Controls.viewAlterationDial
                 tracking.alterationDial
                 editor.alterationSetting
@@ -152,6 +153,32 @@ viewMeasure editor i j measure =
             else
                 measure
 
+        layout =
+            layoutFor m
+
+        l =
+            if editor.partNum == i && editor.measureNum == j then
+                case editor.cursor of
+                    Just beat ->
+                        let
+                            subdivide b div =
+                                if b == beat.full then
+                                    -- TODO: depends on time signature
+                                    editor.subdivisionSetting.divisor // 4
+
+                                else
+                                    div
+                        in
+                        Layout.withDivisors
+                            (Nonempty.indexedMap subdivide layout.divisors)
+                            layout
+
+                    Nothing ->
+                        layout
+
+            else
+                layout
+
         cursor =
             if editor.partNum == i && editor.measureNum == j then
                 editor.cursor
@@ -174,5 +201,5 @@ viewMeasure editor i j measure =
 
             Nothing ->
                 text ""
-        , Ruler.view measure
+        , Ruler.view l
         ]
