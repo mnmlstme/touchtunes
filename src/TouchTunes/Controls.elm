@@ -61,7 +61,7 @@ subdivisionDial =
             [ eighth
             , quarter
             ]
-    , segments = 18
+    , segments = 10
     , viewValue = viewSubdivision
     }
 
@@ -100,8 +100,8 @@ viewSubdivision d =
 alterationDial : Dial.Config Semitones msg
 alterationDial =
     { options =
-        Array.fromList [ 2, 1, 0, -1, -2 ]
-    , segments = 12
+        Array.fromList [ -2, -1, 0, 1, 2 ]
+    , segments = 10
     , viewValue = viewAlteration
     }
 

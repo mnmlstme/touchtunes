@@ -1,24 +1,31 @@
 /* Dial */
 
 .dial {
-    stroke: rgba(255, 255, 255, 0.2);
-    fill: #464245;
+    stroke: #f0f0f0;
+    fill: white;
 }
 
 .collar {
+    visibility: hidden;
     opacity: 0;
     fill: white;
-    stroke: white;
-    pointer-events: none;
 }
 
 .collar.active {
+    visibility: visible;
     opacity: 1;
 }
 
 .collar > circle {
-    fill: rgba(32, 32, 32, 0.2);
-    stroke: black;
+    fill: none;
+}
+
+.option {
+    fill: #484244;
+}
+
+.option > circle {
+    fill: white;
 }
 
 .face {
@@ -28,26 +35,10 @@
 }
 
 .value {
-    fill: #ffffc3;
-    stroke: #ffffc3;
+    fill: #484244;
 }
 
-.tick {
-    stroke : #ffffc3;
-    stroke-width: 3;
-}
-
-.thumb {
-    fill: rgba(255,255,255,0.2);
-    stroke: #ffffc3;
-}
-
-.track {
-    fill: rgba(255,255,195,0.2);
-    stroke: white;
-    visibility: hidden;
-}
-
-.track.active {
-    visibility: visible;
+.value > circle {
+    fill: #e4e0e4;
+    stroke: #68b2f0;
 }

@@ -40,10 +40,10 @@ import TypedSvg.Types exposing (Transform(..), px)
 
 
 type Action
-    = Start ( Float, Float )
+    = Start
+    | Set Int
     | Finish
     | Cancel
-    | Drag ( Float, Float )
 
 
 type alias Config valueType msg =
@@ -54,9 +54,8 @@ type alias Config valueType msg =
 
 
 type alias Track =
-    { position : Float
-    , originalIndex : Int
-    , positionOffset : Float
+    { originalIndex : Int
+    , index : Int
     }
 
 
@@ -87,70 +86,21 @@ update config onChange tracking currentValue dialAction =
                                 Array.toList config.options
     in
     case dialAction of
-        Start coord ->
-            let
-                ( _, y ) =
-                    coord
-            in
+        Start ->
             ( Just
-                { position = 0.0
-                , originalIndex = i0
-                , positionOffset = y
+                { originalIndex = i0
+                , index = i0
                 }
             , Nothing
             )
 
-        Drag coord ->
-            case tracking of
-                Nothing ->
-                    ( Nothing, Nothing )
-
-                Just theTrack ->
-                    let
-                        ( _, y ) =
-                            coord
-
-                        offset =
-                            theTrack.positionOffset
-
-                        rotation =
-                            -2.0 * (y - offset)
-
-                        sect =
-                            360 // config.segments
-
-                        shift =
-                            log "shift" <|
-                                floor <|
-                                    rotation
-                                        / toFloat sect
-                                        + 0.5
-
-                        selected =
-                            Array.get (i0 + shift) config.options
-
-                        change =
-                            case selected of
-                                Just theValue ->
-                                    if theValue == currentValue then
-                                        Nothing
-
-                                    else
-                                        selected
-
-                                Nothing ->
-                                    Nothing
-                    in
-                    ( Just
-                        { theTrack
-                            | position = y - offset
-                        }
-                    , Maybe.map onChange change
-                    )
-
-        Finish ->
-            ( Nothing
-            , Nothing
+        Set i ->
+            ( Just
+                { originalIndex = i0
+                , index = i
+                }
+            , Maybe.map onChange <|
+                Array.get i config.options
             )
 
         Cancel ->
@@ -159,10 +109,34 @@ update config onChange tracking currentValue dialAction =
                 Array.get i0 config.options
             )
 
+        Finish ->
+            ( Nothing
+            , Nothing
+            )
 
-pointerCoordinates : Pointer.Event -> ( Float, Float )
-pointerCoordinates event =
-    event.pointer.offsetPos
+
+collarRadius =
+    100.0
+
+
+dialRadius =
+    50.0
+
+
+faceRadius =
+    32.0
+
+
+css =
+    .toString <|
+        CssModules.css "./TouchTunes/dial.css"
+            { dial = "dial"
+            , face = "face"
+            , value = "value"
+            , option = "option"
+            , collar = "collar"
+            , active = "active"
+            }
 
 
 view :
@@ -173,20 +147,6 @@ view :
     -> Html msg
 view config toMsg tracking value =
     let
-        css =
-            .toString <|
-                CssModules.css "./TouchTunes/dial.css"
-                    { dial = "dial"
-                    , face = "face"
-                    , value = "value"
-                    , option = "option"
-                    , tick = "tick"
-                    , collar = "collar"
-                    , thumb = "thumb"
-                    , active = "active"
-                    , track = "track"
-                    }
-
         active =
             case tracking of
                 Just _ ->
@@ -195,53 +155,19 @@ view config toMsg tracking value =
                 Nothing ->
                     ""
 
-        collarRadius =
-            100.0
-
-        dialRadius =
-            50.0
-
-        faceRadius =
-            32.0
-
         segments =
             config.segments
 
         sect =
             360 // config.segments
 
-        trackBottom =
-            200.0
-
-        trackTop =
-            -200.0
-
-        position =
-            case tracking of
-                Just theTrack ->
-                    theTrack.position
-
-                Nothing ->
-                    0.0
-
-        adjustThumbPosition ( x, y ) =
-            ( x, y - faceRadius )
-
-        initialRotation =
-            case tracking of
-                Just theTrack ->
-                    theTrack.originalIndex * sect
-
-                Nothing ->
-                    0
-
-        rotation =
-            initialRotation - 2 * floor position
+        n =
+            Array.length config.options
 
         viewOption i v =
             let
                 ri =
-                    toFloat (i * sect)
+                    toFloat ((2 * i - n + 1) * sect) / 2
             in
             g
                 [ class
@@ -254,11 +180,19 @@ view config toMsg tracking value =
                 , transform
                     [ Rotate (-1 * ri) 0 0
                     , Translate (dialRadius / 2.0 + collarRadius / 2.0) 0
-                    , Rotate (ri - toFloat rotation) 0 0
-                    , Scale 0.25 0.25
+                    , Rotate ri 0 0
+                    , Scale 0.66 0.66
                     ]
+                , Pointer.onDown (\_ -> Set i |> toMsg)
+                , Pointer.onEnter (\_ -> Set i |> toMsg)
+                , Pointer.onUp (\_ -> Finish |> toMsg)
                 ]
-                [ config.viewValue v ]
+                [ circle
+                    [ r <| px faceRadius ]
+                    []
+                , g [ transform [ Scale 0.375 0.375 ] ]
+                    [ config.viewValue v ]
+                ]
     in
     svg
         [ height <| px (2.0 * collarRadius)
@@ -271,7 +205,7 @@ view config toMsg tracking value =
         ]
         [ g
             [ class [ css .collar, active ]
-            , transform [ Rotate (toFloat rotation) 0 0 ]
+            , Pointer.onLeave (\_ -> Cancel |> toMsg)
             ]
           <|
             List.append
@@ -281,76 +215,17 @@ view config toMsg tracking value =
                 ]
             <|
                 indexedMapToList viewOption config.options
-        , g [ class [ css .dial ] ]
-            [ circle
-                [ r <| px dialRadius ]
-                []
-            , line
-                [ class [ css .tick ]
-                , x1 <| px faceRadius
-                , y1 <| px 0
-                , x2 <| px (dialRadius + 10)
-                , y2 <| px 0
-                ]
-                []
-            ]
         , g
-            [ class [ css .value ] ]
+            [ class [ css .value ]
+            , Pointer.onDown (\_ -> Start |> toMsg)
+            ]
             [ circle
-                [ class [ css .face ]
+                [ class [ css .option ]
                 , r <| px faceRadius
                 ]
                 []
             , g
                 [ transform [ Scale 0.375 0.375 ] ]
                 [ config.viewValue value ]
-            ]
-        , g
-            [ class [ css .track, active ]
-            ]
-            [ rect
-                [ x <| px (-1.0 * dialRadius)
-                , y <| px trackTop
-                , height <| px (trackBottom - trackTop)
-                , width <| px (dialRadius - faceRadius)
-                , rx <| px ((dialRadius - faceRadius) / 2.0)
-                ]
-                []
-            ]
-        , let
-            halfThumbHeight =
-                faceRadius
-
-            thumbHeight =
-                2.0 * halfThumbHeight
-
-            thumbWidth =
-                dialRadius - faceRadius
-
-            halfThumbWidth =
-                thumbWidth / 2.0
-          in
-          g
-            [ class [ css .thumb, active ]
-            , Pointer.onDown <|
-                pointerCoordinates
-                    >> adjustThumbPosition
-                    >> Start
-                    >> toMsg
-            , Pointer.onMove <|
-                pointerCoordinates
-                    >> adjustThumbPosition
-                    >> Drag
-                    >> toMsg
-            , Pointer.onUp (\event -> Finish |> toMsg)
-            ]
-            [ rect
-                [ x <| px (-1.0 * dialRadius)
-                , y <| px (position - halfThumbHeight)
-                , height <| px thumbHeight
-                , width <| px thumbWidth
-                , rx <| px halfThumbWidth
-                ]
-                []
             ]
         ]
