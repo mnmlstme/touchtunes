@@ -1,16 +1,12 @@
 module Music.Note.Model exposing
     ( Note
     , What(..)
-    , getShiftX
     , isPlayed
     , playFor
     , restFor
-    , shiftX
-    , unshiftX
     )
 
 import Music.Duration as Duration exposing (Duration)
-import Music.Measure.Layout exposing (Tenths)
 import Music.Pitch as Pitch exposing (Pitch)
 
 
@@ -31,8 +27,7 @@ type What
 
 
 type Modifier
-    = ShiftX Tenths
-    | Tie StartStop
+    = Tie StartStop
 
 
 type StartStop
@@ -53,42 +48,6 @@ restFor d =
 mod : Modifier -> Note -> Note
 mod m note =
     { note | modifiers = m :: note.modifiers }
-
-
-shiftX : Tenths -> Note -> Note
-shiftX dx =
-    mod (ShiftX dx)
-
-
-unshiftX : Note -> Note
-unshiftX n =
-    let
-        check m =
-            case m of
-                ShiftX _ ->
-                    False
-
-                _ ->
-                    True
-    in
-    { n | modifiers = List.filter check n.modifiers }
-
-
-getShiftX : Note -> Maybe Tenths
-getShiftX n =
-    let
-        check m =
-            case m of
-                ShiftX tenths ->
-                    Just tenths
-
-                _ ->
-                    Nothing
-
-        shifts =
-            List.filterMap check n.modifiers
-    in
-    List.head shifts
 
 
 isPlayed : Note -> Bool

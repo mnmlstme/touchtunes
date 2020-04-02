@@ -8,8 +8,10 @@ module TouchTunes.Model exposing
     )
 
 import Array exposing (Array)
+import Debug exposing (log)
 import Music.Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration)
+import Music.Measure.Layout as Layout exposing (Layout)
 import Music.Measure.Model exposing (Measure, modifyNote)
 import Music.Note.Model exposing (Note)
 import Music.Pitch exposing (Semitones)
@@ -22,6 +24,7 @@ type alias Editor =
     { score : Score
     , partNum : Int
     , measureNum : Int
+    , layout : Maybe Layout
     , cursor : Maybe Beat
     , selection : Maybe Note
     , subdivisionSetting : Duration
@@ -38,6 +41,7 @@ empty =
         0
         Nothing
         Nothing
+        Nothing
         Duration.quarter
         0
         Controls.inactive
@@ -45,10 +49,20 @@ empty =
 
 open : Score -> Editor
 open score =
+    let
+        maybeMeasure =
+            Score.measure 0 0 score
+
+        maybeLayout =
+            Maybe.map
+                (\m -> Layout.forMeasure m.attributes m)
+                maybeMeasure
+    in
     Editor
         score
         0
         0
+        maybeLayout
         Nothing
         Nothing
         Duration.quarter
@@ -63,14 +77,25 @@ measure editor =
             originalMeasure editor
 
         modifier was =
-            Maybe.withDefault was editor.selection
+            Maybe.withDefault was <|
+                log "editor.selection" editor.selection
     in
-    case editor.cursor of
-        Just cursor ->
-            Maybe.map (modifyNote modifier cursor) m
+    log "Editor.measure editor" <|
+        case editor.cursor of
+            Just cursor ->
+                case editor.layout of
+                    Just layout ->
+                        let
+                            fn =
+                                modifyNote modifier (Layout.time layout) cursor
+                        in
+                        Maybe.map fn m
 
-        Nothing ->
-            m
+                    Nothing ->
+                        m
+
+            Nothing ->
+                m
 
 
 originalMeasure : Editor -> Maybe Measure

@@ -12,14 +12,16 @@ import Music.Beat as Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration, quarter)
 import Music.Measure.Layout as Layout
     exposing
-        ( Location
+        ( Layout
+        , Location
         , beatSpacing
         , durationSpacing
+        , forMeasure
         , inPx
         , scaleBeat
         )
 import Music.Measure.Model as Measure exposing (Measure, toSequence)
-import Music.Measure.View as MeasureView exposing (layoutFor)
+import Music.Measure.View as MeasureView
 import TouchTunes.Action as Action exposing (Msg(..))
 import Tuple exposing (pair)
 import TypedSvg
@@ -57,21 +59,19 @@ pointerCoordinates event =
     event.pointer.offsetPos
 
 
-view : Measure -> Beat -> Svg Msg
-view measure beat =
+css =
+    .toString <|
+        CssModules.css "./TouchTunes/editor.css"
+            { overlay = "overlay"
+            , selection = "selection"
+            }
+
+
+view : Layout -> Measure -> Beat -> Svg Msg
+view layout measure beat =
     let
-        css =
-            .toString <|
-                CssModules.css "./TouchTunes/editor.css"
-                    { overlay = "overlay"
-                    , selection = "selection"
-                    }
-
-        layout =
-            layoutFor measure
-
         seq =
-            toSequence measure
+            toSequence (Layout.time layout) measure
 
         sameBeat ( b, _ ) =
             Beat.equal beat b
@@ -100,7 +100,7 @@ view measure beat =
             Pointer.onMove <|
                 pointerCoordinates
                     >> Tuple.mapBoth floor floor
-                    >> Action.DragEdit
+                    >> Action.DragEdit layout
     in
     svg
         [ class [ css .overlay ]

@@ -30,7 +30,7 @@ viewSegment : Layout -> Duration -> Beat -> Svg msg
 viewSegment layout dur beat =
     let
         time =
-            layout.time
+            Layout.time layout
 
         sp =
             Layout.spacing layout
@@ -58,7 +58,7 @@ viewBeat : Layout -> Int -> Beat -> Svg msg
 viewBeat layout divisor fullBeat =
     let
         time =
-            layout.time
+            Layout.time layout
 
         beats =
             List.map
@@ -80,7 +80,7 @@ view : Layout -> Html msg
 view layout =
     let
         time =
-            layout.time
+            Layout.time layout
 
         sp =
             Layout.spacing layout
@@ -89,7 +89,7 @@ view layout =
             Layout.width layout
 
         beats =
-            time.beatsPerMeasure
+            time.beats
     in
     svg
         [ class [ css .ruler ]

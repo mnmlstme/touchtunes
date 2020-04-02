@@ -1,29 +1,51 @@
 module Music.Time exposing
-    ( Time
+    ( BeatType(..)
+    , Time
     , common
     , cut
+    , divisor
     , toDuration
     )
 
 import Music.Duration exposing (Duration)
+import TypedSvg.Core exposing (Svg)
+
+
+type BeatType
+    = Two
+    | Four
+    | Eight
 
 
 type alias Time =
-    { beatsPerMeasure : Int
-    , getsOneBeat : Int
+    { beats : Int
+    , beatType : BeatType
     }
 
 
 common : Time
 common =
-    Time 4 4
+    Time 4 Four
 
 
 cut : Time
 cut =
-    Time 2 2
+    Time 2 Two
+
+
+divisor : Time -> Int
+divisor time =
+    case time.beatType of
+        Two ->
+            2
+
+        Four ->
+            4
+
+        Eight ->
+            8
 
 
 toDuration : Time -> Duration
 toDuration time =
-    Duration time.beatsPerMeasure time.getsOneBeat
+    Duration time.beats <| divisor time

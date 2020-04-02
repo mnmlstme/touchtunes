@@ -1,6 +1,7 @@
 module TouchTunes.View exposing (view)
 
 import Array exposing (Array)
+import Array.Extra
 import CssModules as CssModules
 import Debug exposing (log)
 import Html
@@ -23,11 +24,12 @@ import Html.Attributes exposing (class, classList)
 import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Nonempty as Nonempty exposing (Nonempty)
-import Music.Measure.Layout as Layout
+import Music.Measure.Layout as Layout exposing (Layout)
 import Music.Measure.Model as Measure exposing (Measure)
-import Music.Measure.View as MeasureView exposing (layoutFor)
-import Music.Part.Model as Part exposing (Part)
+import Music.Measure.View as MeasureView
+import Music.Part.Model as Part exposing (Part, propagateAttributes)
 import Music.Score.Model as Score exposing (Score)
+import Music.Time as Time
 import TouchTunes.Action as Action exposing (Msg(..))
 import TouchTunes.Controls as Controls
 import TouchTunes.Dial as Dial
@@ -37,26 +39,44 @@ import TouchTunes.Ruler as Ruler
 import Tuple exposing (pair)
 
 
+partCss =
+    .toString <|
+        CssModules.css "./Music/Part/part.css"
+            { part = "part"
+            , header = "header"
+            , abbrev = "abbrev"
+            , body = "body"
+            }
+
+
+frameCss =
+    .toString <|
+        CssModules.css "./TouchTunes/frame.css"
+            { frame = "frame"
+            , header = "header"
+            , body = "body"
+            , controls = "controls"
+            }
+
+
+scoreCss =
+    .toString <|
+        CssModules.css "./Music/Score/score.css"
+            { title = "title"
+            , parts = "parts"
+            , stats = "stats"
+            }
+
+
+editorCss =
+    .toString <|
+        CssModules.css "./TouchTunes/editor.css"
+            { editor = "editor" }
+
+
 view : Editor -> Html Msg
 view editor =
     let
-        frameCss =
-            .toString <|
-                CssModules.css "./TouchTunes/frame.css"
-                    { frame = "frame"
-                    , header = "header"
-                    , body = "body"
-                    , controls = "controls"
-                    }
-
-        scoreCss =
-            .toString <|
-                CssModules.css "./Music/Score/score.css"
-                    { title = "title"
-                    , parts = "parts"
-                    , stats = "stats"
-                    }
-
         s =
             editor.score
 
@@ -109,38 +129,30 @@ view editor =
 viewPart : Editor -> Int -> Part -> Html Msg
 viewPart editor i part =
     let
-        css =
-            .toString <|
-                CssModules.css "./Music/Part/part.css"
-                    { part = "part"
-                    , header = "header"
-                    , abbrev = "abbrev"
-                    , body = "body"
-                    }
+        layoutMeasures =
+            Array.Extra.map2
+                (\a m -> ( Layout.forMeasure a m, m ))
+                (propagateAttributes part.measures)
+                part.measures
     in
     section
-        [ class <| css .part
+        [ class <| partCss .part
         ]
-        [ header [ class <| css .header ]
-            [ h3 [ class <| css .abbrev ]
+        [ header [ class <| partCss .header ]
+            [ h3 [ class <| partCss .abbrev ]
                 [ text part.abbrev ]
             ]
         , div
-            [ class <| css .body ]
+            [ class <| partCss .body ]
           <|
             Array.toList <|
-                Array.indexedMap (viewMeasure editor i) part.measures
+                Array.indexedMap (viewMeasure editor i) layoutMeasures
         ]
 
 
-viewMeasure : Editor -> Int -> Int -> Measure -> Html Msg
-viewMeasure editor i j measure =
+viewMeasure : Editor -> Int -> Int -> ( Layout, Measure ) -> Html Msg
+viewMeasure editor i j ( layout, measure ) =
     let
-        css =
-            .toString <|
-                CssModules.css "./TouchTunes/editor.css"
-                    { editor = "editor" }
-
         m =
             if editor.partNum == i && editor.measureNum == j then
                 case Editor.measure editor of
@@ -153,28 +165,16 @@ viewMeasure editor i j measure =
             else
                 measure
 
-        layout =
-            layoutFor m
-
         l =
             if editor.partNum == i && editor.measureNum == j then
-                case editor.cursor of
-                    Just beat ->
-                        let
-                            subdivide b div =
-                                if b == beat.full then
-                                    -- TODO: depends on time signature
-                                    editor.subdivisionSetting.divisor // 4
+                let
+                    t =
+                        Layout.time layout
 
-                                else
-                                    div
-                        in
-                        Layout.withDivisors
-                            (Nonempty.indexedMap subdivide layout.divisors)
-                            layout
-
-                    Nothing ->
-                        layout
+                    div =
+                        editor.subdivisionSetting.divisor // Time.divisor t
+                in
+                Layout.subdivide div layout
 
             else
                 layout
@@ -190,14 +190,14 @@ viewMeasure editor i j measure =
             Pointer.onDown <|
                 pointerCoordinates
                     >> Tuple.mapBoth floor floor
-                    >> Action.StartEdit i j
+                    >> Action.StartEdit layout i j
     in
     div
-        [ class <| css .editor, downHandler ]
-        [ MeasureView.view m
+        [ class <| editorCss .editor, downHandler ]
+        [ MeasureView.view layout m
         , case cursor of
             Just beat ->
-                Overlay.view m beat
+                Overlay.view layout m beat
 
             Nothing ->
                 text ""

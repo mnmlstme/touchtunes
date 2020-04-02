@@ -13,9 +13,11 @@ import Music.Duration
     exposing
         ( Duration
         , eighth
+        , half
         , quarter
         )
 import Music.Measure.Layout as Layout exposing (Layout)
+import Music.Measure.Model as Measure
 import Music.Note.View exposing (StemOrientation(..), isWhole, viewNote)
 import Music.Pitch as Pitch exposing (Semitones, alter)
 import Music.Staff.Model as Staff
@@ -46,7 +48,7 @@ inactive =
 
 layout : Layout
 layout =
-    Layout.zoomed 1.0 Staff.treble Time.common
+    Layout.forMeasure Measure.noAttributes Measure.new
 
 
 
@@ -60,6 +62,7 @@ subdivisionDial =
         Array.fromList
             [ eighth
             , quarter
+            , half
             ]
     , segments = 10
     , viewValue = viewSubdivision
@@ -100,7 +103,7 @@ viewSubdivision d =
 alterationDial : Dial.Config Semitones msg
 alterationDial =
     { options =
-        Array.fromList [ -2, -1, 0, 1, 2 ]
+        Array.fromList [ -1, 0, 1 ]
     , segments = 10
     , viewValue = viewAlteration
     }

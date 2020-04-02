@@ -7,6 +7,8 @@ module Music.Measure.Layout exposing
     , beatSpacing
     , bottomStep
     , durationSpacing
+    , fixedWidth
+    , forMeasure
     , halfSpacing
     , height
     , inPx
@@ -18,14 +20,16 @@ module Music.Measure.Layout exposing
     , scalePitch
     , scaleStep
     , spacing
-    , standard
+    , staff
     , subdivide
+    , time
     , toPixels
     , toTenths
     , topStep
-    , width
-    , withDivisors
-    , zoomed
+    ,  width
+       -- , withDivisors
+       --, withTime
+
     )
 
 import Browser
@@ -33,8 +37,14 @@ import List.Extra exposing (initialize)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Beat as Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration, division)
+import Music.Measure.Model as Measure
+    exposing
+        ( Attributes
+        , Measure
+        , noAttributes
+        )
 import Music.Pitch as Pitch exposing (Pitch, StepNumber)
-import Music.Staff.Model exposing (Staff)
+import Music.Staff.Model as Staff exposing (Staff)
 import Music.Time as Time exposing (Time)
 import Tuple exposing (first, second)
 import TypedSvg.Types exposing (Length, px)
@@ -47,9 +57,9 @@ import TypedSvg.Types exposing (Length, px)
 
 type alias Layout =
     { zoom : Float
-    , basePitch : Pitch
-    , time : Time
     , divisors : Nonempty Int
+    , indirect : Attributes
+    , direct : Attributes
     }
 
 
@@ -63,29 +73,33 @@ type alias Tenths =
     }
 
 
-unitDivisors : Time -> Nonempty Int
-unitDivisors time =
+getAttribute : (Attributes -> Maybe value) -> Layout -> Maybe value
+getAttribute getter layout =
+    case getter layout.direct of
+        Just v ->
+            Just v
+
+        Nothing ->
+            getter layout.indirect
+
+
+time : Layout -> Time
+time layout =
+    Maybe.withDefault Time.common <| getAttribute .time layout
+
+
+staff : Layout -> Staff
+staff layout =
+    Maybe.withDefault Staff.treble <| getAttribute .staff layout
+
+
+basePitch : Layout -> Pitch
+basePitch layout =
     let
-        ones =
-            initialize time.beatsPerMeasure (\_ -> 1)
+        s =
+            staff layout
     in
-    Maybe.withDefault (Nonempty.fromElement 1) (Nonempty.fromList ones)
-
-
-standard : Staff -> Time -> Layout
-standard =
-    -- layout for given staff and time at standard zoom level
-    zoomed 2.0
-
-
-zoomed : Float -> Staff -> Time -> Layout
-zoomed zoom staff time =
-    Layout zoom staff.basePitch time (unitDivisors time)
-
-
-withDivisors : Nonempty Int -> Layout -> Layout
-withDivisors divs layout =
-    { layout | divisors = divs }
+    s.basePitch
 
 
 subdivide : Int -> Layout -> Layout
@@ -138,11 +152,11 @@ locationAfter : Layout -> Location -> Location
 locationAfter layout loc =
     let
         divisor =
-            layout.time.getsOneBeat
+            Time.divisor (time layout)
                 * Nonempty.get loc.beat.full layout.divisors
     in
     { step = loc.step
-    , beat = Beat.add layout.time (division divisor) loc.beat
+    , beat = Beat.add (time layout) (division divisor) loc.beat
     }
 
 
@@ -175,10 +189,21 @@ margins layout =
         vmargin =
             4.5 * sp |> Pixels
 
-        hmargin =
-            spacing layout
+        rmargin =
+            sp |> Pixels
+
+        lmargin =
+            sp
+                + (case layout.direct.time of
+                    Just _ ->
+                        2.0 * sp
+
+                    Nothing ->
+                        0.0
+                  )
+                |> Pixels
     in
-    Margins vmargin hmargin vmargin hmargin
+    Margins vmargin rmargin vmargin lmargin
 
 
 beatSpacing : Layout -> Pixels
@@ -191,20 +216,39 @@ durationSpacing layout dur =
     let
         beats =
             Beat.toFloat <|
-                Beat.fromDuration layout.time dur
+                Beat.fromDuration (time layout) dur
     in
     Tenths (40.0 * beats) |> toPixels layout
 
 
 width : Layout -> Pixels
 width layout =
-    -- width of the layout
+    -- width of the layout based on notes
     let
         m =
             margins layout
 
         b =
             Nonempty.length layout.divisors
+
+        bs =
+            beatSpacing layout
+    in
+    m.left.px + m.right.px + toFloat b * bs.px |> Pixels
+
+
+fixedWidth : Layout -> Pixels
+fixedWidth layout =
+    -- width of the layout based on time only
+    let
+        m =
+            margins layout
+
+        t =
+            time layout
+
+        b =
+            t.beats
 
         bs =
             beatSpacing layout
@@ -247,7 +291,7 @@ positionOnStaff : Layout -> Pitch -> Int
 positionOnStaff layout p =
     -- distance (in steps) above (below if negative) base pitch of staff
     Pitch.stepNumber p
-        - Pitch.stepNumber layout.basePitch
+        - Pitch.stepNumber (basePitch layout)
 
 
 scaleStep : Layout -> StepNumber -> Pixels
@@ -261,7 +305,7 @@ scaleStep layout sn =
             margins layout
 
         n =
-            Pitch.stepNumber layout.basePitch - sn
+            Pitch.stepNumber (basePitch layout) - sn
     in
     Pixels <|
         toFloat n
@@ -284,7 +328,7 @@ unscaleStep layout y =
         n =
             round (2.0 * (y.px - m.top.px - s.px / 2.0) / s.px)
     in
-    Pitch.stepNumber layout.basePitch
+    Pitch.stepNumber (basePitch layout)
         - n
 
 
@@ -338,3 +382,53 @@ unscaleBeat layout x =
     , parts = modBy divisor totalDivs
     , divisor = divisor
     }
+
+
+
+-- compute a layout for a measure
+
+
+divisorFor : Time -> Measure -> Int -> Int
+divisorFor t measure i =
+    Measure.startingBeats t measure
+        |> Nonempty.filter (\b -> b.full == i) (Beat.fullBeat 1)
+        |> Nonempty.map (\b -> b.divisor)
+        |> Nonempty.foldl max 1
+
+
+fitTime : Time -> Measure -> Time
+fitTime t measure =
+    -- compute a new time signature that notes will fit in
+    let
+        beats =
+            Measure.length t measure
+    in
+    Beat.fitToTime t beats
+
+
+forMeasure : Attributes -> Measure -> Layout
+forMeasure attrs measure =
+    -- the layout accounts for the notes in the measure
+    let
+        t =
+            case measure.attributes.time of
+                Just theTime ->
+                    theTime
+
+                Nothing ->
+                    Maybe.withDefault Time.common attrs.time
+
+        ft =
+            fitTime t measure
+
+        divs =
+            initialize ft.beats (divisorFor t measure)
+    in
+    Layout
+        2.0
+        (Maybe.withDefault
+            (Nonempty.fromElement 1)
+            (Nonempty.fromList divs)
+        )
+        attrs
+        measure.attributes

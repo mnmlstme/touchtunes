@@ -1,14 +1,12 @@
 module Music.Measure.View exposing
-    ( fixedLayoutFor
-    , layoutFor
-    , view
+    ( view
+    , viewTime
     )
 
 import CssModules as CssModules
 import Debug exposing (log)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, style)
-import List.Extra exposing (initialize)
 import List.Nonempty as Nonempty
 import Music.Beat as Beat
 import Music.Measure.Layout as Layout
@@ -21,113 +19,83 @@ import Music.Measure.Model as Measure exposing (..)
 import Music.Note.View as NoteView
 import Music.Staff.Model as Staff
 import Music.Staff.View as StaffView
-import String
-import TypedSvg exposing (g, svg)
+import Music.Time as Time exposing (Time)
+import String exposing (fromInt)
+import TypedSvg exposing (g, svg, text_)
 import TypedSvg.Attributes as SvgAttr
     exposing
-        ( height
+        ( fontSize
+        , height
         , transform
         , width
+        , x
+        , y
         )
 import TypedSvg.Core exposing (Svg)
-import TypedSvg.Types exposing (Transform(..))
+import TypedSvg.Types exposing (Transform(..), px)
 
 
+css =
+    .toString <|
+        CssModules.css "./Music/Measure/measure.css"
+            { measure = "measure"
+            , staff = "staff"
+            , overflow = "overflow"
+            , time = "time"
+            }
 
--- compute a layout for a measure
 
-
-fixedLayoutFor : Measure -> Layout
-fixedLayoutFor measure =
-    -- this layout does not account for the notes in the measure
+viewTime : Layout -> Maybe Time -> Svg msg
+viewTime layout time =
     let
-        t =
-            time measure
-
-        staff =
-            Staff.treble
+        sp =
+            Layout.spacing layout
     in
-    Layout.standard staff t
+    case time of
+        Just t ->
+            g [ SvgAttr.class [ css .time ] ]
+                [ text_
+                    [ fontSize <| px (2.5 * sp.px)
+                    , x <| px sp.px
+                    , y <| px (2.0 * sp.px)
+                    ]
+                    [ text <| fromInt t.beats ]
+                , text_
+                    [ fontSize <| px (2.5 * sp.px)
+                    , x <| px sp.px
+                    , y <| px (4.0 * sp.px)
+                    ]
+                    [ text <| fromInt (Time.divisor t) ]
+                ]
+
+        Nothing ->
+            text ""
 
 
-layoutFor : Measure -> Layout
-layoutFor measure =
-    -- the layout accounts for the notes in the measure
+view : Layout -> Measure -> Html msg
+view layout measure =
     let
-        t =
-            fitTime measure
-
-        staff =
-            Staff.treble
-
-        divs =
-            initialize t.beatsPerMeasure (divisorFor measure)
-    in
-    Layout.standard staff t
-        |> Layout.withDivisors
-            (Maybe.withDefault
-                (Nonempty.fromElement 1)
-                (Nonempty.fromList divs)
-            )
-
-
-divisorFor : Measure -> Int -> Int
-divisorFor measure i =
-    Measure.startingBeats measure
-        |> Nonempty.filter (\b -> b.full == i) (Beat.fullBeat 1)
-        |> Nonempty.map (\b -> b.divisor)
-        |> Nonempty.foldl max 1
-
-
-view : Measure -> Html msg
-view measure =
-    let
-        css =
-            .toString <|
-                CssModules.css "./Music/Measure/measure.css"
-                    { measure = "measure"
-                    , staff = "staff"
-                    , overflow = "overflow"
-                    }
-
-        givenTime =
-            time measure
-
-        t =
-            fitTime measure
-
-        overflowBeats =
-            t.beatsPerMeasure - givenTime.beatsPerMeasure
-
-        layout =
-            layoutFor measure
-
-        fixedLayout =
-            fixedLayoutFor measure
-
         w =
             Layout.width layout
 
-        ow =
-            Layout.width fixedLayout
+        fixed =
+            Layout.fixedWidth layout
 
         h =
             Layout.height layout
 
         overflowWidth =
-            w.px
-                - ow.px
-                + (Layout.margins layout).right.px
+            w.px - fixed.px
 
         drawNote =
             \( beat, note ) ->
-                NoteView.view fixedLayout beat note
+                NoteView.view layout beat note
 
         noteSequence =
-            toSequence measure
+            toSequence (Layout.time layout) measure
     in
     div [ class <| css .measure ]
-        [ if overflowBeats > 0 then
+        [ if overflowWidth > 0 then
             div
                 [ class <| css .overflow
                 , style "width" (String.fromFloat overflowWidth ++ "px")
@@ -135,7 +103,7 @@ view measure =
                 []
 
           else
-            text ""
+            Html.text ""
         , svg
             [ SvgAttr.class [ css .staff ]
             , height <| inPx h
@@ -147,7 +115,9 @@ view measure =
                         (Layout.margins layout).top.px
                     ]
                 ]
-                [ StaffView.draw layout ]
+                [ StaffView.draw layout
+                , viewTime layout layout.direct.time
+                ]
             , g
                 []
               <|

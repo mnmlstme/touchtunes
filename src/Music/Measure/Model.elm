@@ -1,16 +1,17 @@
 module Music.Measure.Model exposing
-    ( Measure
+    ( Attributes
+    , Measure
     , Sequence
     , aggregateRests
-    , fitTime
     , fromNotes
     , fromSequence
+    , initial
     , length
     , modifyNote
     , new
+    , noAttributes
     , notesLength
     , startingBeats
-    , time
     , toSequence
     )
 
@@ -20,36 +21,67 @@ import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Beat as Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration)
 import Music.Note.Model as Note exposing (Note, restFor)
+import Music.Staff.Model as Staff exposing (Staff)
 import Music.Time as Time exposing (Time)
 
 
 type alias Measure =
-    { notes : Nonempty Note
+    { attributes : Attributes
+    , notes : Nonempty Note
+    }
+
+
+type alias Attributes =
+    { staff : Maybe Staff
+    , time : Maybe Time
+    }
+
+
+noAttributes =
+    { staff = Nothing
+    , time = Nothing
     }
 
 
 new : Measure
 new =
-    Measure <|
+    fromAttributes noAttributes
+
+
+initial : Staff -> Time -> Measure
+initial s t =
+    let
+        attrs =
+            { staff = Just s
+            , time = Just t
+            }
+    in
+    fromAttributes attrs
+
+
+fromAttributes : Attributes -> Measure
+fromAttributes attrs =
+    Measure attrs <|
         Nonempty.fromElement <|
             Note.restFor Duration.whole
 
 
-fromNotes : List Note -> Measure
-fromNotes notes =
+fromNotes : Attributes -> List Note -> Measure
+fromNotes attrs notes =
     case Nonempty.fromList notes of
         Nothing ->
-            new
+            fromAttributes attrs
 
         Just nonempty ->
-            Measure nonempty
+            Measure attrs nonempty
 
 
-time : Measure -> Time
-time measure =
-    -- the time (signature) for a measure
-    -- TODO get from Timeline
-    Time.common
+
+-- time : Measure -> Time
+-- time measure =
+--     -- the time (signature) for a measure
+--     -- TODO get default from Timeline
+--     Maybe.withDefault Time.common measure.attributes.time
 
 
 notesLength : Measure -> Duration
@@ -62,13 +94,10 @@ notesLength measure =
     Nonempty.foldl1 Duration.add durs
 
 
-length : Measure -> Beat
-length measure =
+length : Time -> Measure -> Beat
+length t measure =
     -- count the total number of beats in a measure
     let
-        t =
-            time measure
-
         tdur =
             Time.toDuration t
 
@@ -79,29 +108,13 @@ length measure =
         Beat.fromDuration t <| mdur
 
     else
-        Beat.fullBeat t.beatsPerMeasure
+        Beat.fullBeat t.beats
 
 
-fitTime : Measure -> Time
-fitTime measure =
-    -- compute a new time signature that notes will fit in
-    let
-        t =
-            time measure
-
-        beats =
-            length measure
-    in
-    Beat.fitToTime t beats
-
-
-startingBeats : Measure -> Nonempty Beat
-startingBeats measure =
+startingBeats : Time -> Measure -> Nonempty Beat
+startingBeats t measure =
     -- gives the starting beat for each note
     let
-        t =
-            time measure
-
         beats =
             Nonempty.map .duration measure.notes
 
@@ -121,30 +134,30 @@ type alias Sequence =
     List ( Beat, Note )
 
 
-toSequence : Measure -> Sequence
-toSequence measure =
+toSequence : Time -> Measure -> Sequence
+toSequence t measure =
     let
         startsAt =
-            startingBeats measure
+            startingBeats t measure
     in
     Nonempty.toList <|
         Nonempty.map2 (\a b -> ( a, b )) startsAt measure.notes
 
 
-fromSequence : Sequence -> Measure
-fromSequence sequence =
+fromSequence : Attributes -> Sequence -> Measure
+fromSequence attrs sequence =
     let
         justNotes seq =
             List.map (\( b, n ) -> n) seq
     in
-    fromNotes <| justNotes sequence
+    fromNotes attrs <| justNotes sequence
 
 
-findNote : Beat -> Measure -> Maybe Note
-findNote beat measure =
+findNote : Time -> Beat -> Measure -> Maybe Note
+findNote t beat measure =
     let
         seq =
-            toSequence measure
+            toSequence t measure
 
         sameBeat ( b, _ ) =
             Beat.equal beat b
@@ -153,22 +166,19 @@ findNote beat measure =
         (find sameBeat seq)
 
 
-modifyNote : (Note -> Note) -> Beat -> Measure -> Measure
-modifyNote f beat measure =
+modifyNote : (Note -> Note) -> Time -> Beat -> Measure -> Measure
+modifyNote f t beat measure =
     let
         seq =
-            toSequence measure
-
-        t =
-            time measure
+            toSequence t measure
 
         note =
             Maybe.withDefault
                 (Note.restFor Duration.quarter)
-                (findNote beat measure)
+                (findNote t beat measure)
     in
     spliceSequence t ( beat, f note ) seq
-        |> fromSequence
+        |> fromSequence measure.attributes
         |> aggregateRests
 
 
@@ -263,4 +273,4 @@ aggregateRests measure =
     Nonempty.map Nonempty.fromElement measure.notes
         |> Nonempty.reverse
         |> Nonempty.foldl1 agg
-        |> Measure
+        |> Measure measure.attributes

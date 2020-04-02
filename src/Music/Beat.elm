@@ -16,7 +16,7 @@ module Music.Beat exposing
     )
 
 import Music.Duration as Duration exposing (Duration)
-import Music.Time exposing (Time)
+import Music.Time as Time exposing (Time)
 
 
 type alias Beat =
@@ -55,16 +55,16 @@ toFloat b =
 toDuration : Time -> Beat -> Duration
 toDuration time beat =
     Duration.add
-        (Duration beat.full time.getsOneBeat)
-        (Duration beat.parts (beat.divisor * time.getsOneBeat))
+        (Duration beat.full <| Time.divisor time)
+        (Duration beat.parts (beat.divisor * Time.divisor time))
 
 
 fromDuration : Time -> Duration -> Beat
 fromDuration time d =
-    if d.divisor > time.getsOneBeat then
+    if d.divisor > Time.divisor time then
         let
             div =
-                d.divisor // time.getsOneBeat
+                d.divisor // Time.divisor time
         in
         { full = d.count // div
         , parts = modBy div d.count
@@ -72,7 +72,7 @@ fromDuration time d =
         }
 
     else
-        fullBeat <| d.count * time.getsOneBeat // d.divisor
+        fullBeat <| d.count * Time.divisor time // d.divisor
 
 
 add : Time -> Duration -> Beat -> Beat
@@ -114,7 +114,7 @@ fitToTime time beats =
     -- create a new Time that fits a given number of beats
     let
         b =
-            max time.beatsPerMeasure
+            max time.beats
                 (beats.full
                     + (if beats.parts /= 0 then
                         1
@@ -124,4 +124,4 @@ fitToTime time beats =
                       )
                 )
     in
-    Time b time.getsOneBeat
+    Time b time.beatType

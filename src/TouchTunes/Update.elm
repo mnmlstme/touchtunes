@@ -9,8 +9,8 @@ import Music.Measure.Layout as Layout
         ( locationAfter
         , positionToLocation
         )
-import Music.Measure.Model exposing (Measure, modifyNote, time)
-import Music.Measure.View as MeasureView exposing (layoutFor)
+import Music.Measure.Model exposing (Measure)
+import Music.Measure.View as MeasureView
 import Music.Note.Model exposing (Note, What(..))
 import Music.Pitch exposing (Pitch, Semitones, fromStepNumber, stepNumber)
 import Music.Score.Model as Score
@@ -56,18 +56,10 @@ update msg editor =
             { tracking | overlay = activation }
     in
     case log "msg" msg of
-        StartEdit partNum measureNum pos ->
+        StartEdit layout partNum measureNum pos ->
             let
                 measure =
                     Score.measure partNum measureNum editor.score
-
-                layout =
-                    case measure of
-                        Just m ->
-                            layoutFor m
-
-                        Nothing ->
-                            Layout.standard Staff.treble Time.common
 
                 duration =
                     editor.subdivisionSetting
@@ -90,6 +82,7 @@ update msg editor =
             { editor
                 | partNum = partNum
                 , measureNum = measureNum
+                , layout = Just layout
                 , cursor = Just at
                 , selection = Just note
                 , tracking =
@@ -98,15 +91,12 @@ update msg editor =
                             Overlay.Track at loc
             }
 
-        DragEdit pos ->
+        DragEdit layout pos ->
             case Editor.measure editor of
                 Just measure ->
                     case tracking.overlay of
                         Just overlay ->
                             let
-                                layout =
-                                    layoutFor measure
-
                                 loc =
                                     positionToLocation
                                         -- TODO: depends on time signature
@@ -122,7 +112,7 @@ update msg editor =
                                 modifier note =
                                     let
                                         dur =
-                                            durationFrom layout.time beat nextLoc.beat
+                                            durationFrom (Layout.time layout) beat nextLoc.beat
                                     in
                                     if Beat.equal beat loc.beat then
                                         { note

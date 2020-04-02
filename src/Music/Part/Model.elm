@@ -3,11 +3,16 @@ module Music.Part.Model exposing
     , empty
     , length
     , measure
+    , propagateAttributes
     , setMeasure
     )
 
 import Array exposing (Array)
-import Music.Measure.Model as Measure exposing (Measure)
+import Debug exposing (log)
+import List.Extra exposing (scanl)
+import Music.Measure.Model as Measure exposing (Attributes, Measure)
+import Music.Staff.Model as Staff
+import Music.Time as Time
 
 
 type alias Part =
@@ -22,7 +27,13 @@ empty =
     Part
         "Piano"
         "Pno."
-        (Array.repeat 4 Measure.new)
+    <|
+        Array.fromList
+            [ Measure.initial Staff.treble Time.common
+            , Measure.new
+            , Measure.new
+            , Measure.new
+            ]
 
 
 length : Part -> Int
@@ -40,3 +51,36 @@ setMeasure n m p =
     { p
         | measures = Array.set n m p.measures
     }
+
+
+
+-- TODO: import Maybe.Extra instead
+
+
+maybeOr : Maybe val -> Maybe val -> Maybe val
+maybeOr a b =
+    case b of
+        Just v ->
+            Just v
+
+        Nothing ->
+            a
+
+
+propagateAttributes : Array Measure -> Array Attributes
+propagateAttributes measures =
+    let
+        defaults =
+            Attributes (Just Staff.treble) (Just Time.common)
+
+        fn a b =
+            { staff = maybeOr b.staff a.staff
+            , time = maybeOr b.time a.time
+            }
+    in
+    Array.fromList <|
+        Maybe.withDefault [] <|
+            List.tail <|
+                scanl fn defaults <|
+                    List.map (\m -> m.attributes) <|
+                        Array.toList measures

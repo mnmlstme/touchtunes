@@ -10,7 +10,7 @@ import Debug exposing (log)
 import Icon.SvgAsset as SvgAsset exposing (SvgAsset, svgAsset)
 import Music.Beat as Beat exposing (Beat)
 import Music.Duration as Duration exposing (Duration)
-import Music.Measure.Layout
+import Music.Measure.Layout as Layout
     exposing
         ( Layout
         , Pixels
@@ -260,7 +260,7 @@ notePlacement time dur beat =
     -- place the note in the center of its duration
     let
         half =
-            if dur.divisor > time.getsOneBeat then
+            if dur.divisor > Time.divisor time then
                 Duration.divideBy 2 dur
 
             else
@@ -277,15 +277,7 @@ view layout beat note =
 
         xpos =
             scaleBeat layout <|
-                notePlacement layout.time d beat
-
-        dx =
-            case getShiftX note of
-                Just tenths ->
-                    toPixels layout tenths
-
-                Nothing ->
-                    Pixels 0
+                notePlacement (Layout.time layout) d beat
 
         className =
             case note.do of
@@ -297,7 +289,7 @@ view layout beat note =
     in
     g
         [ class [ className ]
-        , transform [ Translate (xpos.px + dx.px) 0 ]
+        , transform [ Translate xpos.px 0 ]
         ]
         [ case note.do of
             Play p ->
