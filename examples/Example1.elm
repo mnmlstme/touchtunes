@@ -1,11 +1,11 @@
 module Example1 exposing (example)
 
 import Array
-import Music.Duration exposing (dotted, eighth, half, quarter, whole)
-import Music.Measure.Model as Measure
-import Music.Note.Model exposing (playFor, restFor)
-import Music.Part.Model exposing (Part)
-import Music.Pitch
+import Music.Models.Duration exposing (dotted, eighth, half, quarter, whole)
+import Music.Models.Measure as Measure
+import Music.Models.Note exposing (playFor, restFor)
+import Music.Models.Part exposing (Part)
+import Music.Models.Pitch
     exposing
         ( a
         , b
@@ -19,9 +19,9 @@ import Music.Pitch
         , g
         , sharp
         )
-import Music.Score.Model exposing (Score)
-import Music.Staff.Model as Staff
-import Music.Time as Time
+import Music.Models.Score exposing (Score)
+import Music.Models.Staff as Staff
+import Music.Models.Time as Time
 
 
 example : Score

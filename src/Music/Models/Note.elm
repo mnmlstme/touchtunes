@@ -1,4 +1,4 @@
-module Music.Note.Model exposing
+module Music.Models.Note exposing
     ( Note
     , What(..)
     , isPlayed
@@ -6,8 +6,8 @@ module Music.Note.Model exposing
     , restFor
     )
 
-import Music.Duration as Duration exposing (Duration)
-import Music.Pitch as Pitch exposing (Pitch)
+import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Pitch as Pitch exposing (Pitch)
 
 
 type alias Note =

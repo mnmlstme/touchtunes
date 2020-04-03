@@ -1,26 +1,26 @@
-module TouchTunes.Update exposing (update)
+module TouchTunes.Actions.Update exposing (update)
 
 import Array as Array
 import Debug exposing (log)
-import Music.Beat as Beat exposing (Beat, durationFrom)
-import Music.Duration as Duration exposing (Duration)
-import Music.Measure.Layout as Layout
+import Music.Models.Beat as Beat exposing (Beat, durationFrom)
+import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Layout as Layout
     exposing
         ( locationAfter
         , positionToLocation
         )
-import Music.Measure.Model exposing (Measure)
-import Music.Measure.View as MeasureView
-import Music.Note.Model exposing (Note, What(..))
-import Music.Pitch exposing (Pitch, Semitones, fromStepNumber, stepNumber)
-import Music.Score.Model as Score
-import Music.Staff.Model as Staff
-import Music.Time as Time
-import TouchTunes.Action exposing (Msg(..))
-import TouchTunes.Controls as Controls
-import TouchTunes.Dial as Dial
-import TouchTunes.Model as Editor exposing (Editor)
-import TouchTunes.Overlay as Overlay
+import Music.Models.Measure exposing (Measure)
+import Music.Models.Note exposing (Note, What(..))
+import Music.Models.Pitch exposing (Pitch, Semitones, fromStepNumber, stepNumber)
+import Music.Models.Score as Score
+import Music.Models.Staff as Staff
+import Music.Models.Time as Time
+import Music.Views.MeasureView as MeasureView
+import TouchTunes.Actions.Top exposing (Msg(..))
+import TouchTunes.Models.Controls as Controls
+import TouchTunes.Models.Dial as Dial
+import TouchTunes.Models.Editor as Editor exposing (Editor)
+import TouchTunes.Views.OverlayView as Overlay
 
 
 commit : Editor -> Editor

@@ -1,4 +1,4 @@
-module Music.Note.View exposing
+module Music.Views.NoteView exposing
     ( StemOrientation(..)
     , isWhole
     , view
@@ -8,9 +8,9 @@ module Music.Note.View exposing
 import CssModules as CssModules
 import Debug exposing (log)
 import Icon.SvgAsset as SvgAsset exposing (SvgAsset, svgAsset)
-import Music.Beat as Beat exposing (Beat)
-import Music.Duration as Duration exposing (Duration)
-import Music.Measure.Layout as Layout
+import Music.Models.Beat as Beat exposing (Beat)
+import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Layout as Layout
     exposing
         ( Layout
         , Pixels
@@ -23,9 +23,9 @@ import Music.Measure.Layout as Layout
         , spacing
         , toPixels
         )
-import Music.Note.Model exposing (..)
-import Music.Pitch as Pitch exposing (Pitch)
-import Music.Time as Time exposing (Time)
+import Music.Models.Note exposing (..)
+import Music.Models.Pitch as Pitch exposing (Pitch)
+import Music.Models.Time as Time exposing (Time)
 import String
 import TypedSvg
     exposing
@@ -59,59 +59,59 @@ type StemOrientation
 
 
 wholeRest =
-    svgAsset "./Music/Note/tt-rest-whole.svg"
+    svgAsset "./Music/Views/svg/tt-rest-whole.svg"
 
 
 halfRest =
-    svgAsset "./Music/Note/tt-rest-half.svg"
+    svgAsset "./Music/Views/svg/tt-rest-half.svg"
 
 
 quarterRest =
-    svgAsset "./Music/Note/tt-rest-quarter.svg"
+    svgAsset "./Music/Views/svg/tt-rest-quarter.svg"
 
 
 eighthRest =
-    svgAsset "./Music/Note/tt-rest-eighth.svg"
+    svgAsset "./Music/Views/svg/tt-rest-eighth.svg"
 
 
 noteheadClosed =
-    svgAsset "./Music/Note/tt-notehead-closed.svg"
+    svgAsset "./Music/Views/svg/tt-notehead-closed.svg"
 
 
 noteheadOpen =
-    svgAsset "./Music/Note/tt-notehead-open.svg"
+    svgAsset "./Music/Views/svg/tt-notehead-open.svg"
 
 
 singleDot =
-    svgAsset "./Music/Note/tt-dot.svg"
+    svgAsset "./Music/Views/svg/tt-dot.svg"
 
 
 sharp =
-    svgAsset "./Music/Note/tt-sharp.svg"
+    svgAsset "./Music/Views/svg/tt-sharp.svg"
 
 
 flat =
-    svgAsset "./Music/Note/tt-flat.svg"
+    svgAsset "./Music/Views/svg/tt-flat.svg"
 
 
 ledgerLine =
-    svgAsset "./Music/Note/tt-ledger-line.svg"
+    svgAsset "./Music/Views/svg/tt-ledger-line.svg"
 
 
 stemUp =
-    svgAsset "./Music/Note/tt-stem-up.svg"
+    svgAsset "./Music/Views/svg/tt-stem-up.svg"
 
 
 stemDown =
-    svgAsset "./Music/Note/tt-stem-down.svg"
+    svgAsset "./Music/Views/svg/tt-stem-down.svg"
 
 
 stemUp1Flag =
-    svgAsset "./Music/Note/tt-stem-up-1flag.svg"
+    svgAsset "./Music/Views/svg/tt-stem-up-1flag.svg"
 
 
 stemDown1Flag =
-    svgAsset "./Music/Note/tt-stem-down-1flag.svg"
+    svgAsset "./Music/Views/svg/tt-stem-down-1flag.svg"
 
 
 isWhole : Duration -> Bool
@@ -246,7 +246,7 @@ ledgerLines layout p =
 
 css =
     .toString <|
-        CssModules.css "./Music/Note/note.css"
+        CssModules.css "./Music/Views/css/note.css"
             { note = "note"
             , rest = "rest"
             , stem = "stem"

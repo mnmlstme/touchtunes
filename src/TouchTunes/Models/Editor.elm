@@ -1,4 +1,4 @@
-module TouchTunes.Model exposing
+module TouchTunes.Models.Editor exposing
     ( Editor
     , editingMeasure
     , empty
@@ -9,15 +9,15 @@ module TouchTunes.Model exposing
 
 import Array exposing (Array)
 import Debug exposing (log)
-import Music.Beat exposing (Beat)
-import Music.Duration as Duration exposing (Duration)
-import Music.Measure.Layout as Layout exposing (Layout)
-import Music.Measure.Model exposing (Measure, modifyNote)
-import Music.Note.Model exposing (Note)
-import Music.Pitch exposing (Semitones)
-import Music.Score.Model as Score exposing (Score)
+import Music.Models.Beat exposing (Beat)
+import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Layout as Layout exposing (Layout)
+import Music.Models.Measure exposing (Measure, modifyNote)
+import Music.Models.Note exposing (Note)
+import Music.Models.Pitch exposing (Semitones)
+import Music.Models.Score as Score exposing (Score)
 import String
-import TouchTunes.Controls as Controls
+import TouchTunes.Models.Controls as Controls
 
 
 type alias Editor =

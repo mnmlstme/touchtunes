@@ -1,4 +1,4 @@
-module Music.Time exposing
+module Music.Models.Time exposing
     ( BeatType(..)
     , Time
     , common
@@ -7,7 +7,7 @@ module Music.Time exposing
     , toDuration
     )
 
-import Music.Duration exposing (Duration)
+import Music.Models.Duration exposing (Duration)
 import TypedSvg.Core exposing (Svg)
 
 

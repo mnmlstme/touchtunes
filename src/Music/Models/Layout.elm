@@ -1,4 +1,4 @@
-module Music.Measure.Layout exposing
+module Music.Models.Layout exposing
     ( Layout
     , Location
     , Margins
@@ -35,17 +35,17 @@ module Music.Measure.Layout exposing
 import Browser
 import List.Extra exposing (initialize)
 import List.Nonempty as Nonempty exposing (Nonempty)
-import Music.Beat as Beat exposing (Beat)
-import Music.Duration as Duration exposing (Duration, division)
-import Music.Measure.Model as Measure
+import Music.Models.Beat as Beat exposing (Beat)
+import Music.Models.Duration as Duration exposing (Duration, division)
+import Music.Models.Measure as Measure
     exposing
         ( Attributes
         , Measure
         , noAttributes
         )
-import Music.Pitch as Pitch exposing (Pitch, StepNumber)
-import Music.Staff.Model as Staff exposing (Staff)
-import Music.Time as Time exposing (Time)
+import Music.Models.Pitch as Pitch exposing (Pitch, StepNumber)
+import Music.Models.Staff as Staff exposing (Staff)
+import Music.Models.Time as Time exposing (Time)
 import Tuple exposing (first, second)
 import TypedSvg.Types exposing (Length, px)
 

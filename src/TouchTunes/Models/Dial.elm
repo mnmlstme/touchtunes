@@ -1,4 +1,4 @@
-module TouchTunes.Dial exposing
+module TouchTunes.Models.Dial exposing
     ( Action(..)
     , Config
     , Tracking
@@ -129,7 +129,7 @@ faceRadius =
 
 css =
     .toString <|
-        CssModules.css "./TouchTunes/dial.css"
+        CssModules.css "./TouchTunes/Views/css/dial.css"
             { dial = "dial"
             , face = "face"
             , value = "value"

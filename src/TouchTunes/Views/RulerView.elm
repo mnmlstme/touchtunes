@@ -1,11 +1,11 @@
-module TouchTunes.Ruler exposing (view)
+module TouchTunes.Views.RulerView exposing (view)
 
 import CssModules as CssModules
 import Html exposing (Html)
 import List.Nonempty as Nonempty
-import Music.Beat as Beat exposing (Beat)
-import Music.Duration as Duration exposing (Duration)
-import Music.Measure.Layout as Layout exposing (Layout, inPx)
+import Music.Models.Beat as Beat exposing (Beat)
+import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Layout as Layout exposing (Layout, inPx)
 import TypedSvg exposing (g, rect, svg)
 import TypedSvg.Attributes
     exposing
@@ -21,7 +21,7 @@ import TypedSvg.Types exposing (px)
 
 css =
     .toString <|
-        CssModules.css "./TouchTunes/editor.css"
+        CssModules.css "./TouchTunes/Views/css/editor.css"
             { ruler = "ruler"
             }
 

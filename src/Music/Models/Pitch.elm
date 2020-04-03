@@ -1,4 +1,4 @@
-module Music.Pitch exposing
+module Music.Models.Pitch exposing
     ( Pitch
     , Semitones
     , StepNumber

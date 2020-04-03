@@ -1,4 +1,4 @@
-module TouchTunes.Controls exposing
+module TouchTunes.Models.Controls exposing
     ( Tracking
     , inactive
     , updateAlterationDial
@@ -9,22 +9,22 @@ module TouchTunes.Controls exposing
 
 import Array as Array
 import Html exposing (Html)
-import Music.Duration
+import Music.Models.Duration
     exposing
         ( Duration
         , eighth
         , half
         , quarter
         )
-import Music.Measure.Layout as Layout exposing (Layout)
-import Music.Measure.Model as Measure
-import Music.Note.View exposing (StemOrientation(..), isWhole, viewNote)
-import Music.Pitch as Pitch exposing (Semitones, alter)
-import Music.Staff.Model as Staff
-import Music.Time as Time
-import TouchTunes.Action exposing (Msg(..))
-import TouchTunes.Dial as Dial
-import TouchTunes.Overlay as Overlay
+import Music.Models.Layout as Layout exposing (Layout)
+import Music.Models.Measure as Measure
+import Music.Models.Pitch as Pitch exposing (Semitones, alter)
+import Music.Models.Staff as Staff
+import Music.Models.Time as Time
+import Music.Views.NoteView exposing (StemOrientation(..), isWhole, viewNote)
+import TouchTunes.Actions.Top exposing (Msg(..))
+import TouchTunes.Models.Dial as Dial
+import TouchTunes.Views.OverlayView as Overlay
 import TypedSvg exposing (g)
 import TypedSvg.Attributes exposing (transform)
 import TypedSvg.Core exposing (Svg)

@@ -14,10 +14,10 @@ import Html
         , text
         )
 import Html.Events exposing (onClick)
-import TouchTunes.Action as TTAction
-import TouchTunes.Model as Editor exposing (Editor)
-import TouchTunes.Update as EditorUpdate
-import TouchTunes.View as EditorView
+import TouchTunes.Actions.Top as TTAction
+import TouchTunes.Models.Editor as Editor exposing (Editor)
+import TouchTunes.Actions.Update as EditorUpdate
+import TouchTunes.Views.EditorView as EditorView
 
 
 

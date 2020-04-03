@@ -1,4 +1,4 @@
-module Music.Beat exposing
+module Music.Models.Beat exposing
     ( Beat
     , add
     , durationFrom
@@ -15,8 +15,8 @@ module Music.Beat exposing
     , zero
     )
 
-import Music.Duration as Duration exposing (Duration)
-import Music.Time as Time exposing (Time)
+import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Time as Time exposing (Time)
 
 
 type alias Beat =

@@ -1,10 +1,10 @@
-module Music.Staff.Model exposing
+module Music.Models.Staff exposing
     ( Staff
     , bass
     , treble
     )
 
-import Music.Pitch as Pitch exposing (Pitch)
+import Music.Models.Pitch as Pitch exposing (Pitch)
 
 
 type alias Staff =

@@ -1,4 +1,4 @@
-module Music.Score.Model exposing
+module Music.Models.Score exposing
     ( Score
     , countParts
     , empty
@@ -11,8 +11,8 @@ module Music.Score.Model exposing
     )
 
 import Array as Array exposing (Array)
-import Music.Measure.Model exposing (Measure)
-import Music.Part.Model as Part exposing (Part)
+import Music.Models.Measure exposing (Measure)
+import Music.Models.Part as Part exposing (Part)
 
 
 type alias Score =

@@ -1,4 +1,4 @@
-module TouchTunes.Overlay exposing
+module TouchTunes.Views.OverlayView exposing
     ( Track
     , Tracking
     , pointerCoordinates
@@ -8,9 +8,9 @@ module TouchTunes.Overlay exposing
 import CssModules as CssModules
 import Html.Events.Extra.Pointer as Pointer
 import List.Extra exposing (find)
-import Music.Beat as Beat exposing (Beat)
-import Music.Duration as Duration exposing (Duration, quarter)
-import Music.Measure.Layout as Layout
+import Music.Models.Beat as Beat exposing (Beat)
+import Music.Models.Duration as Duration exposing (Duration, quarter)
+import Music.Models.Layout as Layout
     exposing
         ( Layout
         , Location
@@ -20,9 +20,9 @@ import Music.Measure.Layout as Layout
         , inPx
         , scaleBeat
         )
-import Music.Measure.Model as Measure exposing (Measure, toSequence)
-import Music.Measure.View as MeasureView
-import TouchTunes.Action as Action exposing (Msg(..))
+import Music.Models.Measure as Measure exposing (Measure, toSequence)
+import Music.Views.MeasureView as MeasureView
+import TouchTunes.Actions.Top as Action exposing (Msg(..))
 import Tuple exposing (pair)
 import TypedSvg
     exposing
@@ -61,7 +61,7 @@ pointerCoordinates event =
 
 css =
     .toString <|
-        CssModules.css "./TouchTunes/editor.css"
+        CssModules.css "./TouchTunes/Views/css/editor.css"
             { overlay = "overlay"
             , selection = "selection"
             }

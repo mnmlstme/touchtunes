@@ -1,4 +1,4 @@
-module Music.Measure.Model exposing
+module Music.Models.Measure exposing
     ( Attributes
     , Measure
     , Sequence
@@ -18,11 +18,11 @@ module Music.Measure.Model exposing
 import Debug exposing (log)
 import List.Extra exposing (find, scanl)
 import List.Nonempty as Nonempty exposing (Nonempty)
-import Music.Beat as Beat exposing (Beat)
-import Music.Duration as Duration exposing (Duration)
-import Music.Note.Model as Note exposing (Note, restFor)
-import Music.Staff.Model as Staff exposing (Staff)
-import Music.Time as Time exposing (Time)
+import Music.Models.Beat as Beat exposing (Beat)
+import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Note as Note exposing (Note, restFor)
+import Music.Models.Staff as Staff exposing (Staff)
+import Music.Models.Time as Time exposing (Time)
 
 
 type alias Measure =

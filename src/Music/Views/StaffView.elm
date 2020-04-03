@@ -1,7 +1,7 @@
-module Music.Staff.View exposing (draw)
+module Music.Views.StaffView exposing (draw)
 
 import CssModules as CssModules
-import Music.Measure.Layout as Layout
+import Music.Models.Layout as Layout
     exposing
         ( Layout
         , Pixels
@@ -22,7 +22,7 @@ draw layout =
     let
         css =
             .toString <|
-                CssModules.css "./Music/Staff/staff.css"
+                CssModules.css "./Music/Views/css/staff.css"
                     { staff = "staff"
                     , barline = "barline"
                     , lines = "lines"

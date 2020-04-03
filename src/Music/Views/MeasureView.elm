@@ -1,4 +1,4 @@
-module Music.Measure.View exposing
+module Music.Views.MeasureView exposing
     ( view
     , viewTime
     )
@@ -8,18 +8,18 @@ import Debug exposing (log)
 import Html exposing (Html, div, text)
 import Html.Attributes exposing (class, style)
 import List.Nonempty as Nonempty
-import Music.Beat as Beat
-import Music.Measure.Layout as Layout
+import Music.Models.Beat as Beat
+import Music.Models.Layout as Layout
     exposing
         ( Layout
         , Pixels
         , inPx
         )
-import Music.Measure.Model as Measure exposing (..)
-import Music.Note.View as NoteView
-import Music.Staff.Model as Staff
-import Music.Staff.View as StaffView
-import Music.Time as Time exposing (Time)
+import Music.Models.Measure as Measure exposing (..)
+import Music.Models.Staff as Staff
+import Music.Models.Time as Time exposing (Time)
+import Music.Views.NoteView as NoteView
+import Music.Views.StaffView as StaffView
 import String exposing (fromInt)
 import TypedSvg exposing (g, svg, text_)
 import TypedSvg.Attributes as SvgAttr
@@ -37,7 +37,7 @@ import TypedSvg.Types exposing (Transform(..), px)
 
 css =
     .toString <|
-        CssModules.css "./Music/Measure/measure.css"
+        CssModules.css "./Music/Views/css/measure.css"
             { measure = "measure"
             , staff = "staff"
             , overflow = "overflow"

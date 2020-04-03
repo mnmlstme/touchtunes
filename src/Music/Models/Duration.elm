@@ -1,4 +1,4 @@
-module Music.Duration exposing
+module Music.Models.Duration exposing
     ( Duration
     , add
     , divideBy

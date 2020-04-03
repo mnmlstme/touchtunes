@@ -1,4 +1,4 @@
-module TouchTunes.View exposing (view)
+module TouchTunes.Views.EditorView exposing (view)
 
 import Array exposing (Array)
 import Array.Extra
@@ -24,24 +24,24 @@ import Html.Attributes exposing (class, classList)
 import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Nonempty as Nonempty exposing (Nonempty)
-import Music.Measure.Layout as Layout exposing (Layout)
-import Music.Measure.Model as Measure exposing (Measure)
-import Music.Measure.View as MeasureView
-import Music.Part.Model as Part exposing (Part, propagateAttributes)
-import Music.Score.Model as Score exposing (Score)
-import Music.Time as Time
-import TouchTunes.Action as Action exposing (Msg(..))
-import TouchTunes.Controls as Controls
-import TouchTunes.Dial as Dial
-import TouchTunes.Model as Editor exposing (Editor)
-import TouchTunes.Overlay as Overlay exposing (pointerCoordinates)
-import TouchTunes.Ruler as Ruler
+import Music.Models.Layout as Layout exposing (Layout)
+import Music.Models.Measure as Measure exposing (Measure)
+import Music.Models.Part as Part exposing (Part, propagateAttributes)
+import Music.Models.Score as Score exposing (Score)
+import Music.Models.Time as Time
+import Music.Views.MeasureView as MeasureView
+import TouchTunes.Actions.Top as Action exposing (Msg(..))
+import TouchTunes.Models.Controls as Controls
+import TouchTunes.Models.Dial as Dial
+import TouchTunes.Models.Editor as Editor exposing (Editor)
+import TouchTunes.Views.OverlayView as Overlay exposing (pointerCoordinates)
+import TouchTunes.Views.RulerView as Ruler
 import Tuple exposing (pair)
 
 
 partCss =
     .toString <|
-        CssModules.css "./Music/Part/part.css"
+        CssModules.css "./Music/Views/css/part.css"
             { part = "part"
             , header = "header"
             , abbrev = "abbrev"
@@ -51,7 +51,7 @@ partCss =
 
 frameCss =
     .toString <|
-        CssModules.css "./TouchTunes/frame.css"
+        CssModules.css "./TouchTunes/Views/css/frame.css"
             { frame = "frame"
             , header = "header"
             , body = "body"
@@ -61,7 +61,7 @@ frameCss =
 
 scoreCss =
     .toString <|
-        CssModules.css "./Music/Score/score.css"
+        CssModules.css "./Music/Views/css/score.css"
             { title = "title"
             , parts = "parts"
             , stats = "stats"
@@ -70,7 +70,7 @@ scoreCss =
 
 editorCss =
     .toString <|
-        CssModules.css "./TouchTunes/editor.css"
+        CssModules.css "./TouchTunes/Views/css/editor.css"
             { editor = "editor" }
 
 

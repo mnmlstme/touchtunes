@@ -1,4 +1,4 @@
-module Music.Part.Model exposing
+module Music.Models.Part exposing
     ( Part
     , empty
     , length
@@ -10,9 +10,9 @@ module Music.Part.Model exposing
 import Array exposing (Array)
 import Debug exposing (log)
 import List.Extra exposing (scanl)
-import Music.Measure.Model as Measure exposing (Attributes, Measure)
-import Music.Staff.Model as Staff
-import Music.Time as Time
+import Music.Models.Measure as Measure exposing (Attributes, Measure)
+import Music.Models.Staff as Staff
+import Music.Models.Time as Time
 
 
 type alias Part =
