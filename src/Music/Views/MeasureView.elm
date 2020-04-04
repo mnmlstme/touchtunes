@@ -75,6 +75,9 @@ viewTime layout time =
 view : Layout -> Measure -> Html msg
 view layout measure =
     let
+        t =
+            Layout.time layout
+
         w =
             Layout.width layout
 
@@ -92,7 +95,8 @@ view layout measure =
                 NoteView.view layout beat note
 
         noteSequence =
-            toSequence (Layout.time layout) measure
+            List.map (\( d, n ) -> ( Beat.fromDuration t d, n )) <|
+                toSequence measure
     in
     div [ class <| css .measure ]
         [ if overflowWidth > 0 then

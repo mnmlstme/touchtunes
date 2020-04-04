@@ -70,8 +70,12 @@ css =
 view : Layout -> Measure -> Beat -> Svg Msg
 view layout measure beat =
     let
+        t =
+            Layout.time layout
+
         seq =
-            toSequence (Layout.time layout) measure
+            List.map (\( d, n ) -> ( Beat.fromDuration t d, n )) <|
+                toSequence measure
 
         sameBeat ( b, _ ) =
             Beat.equal beat b

@@ -9,7 +9,7 @@ module TouchTunes.Models.Editor exposing
 
 import Array exposing (Array)
 import Debug exposing (log)
-import Music.Models.Beat exposing (Beat)
+import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure exposing (Measure, modifyNote)
@@ -86,8 +86,11 @@ measure editor =
                 case editor.layout of
                     Just layout ->
                         let
+                            t =
+                                Layout.time layout
+
                             fn =
-                                modifyNote modifier (Layout.time layout) cursor
+                                modifyNote modifier (Beat.toDuration t cursor)
                         in
                         Maybe.map fn m
 

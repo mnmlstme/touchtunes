@@ -390,7 +390,8 @@ unscaleBeat layout x =
 
 divisorFor : Time -> Measure -> Int -> Int
 divisorFor t measure i =
-    Measure.startingBeats t measure
+    Measure.offsets measure
+        |> Nonempty.map (Beat.fromDuration t)
         |> Nonempty.filter (\b -> b.full == i) (Beat.fullBeat 1)
         |> Nonempty.map (\b -> b.divisor)
         |> Nonempty.foldl max 1
@@ -401,9 +402,26 @@ fitTime t measure =
     -- compute a new time signature that notes will fit in
     let
         beats =
-            Measure.length t measure
+            length t measure
     in
     Beat.fitToTime t beats
+
+
+length : Time -> Measure -> Beat
+length t measure =
+    -- count the total number of beats in a measure
+    let
+        tdur =
+            Time.toDuration t
+
+        mdur =
+            Measure.length measure
+    in
+    if Duration.longerThan tdur mdur then
+        Beat.fromDuration t <| mdur
+
+    else
+        Beat.fullBeat t.beats
 
 
 forMeasure : Attributes -> Measure -> Layout

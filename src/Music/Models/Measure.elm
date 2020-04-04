@@ -10,15 +10,13 @@ module Music.Models.Measure exposing
     , modifyNote
     , new
     , noAttributes
-    , notesLength
-    , startingBeats
+    , offsets
     , toSequence
     )
 
 import Debug exposing (log)
 import List.Extra exposing (find, scanl)
 import List.Nonempty as Nonempty exposing (Nonempty)
-import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Note as Note exposing (Note, restFor)
 import Music.Models.Staff as Staff exposing (Staff)
@@ -76,16 +74,18 @@ fromNotes attrs notes =
             Measure attrs nonempty
 
 
-
--- time : Measure -> Time
--- time measure =
---     -- the time (signature) for a measure
---     -- TODO get default from Timeline
---     Maybe.withDefault Time.common measure.attributes.time
+type alias Offset =
+    -- duration from start of the measure
+    Duration
 
 
-notesLength : Measure -> Duration
-notesLength measure =
+type alias Sequence =
+    -- (possibly empty) lists of (Offset, Note) pairs
+    List ( Offset, Note )
+
+
+length : Measure -> Offset
+length measure =
     -- sum of the duration of all notes in measure
     let
         durs =
@@ -94,26 +94,9 @@ notesLength measure =
     Nonempty.foldl1 Duration.add durs
 
 
-length : Time -> Measure -> Beat
-length t measure =
-    -- count the total number of beats in a measure
-    let
-        tdur =
-            Time.toDuration t
-
-        mdur =
-            notesLength measure
-    in
-    if Duration.longerThan tdur mdur then
-        Beat.fromDuration t <| mdur
-
-    else
-        Beat.fullBeat t.beats
-
-
-startingBeats : Time -> Measure -> Nonempty Beat
-startingBeats t measure =
-    -- gives the starting beat for each note
+offsets : Measure -> Nonempty Offset
+offsets measure =
+    -- gives the starting offset () for each note
     let
         beats =
             Nonempty.map .duration measure.notes
@@ -122,91 +105,72 @@ startingBeats t measure =
             Nonempty.head beats
 
         tail =
-            List.map (Beat.fromDuration t) <|
-                scanl Duration.add head <|
-                    Nonempty.tail beats
+            scanl Duration.add head <|
+                Nonempty.tail beats
     in
-    Nonempty.Nonempty Beat.zero tail
+    Nonempty.Nonempty Duration.zero tail
 
 
-type alias Sequence =
-    -- (possibly empty) lists of (Beat, Note) pairs
-    List ( Beat, Note )
-
-
-toSequence : Time -> Measure -> Sequence
-toSequence t measure =
-    let
-        startsAt =
-            startingBeats t measure
-    in
+toSequence : Measure -> Sequence
+toSequence measure =
     Nonempty.toList <|
-        Nonempty.map2 (\a b -> ( a, b )) startsAt measure.notes
+        Nonempty.map2 (\a b -> ( a, b )) (offsets measure) measure.notes
 
 
 fromSequence : Attributes -> Sequence -> Measure
 fromSequence attrs sequence =
-    let
-        justNotes seq =
-            List.map (\( b, n ) -> n) seq
-    in
-    fromNotes attrs <| justNotes sequence
+    fromNotes attrs <|
+        List.map (\( b, n ) -> n) sequence
 
 
-findNote : Time -> Beat -> Measure -> Maybe Note
-findNote t beat measure =
-    let
-        seq =
-            toSequence t measure
-
-        sameBeat ( b, _ ) =
-            Beat.equal beat b
-    in
-    Maybe.map (\( _, n ) -> n)
-        (find sameBeat seq)
+findNote : Offset -> Measure -> Maybe Note
+findNote offset measure =
+    Maybe.map (\( _, n ) -> n) <|
+        find (\( d, _ ) -> Duration.equal offset d) <|
+            toSequence measure
 
 
-modifyNote : (Note -> Note) -> Time -> Beat -> Measure -> Measure
-modifyNote f t beat measure =
+modifyNote : (Note -> Note) -> Offset -> Measure -> Measure
+modifyNote f offset measure =
     let
         seq =
-            toSequence t measure
+            toSequence measure
 
         note =
             Maybe.withDefault
                 (Note.restFor Duration.quarter)
-                (findNote t beat measure)
+                (findNote offset measure)
     in
-    spliceSequence t ( beat, f note ) seq
+    spliceSequence ( offset, f note ) seq
         |> fromSequence measure.attributes
         |> aggregateRests
 
 
-spliceNote : Time -> ( Beat, Note ) -> ( Beat, Note ) -> Sequence
-spliceNote t ( b0, n0 ) ( b1, n1 ) =
+spliceNote : ( Offset, Note ) -> ( Offset, Note ) -> Sequence
+spliceNote ( b0, n0 ) ( b1, n1 ) =
     let
         e0 =
-            Beat.add t n0.duration b0
+            Duration.add n0.duration b0
 
         e1 =
-            Beat.add t n1.duration b1
+            Duration.add n1.duration b1
 
         clipFromTo b e n =
-            { n | duration = Beat.durationFrom t b e }
+            { n | duration = Duration.subtract b e }
 
         restFromTo b e _ =
-            restFor <| Beat.durationFrom t b e
+            restFor <| Duration.subtract b e
     in
-    if not <| Beat.laterThan b0 e1 then
+    if not <| Duration.longerThan b0 e1 then
         -- no intersection
         [ ( b1, n1 ) ]
 
-    else if not <| Beat.laterThan b1 e0 then
+    else if not <| Duration.longerThan b1 e0 then
         -- no intersection
         [ ( b1, n1 ) ]
 
-    else if Beat.equal b0 b1 then
-        if Beat.earlierThan e1 e0 then
+    else if Duration.equal b0 b1 then
+        if Duration.shorterThan e1 e0 then
             -- insert n0 and rest for the remainder of n1
             [ ( b0, n0 )
             , ( e0, restFromTo e0 e1 n1 )
@@ -216,8 +180,8 @@ spliceNote t ( b0, n0 ) ( b1, n1 ) =
             -- replace n1 with n0
             [ ( b0, n0 ) ]
 
-    else if Beat.earlierThan b0 b1 then
-        if Beat.earlierThan e1 e0 then
+    else if Duration.shorterThan b0 b1 then
+        if Duration.shorterThan e1 e0 then
             -- split n1 into two and insert n0 in the middle
             [ ( b1, clipFromTo b1 b0 n1 )
             , ( b0, n0 )
@@ -230,7 +194,7 @@ spliceNote t ( b0, n0 ) ( b1, n1 ) =
             , ( b0, n0 )
             ]
 
-    else if Beat.earlierThan e1 e0 then
+    else if Duration.shorterThan e1 e0 then
         -- clip off beginning of n1
         [ ( e0, clipFromTo e0 e1 n1 ) ]
 
@@ -239,9 +203,9 @@ spliceNote t ( b0, n0 ) ( b1, n1 ) =
         []
 
 
-spliceSequence : Time -> ( Beat, Note ) -> Sequence -> Sequence
-spliceSequence t bn seq =
-    List.map (spliceNote t bn) seq
+spliceSequence : ( Offset, Note ) -> Sequence -> Sequence
+spliceSequence bn seq =
+    List.map (spliceNote bn) seq
         |> List.concat
 
 
