@@ -5,6 +5,7 @@ module TouchTunes.Models.Overlay exposing
     , finish
     , fromLayout
     , start
+    , subdivide
     )
 
 import Music.Models.Beat as Beat exposing (Beat)
@@ -36,6 +37,20 @@ type alias Overlay =
 fromLayout : Layout -> Overlay
 fromLayout layout =
     Overlay layout Nothing
+
+
+subdivide : Duration -> Overlay -> Overlay
+subdivide duration overlay =
+    let
+        time =
+            Layout.time overlay.layout
+
+        l =
+            Layout.subdivide
+                (duration.divisor // Time.divisor time)
+                overlay.layout
+    in
+    { overlay | layout = l }
 
 
 deselect : Overlay -> Overlay

@@ -21,8 +21,15 @@
     cursor: cell;
 }
 
+.underlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #fffff4;
+}
+
 .area {
-    fill: rgba(255,255,224,0.2);
+    fill: rgba(255,255,255,0.05);
     stroke: #d4e6f5;
 }
 

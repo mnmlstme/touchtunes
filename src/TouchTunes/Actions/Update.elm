@@ -62,7 +62,10 @@ update msg editor =
             { editor
                 | partNum = partNum
                 , measureNum = measureNum
-                , overlay = Just <| Overlay.fromLayout layout
+                , overlay =
+                    Just <|
+                        Overlay.subdivide editor.settings.subdivision <|
+                            Overlay.fromLayout layout
             }
 
         NoteEdit pos ->
@@ -96,7 +99,16 @@ update msg editor =
             { editor | overlay = Maybe.map Overlay.deselect editor.overlay }
 
         ChangeSubdivision dur ->
-            { editor | settings = setSubdivision dur editor.settings }
+            let
+                ed =
+                    { editor | settings = setSubdivision dur editor.settings }
+
+                overlay =
+                    Maybe.map
+                        (Overlay.subdivide dur)
+                        ed.overlay
+            in
+            { ed | overlay = overlay }
 
         SubdivisionMsg dialAction ->
             let

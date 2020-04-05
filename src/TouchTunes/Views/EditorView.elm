@@ -35,7 +35,7 @@ import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Dial as Dial
 import TouchTunes.Models.Editor as Editor exposing (Editor)
 import TouchTunes.Views.OverlayView as OverlayView exposing (pointerCoordinates)
-import TouchTunes.Views.RulerView as Ruler
+import TouchTunes.Views.RulerView as RulerView
 import Tuple exposing (pair)
 
 
@@ -156,24 +156,17 @@ viewMeasure editor i j ( layout, measure ) =
         ed =
             Editor.forMeasure i j editor
 
-        m =
-            Maybe.withDefault measure <|
-                Editor.editingMeasure i j editor
-
         l =
-            case ed of
-                Just e ->
-                    let
-                        t =
-                            Layout.time layout
-
-                        div =
-                            e.settings.subdivision.divisor // Time.divisor t
-                    in
-                    Layout.subdivide div layout
+            case Maybe.andThen .overlay ed of
+                Just overlay ->
+                    overlay.layout
 
                 Nothing ->
                     layout
+
+        m =
+            Maybe.withDefault measure <|
+                Editor.editingMeasure i j editor
 
         downHandler =
             Pointer.onDown <|
@@ -181,12 +174,14 @@ viewMeasure editor i j ( layout, measure ) =
     in
     div
         [ class <| editorCss .editor, downHandler ]
-        [ MeasureView.view layout m
-        , case Maybe.andThen .overlay ed of
+        (case Maybe.andThen .overlay ed of
             Just overlay ->
-                OverlayView.view m overlay
+                [ OverlayView.underlay l
+                , MeasureView.view l m
+                , OverlayView.view m overlay
+                , RulerView.view l
+                ]
 
             Nothing ->
-                text ""
-        , Ruler.view l
-        ]
+                [ MeasureView.view layout measure ]
+        )

@@ -1,5 +1,6 @@
 module TouchTunes.Views.OverlayView exposing
     ( pointerCoordinates
+    , underlay
     , view
     )
 
@@ -53,6 +54,7 @@ css =
     .toString <|
         CssModules.css "./TouchTunes/Views/css/editor.css"
             { overlay = "overlay"
+            , underlay = "underlay"
             , selection = "selection"
             , area = "area"
             }
@@ -161,11 +163,21 @@ view measure overlay =
                     [ class [ css .selection ]
                     , x <| inPx <| scaleBeat overlay.layout selection.location.beat
                     , y <| px 0
-                    , height <| inPx <| Layout.height overlay.layout
-                    , width <| inPx <| durationSpacing overlay.layout duration
+                    , height <| inPx <| Layout.height layout
+                    , width <| inPx <| durationSpacing layout duration
                     ]
                     []
 
             Nothing ->
                 text ""
         ]
+
+
+underlay : Layout -> Svg msg
+underlay layout =
+    svg
+        [ class [ css .underlay ]
+        , height <| inPx <| Layout.height layout
+        , width <| inPx <| Layout.width layout
+        ]
+        []

@@ -104,7 +104,7 @@ basePitch layout =
 
 subdivide : Int -> Layout -> Layout
 subdivide div layout =
-    { layout | divisors = Nonempty.map (\d -> max d div) layout.divisors }
+    { layout | divisors = Nonempty.map (\d -> max 1 div) layout.divisors }
 
 
 toPixels : Layout -> Tenths -> Pixels
