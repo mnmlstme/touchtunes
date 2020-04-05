@@ -3,8 +3,10 @@ module TouchTunes.Models.Controls exposing
     , inactive
     , updateAlterationDial
     , updateSubdivisionDial
+    , updateTimeDial
     , viewAlterationDial
     , viewSubdivisionDial
+    , viewTimeDial
     )
 
 import Array as Array
@@ -20,7 +22,8 @@ import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure
 import Music.Models.Pitch as Pitch exposing (Semitones, alter)
 import Music.Models.Staff as Staff
-import Music.Models.Time as Time
+import Music.Models.Time as Time exposing (BeatType(..), Time)
+import Music.Views.MeasureView as MeasureView
 import Music.Views.NoteView exposing (StemOrientation(..), isWhole, viewNote)
 import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.Dial as Dial
@@ -33,12 +36,14 @@ import TypedSvg.Types exposing (Transform(..), px)
 type alias Tracking =
     { subdivisionDial : Dial.Tracking
     , alterationDial : Dial.Tracking
+    , timeDial : Dial.Tracking
     }
 
 
 inactive : Tracking
 inactive =
     Tracking
+        Nothing
         Nothing
         Nothing
 
@@ -127,3 +132,50 @@ viewAlteration alt =
     g
         [ transform [ Translate 0 (-0.5 * staffHeight.px) ] ]
         [ viewNote layout quarter pitch ]
+
+
+
+-- alterationDial: sets alteration (sharp/flat/natural)
+
+
+timeDial : Dial.Config Time msg
+timeDial =
+    { options =
+        Array.fromList
+            [ Time.cut
+            , Time 2 Four
+            , Time 3 Four
+            , Time.common
+            , Time 5 Four
+            , Time 6 Eight
+            , Time 7 Eight
+            , Time 9 Eight
+            ]
+    , segments = 10
+    , viewValue = viewTime
+    }
+
+
+viewTimeDial =
+    Dial.view timeDial TimeMsg
+
+
+updateTimeDial =
+    Dial.update timeDial ChangeTime
+
+
+viewTime : Time -> Svg msg
+viewTime time =
+    let
+        staffHeight =
+            Layout.height layout
+
+        m =
+            Layout.margins layout
+
+        sp =
+            Layout.spacing layout
+    in
+    g
+        [ transform [ Translate (-1.0 * sp.px) (m.top.px - 0.5 * staffHeight.px) ] ]
+        [ MeasureView.viewTime layout <| Just time ]

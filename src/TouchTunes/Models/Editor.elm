@@ -8,6 +8,7 @@ module TouchTunes.Models.Editor exposing
     , originalMeasure
     , setAlteration
     , setSubdivision
+    , setTime
     )
 
 import Array exposing (Array)
@@ -15,10 +16,11 @@ import Debug exposing (log)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Layout as Layout exposing (Layout)
-import Music.Models.Measure exposing (Measure, modifyNote)
+import Music.Models.Measure as Measure exposing (Measure, modifyNote)
 import Music.Models.Note exposing (Note)
 import Music.Models.Pitch exposing (Semitones)
 import Music.Models.Score as Score exposing (Score)
+import Music.Models.Time as Time exposing (Time)
 import String
 import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Overlay exposing (Overlay)
@@ -27,11 +29,15 @@ import TouchTunes.Models.Overlay exposing (Overlay)
 type alias Settings =
     { subdivision : Duration
     , alteration : Semitones
+    , time : Time
     }
 
 
 initialSettings =
-    Settings Duration.quarter 0
+    Settings
+        Duration.quarter
+        0
+        Time.common
 
 
 setSubdivision : Duration -> Settings -> Settings
@@ -42,6 +48,11 @@ setSubdivision dur settings =
 setAlteration : Semitones -> Settings -> Settings
 setAlteration semi settings =
     { settings | alteration = semi }
+
+
+setTime : Time -> Settings -> Settings
+setTime time settings =
+    { settings | time = time }
 
 
 type alias Editor =
@@ -88,12 +99,18 @@ open score =
 measure : Editor -> Maybe Measure
 measure editor =
     let
-        m =
+        original =
             originalMeasure editor
     in
     log "Editor.measure editor" <|
         case editor.overlay of
             Just overlay ->
+                let
+                    m =
+                        Maybe.map
+                            (Measure.withAttributes overlay.layout.direct)
+                            original
+                in
                 case overlay.selection of
                     Just selection ->
                         let
@@ -111,7 +128,7 @@ measure editor =
                         m
 
             Nothing ->
-                m
+                original
 
 
 originalMeasure : Editor -> Maybe Measure

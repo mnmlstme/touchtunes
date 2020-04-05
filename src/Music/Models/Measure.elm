@@ -12,6 +12,7 @@ module Music.Models.Measure exposing
     , noAttributes
     , offsets
     , toSequence
+    , withAttributes
     )
 
 import Debug exposing (log)
@@ -72,6 +73,11 @@ fromNotes attrs notes =
 
         Just nonempty ->
             Measure attrs nonempty
+
+
+withAttributes : Attributes -> Measure -> Measure
+withAttributes attrs measure =
+    { measure | attributes = attrs }
 
 
 type alias Offset =

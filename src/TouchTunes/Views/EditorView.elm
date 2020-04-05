@@ -80,9 +80,6 @@ view editor =
         s =
             editor.score
 
-        tracking =
-            editor.tracking
-
         nParts =
             Score.countParts s
 
@@ -114,16 +111,42 @@ view editor =
           <|
             Array.toList <|
                 Array.indexedMap (viewPart editor) editor.score.parts
-        , nav
-            [ class <| frameCss .controls ]
-            [ Controls.viewSubdivisionDial
-                tracking.subdivisionDial
-                editor.settings.subdivision
-            , Controls.viewAlterationDial
-                tracking.alterationDial
-                editor.settings.alteration
-            ]
+        , viewControls editor
         ]
+
+
+viewControls : Editor -> Html Msg
+viewControls editor =
+    let
+        tracking =
+            editor.tracking
+    in
+    nav
+        [ class <| frameCss .controls ]
+        (case editor.overlay of
+            Just overlay ->
+                List.append
+                    (case overlay.selection of
+                        Just selection ->
+                            [ Controls.viewAlterationDial
+                                tracking.alterationDial
+                                editor.settings.alteration
+                            ]
+
+                        Nothing ->
+                            [ Controls.viewTimeDial
+                                tracking.timeDial
+                                editor.settings.time
+                            ]
+                    )
+                    [ Controls.viewSubdivisionDial
+                        tracking.subdivisionDial
+                        editor.settings.subdivision
+                    ]
+
+            Nothing ->
+                []
+        )
 
 
 viewPart : Editor -> Int -> Part -> Html Msg

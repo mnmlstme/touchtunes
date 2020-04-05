@@ -24,6 +24,7 @@ import TouchTunes.Models.Editor as Editor
         ( Editor
         , setAlteration
         , setSubdivision
+        , setTime
         )
 import TouchTunes.Models.Overlay as Overlay
 
@@ -56,6 +57,9 @@ update msg editor =
 
         activateAlterationDial activation =
             { tracking | alterationDial = activation }
+
+        activateTimeDial activation =
+            { tracking | timeDial = activation }
     in
     case log "msg" msg of
         StartEdit partNum measureNum layout ->
@@ -153,13 +157,14 @@ update msg editor =
                                 Rest ->
                                     selection
                     in
-                    { ed
-                        | overlay =
-                            Just
-                                { overlay
-                                    | selection = Maybe.map modifier overlay.selection
-                                }
-                    }
+                    commit
+                        { ed
+                            | overlay =
+                                Just
+                                    { overlay
+                                        | selection = Maybe.map modifier overlay.selection
+                                    }
+                        }
 
                 Nothing ->
                     ed
@@ -174,6 +179,49 @@ update msg editor =
 
                 updated =
                     { editor | tracking = activateAlterationDial act }
+            in
+            case maybeMsg of
+                Just theMsg ->
+                    update theMsg updated
+
+                Nothing ->
+                    updated
+
+        ChangeTime time ->
+            let
+                ed =
+                    { editor | settings = setTime time editor.settings }
+            in
+            case editor.overlay of
+                Just overlay ->
+                    let
+                        layout =
+                            overlay.layout
+
+                        direct =
+                            layout.direct
+
+                        attrs =
+                            { direct | time = Just time }
+                    in
+                    commit
+                        { ed
+                            | overlay = Just { overlay | layout = { layout | direct = attrs } }
+                        }
+
+                Nothing ->
+                    ed
+
+        TimeMsg dialAction ->
+            let
+                ( act, maybeMsg ) =
+                    Controls.updateTimeDial
+                        tracking.timeDial
+                        editor.settings.time
+                        dialAction
+
+                updated =
+                    { editor | tracking = activateTimeDial act }
             in
             case maybeMsg of
                 Just theMsg ->

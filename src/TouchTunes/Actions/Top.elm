@@ -5,6 +5,7 @@ import Music.Models.Duration exposing (Duration)
 import Music.Models.Layout exposing (Layout, Location)
 import Music.Models.Note exposing (Note)
 import Music.Models.Pitch exposing (Pitch, Semitones)
+import Music.Models.Time exposing (Time)
 import TouchTunes.Models.Dial as Dial
 
 
@@ -18,3 +19,5 @@ type Msg
     | ChangeSubdivision Duration
     | AlterationMsg Dial.Action
     | ChangeAlteration Semitones
+    | TimeMsg Dial.Action
+    | ChangeTime Time
