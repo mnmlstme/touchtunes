@@ -1,11 +1,10 @@
 module TouchTunes.Views.OverlayView exposing
-    ( Track
-    , Tracking
-    , pointerCoordinates
+    ( pointerCoordinates
     , view
     )
 
 import CssModules as CssModules
+import Html exposing (text)
 import Html.Events.Extra.Pointer as Pointer
 import List.Extra exposing (find)
 import Music.Models.Beat as Beat exposing (Beat)
@@ -23,6 +22,7 @@ import Music.Models.Layout as Layout
 import Music.Models.Measure as Measure exposing (Measure, toSequence)
 import Music.Views.MeasureView as MeasureView
 import TouchTunes.Actions.Top as Action exposing (Msg(..))
+import TouchTunes.Models.Overlay exposing (Overlay)
 import Tuple exposing (pair)
 import TypedSvg
     exposing
@@ -44,16 +44,6 @@ import TypedSvg.Core exposing (Svg)
 import TypedSvg.Types exposing (Transform(..), px)
 
 
-type alias Track =
-    { beat : Beat
-    , location : Location
-    }
-
-
-type alias Tracking =
-    Maybe Track
-
-
 pointerCoordinates : Pointer.Event -> ( Float, Float )
 pointerCoordinates event =
     event.pointer.offsetPos
@@ -64,21 +54,33 @@ css =
         CssModules.css "./TouchTunes/Views/css/editor.css"
             { overlay = "overlay"
             , selection = "selection"
+            , area = "area"
             }
 
 
-view : Layout -> Measure -> Beat -> Svg Msg
-view layout measure beat =
+view : Measure -> Overlay -> Svg Msg
+view measure overlay =
     let
+        layout =
+            overlay.layout
+
         t =
             Layout.time layout
+
+        m =
+            Layout.margins layout
 
         seq =
             List.map (\( d, n ) -> ( Beat.fromDuration t d, n )) <|
                 toSequence measure
 
         sameBeat ( b, _ ) =
-            Beat.equal beat b
+            case overlay.selection of
+                Just selection ->
+                    Beat.equal selection.location.beat b
+
+                Nothing ->
+                    False
 
         duration =
             case find sameBeat seq of
@@ -88,40 +90,82 @@ view layout measure beat =
                 Nothing ->
                     quarter
 
+        adjustCoordinates ( x, y ) =
+            ( x + m.left.px, y )
+
+        downHandler =
+            Pointer.onWithOptions "pointerdown"
+                { stopPropagation = True, preventDefault = True }
+            <|
+                pointerCoordinates
+                    >> adjustCoordinates
+                    >> Tuple.mapBoth floor floor
+                    >> Action.NoteEdit
+
         upHandler =
-            Pointer.onUp (\_ -> Action.FinishEdit)
+            Pointer.onUp (\_ -> Action.CommitEdit)
 
         cancelHandler =
             Pointer.onCancel (\_ -> Action.CancelEdit)
 
         leaveHandler =
-            cancelHandler
+            Pointer.onLeave (\_ -> Action.CancelEdit)
 
         outHandler =
-            cancelHandler
+            Pointer.onOut (\_ -> Action.CancelEdit)
 
         moveHandler =
             Pointer.onMove <|
                 pointerCoordinates
+                    >> adjustCoordinates
                     >> Tuple.mapBoth floor floor
-                    >> Action.DragEdit layout
+                    >> Action.DragEdit
+
+        activeHandlers =
+            case overlay.selection of
+                Just selection ->
+                    if selection.dragging then
+                        [ moveHandler
+                        , upHandler
+                        , cancelHandler
+                        , leaveHandler
+                        , outHandler
+                        ]
+
+                    else
+                        []
+
+                Nothing ->
+                    []
     in
     svg
         [ class [ css .overlay ]
         , height <| inPx <| Layout.height layout
         , width <| inPx <| Layout.width layout
-        , moveHandler
-        , upHandler
-        , cancelHandler
-        , leaveHandler
-        , outHandler
         ]
         [ rect
-            [ class <| [ css .selection ]
-            , width <| inPx <| durationSpacing layout duration
-            , x <| inPx <| scaleBeat layout beat
-            , y <| px 0
-            , height <| inPx <| Layout.height layout
-            ]
+            (List.append
+                [ class [ css .area ]
+                , x <| inPx <| m.left
+                , y <| px 0
+                , height <| inPx <| Layout.height layout
+                , width <| inPx <| durationSpacing layout <| Measure.length measure
+                , downHandler
+                ]
+                activeHandlers
+            )
             []
+        , case overlay.selection of
+            Just selection ->
+                rect
+                    [ class [ css .selection ]
+                    , x <| inPx <| scaleBeat overlay.layout selection.location.beat
+                    , y <| px 0
+                    , height <| inPx <| Layout.height overlay.layout
+                    , width <| inPx <| durationSpacing overlay.layout duration
+                    ]
+                    []
+
+            Nothing ->
+                text ""
         ]

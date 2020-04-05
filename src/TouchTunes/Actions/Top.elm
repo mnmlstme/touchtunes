@@ -9,9 +9,10 @@ import TouchTunes.Models.Dial as Dial
 
 
 type Msg
-    = StartEdit Layout Int Int ( Int, Int )
-    | DragEdit Layout ( Int, Int )
-    | FinishEdit
+    = StartEdit Int Int Layout
+    | NoteEdit ( Int, Int )
+    | DragEdit ( Int, Int )
+    | CommitEdit
     | CancelEdit
     | SubdivisionMsg Dial.Action
     | ChangeSubdivision Duration

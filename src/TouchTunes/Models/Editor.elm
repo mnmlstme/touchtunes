@@ -2,9 +2,12 @@ module TouchTunes.Models.Editor exposing
     ( Editor
     , editingMeasure
     , empty
+    , forMeasure
     , measure
     , open
     , originalMeasure
+    , setAlteration
+    , setSubdivision
     )
 
 import Array exposing (Array)
@@ -18,17 +21,35 @@ import Music.Models.Pitch exposing (Semitones)
 import Music.Models.Score as Score exposing (Score)
 import String
 import TouchTunes.Models.Controls as Controls
+import TouchTunes.Models.Overlay exposing (Overlay)
+
+
+type alias Settings =
+    { subdivision : Duration
+    , alteration : Semitones
+    }
+
+
+initialSettings =
+    Settings Duration.quarter 0
+
+
+setSubdivision : Duration -> Settings -> Settings
+setSubdivision dur settings =
+    { settings | subdivision = dur }
+
+
+setAlteration : Semitones -> Settings -> Settings
+setAlteration semi settings =
+    { settings | alteration = semi }
 
 
 type alias Editor =
     { score : Score
     , partNum : Int
     , measureNum : Int
-    , layout : Maybe Layout
-    , cursor : Maybe Beat
-    , selection : Maybe Note
-    , subdivisionSetting : Duration
-    , alterationSetting : Semitones
+    , overlay : Maybe Overlay
+    , settings : Settings
     , tracking : Controls.Tracking
     }
 
@@ -40,10 +61,7 @@ empty =
         0
         0
         Nothing
-        Nothing
-        Nothing
-        Duration.quarter
-        0
+        initialSettings
         Controls.inactive
 
 
@@ -62,11 +80,8 @@ open score =
         score
         0
         0
-        maybeLayout
         Nothing
-        Nothing
-        Duration.quarter
-        0
+        initialSettings
         Controls.inactive
 
 
@@ -75,22 +90,20 @@ measure editor =
     let
         m =
             originalMeasure editor
-
-        modifier was =
-            Maybe.withDefault was <|
-                log "editor.selection" editor.selection
     in
     log "Editor.measure editor" <|
-        case editor.cursor of
-            Just cursor ->
-                case editor.layout of
-                    Just layout ->
+        case editor.overlay of
+            Just overlay ->
+                case overlay.selection of
+                    Just selection ->
                         let
                             t =
-                                Layout.time layout
+                                Layout.time overlay.layout
 
                             fn =
-                                modifyNote modifier (Beat.toDuration t cursor)
+                                modifyNote
+                                    (\_ -> selection.note)
+                                    (Beat.toDuration t selection.location.beat)
                         in
                         Maybe.map fn m
 
@@ -106,15 +119,25 @@ originalMeasure editor =
     Score.measure editor.partNum editor.measureNum editor.score
 
 
-editingMeasure : Editor -> Int -> Int -> Maybe Measure
-editingMeasure editor partNum measureNum =
+forMeasure : Int -> Int -> Editor -> Maybe Editor
+forMeasure partNum measureNum editor =
     if
         partNum
             == editor.partNum
             && measureNum
             == editor.measureNum
     then
-        measure editor
+        Just editor
 
     else
         Nothing
+
+
+editingMeasure : Int -> Int -> Editor -> Maybe Measure
+editingMeasure partNum measureNum editor =
+    case forMeasure partNum measureNum editor of
+        Just ed ->
+            measure editor
+
+        Nothing ->
+            Nothing

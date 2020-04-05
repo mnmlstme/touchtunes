@@ -34,7 +34,7 @@ import TouchTunes.Actions.Top as Action exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Dial as Dial
 import TouchTunes.Models.Editor as Editor exposing (Editor)
-import TouchTunes.Views.OverlayView as Overlay exposing (pointerCoordinates)
+import TouchTunes.Views.OverlayView as OverlayView exposing (pointerCoordinates)
 import TouchTunes.Views.RulerView as Ruler
 import Tuple exposing (pair)
 
@@ -118,10 +118,10 @@ view editor =
             [ class <| frameCss .controls ]
             [ Controls.viewSubdivisionDial
                 tracking.subdivisionDial
-                editor.subdivisionSetting
+                editor.settings.subdivision
             , Controls.viewAlterationDial
                 tracking.alterationDial
-                editor.alterationSetting
+                editor.settings.alteration
             ]
         ]
 
@@ -153,51 +153,38 @@ viewPart editor i part =
 viewMeasure : Editor -> Int -> Int -> ( Layout, Measure ) -> Html Msg
 viewMeasure editor i j ( layout, measure ) =
     let
+        ed =
+            Editor.forMeasure i j editor
+
         m =
-            if editor.partNum == i && editor.measureNum == j then
-                case Editor.measure editor of
-                    Just theMeasure ->
-                        theMeasure
-
-                    Nothing ->
-                        measure
-
-            else
-                measure
+            Maybe.withDefault measure <|
+                Editor.editingMeasure i j editor
 
         l =
-            if editor.partNum == i && editor.measureNum == j then
-                let
-                    t =
-                        Layout.time layout
+            case ed of
+                Just e ->
+                    let
+                        t =
+                            Layout.time layout
 
-                    div =
-                        editor.subdivisionSetting.divisor // Time.divisor t
-                in
-                Layout.subdivide div layout
+                        div =
+                            e.settings.subdivision.divisor // Time.divisor t
+                    in
+                    Layout.subdivide div layout
 
-            else
-                layout
-
-        cursor =
-            if editor.partNum == i && editor.measureNum == j then
-                editor.cursor
-
-            else
-                Nothing
+                Nothing ->
+                    layout
 
         downHandler =
             Pointer.onDown <|
-                pointerCoordinates
-                    >> Tuple.mapBoth floor floor
-                    >> Action.StartEdit layout i j
+                \_ -> Action.StartEdit i j l
     in
     div
         [ class <| editorCss .editor, downHandler ]
         [ MeasureView.view layout m
-        , case cursor of
-            Just beat ->
-                Overlay.view layout m beat
+        , case Maybe.andThen .overlay ed of
+            Just overlay ->
+                OverlayView.view m overlay
 
             Nothing ->
                 text ""

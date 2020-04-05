@@ -19,8 +19,13 @@ import Music.Views.MeasureView as MeasureView
 import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Dial as Dial
-import TouchTunes.Models.Editor as Editor exposing (Editor)
-import TouchTunes.Views.OverlayView as Overlay
+import TouchTunes.Models.Editor as Editor
+    exposing
+        ( Editor
+        , setAlteration
+        , setSubdivision
+        )
+import TouchTunes.Models.Overlay as Overlay
 
 
 commit : Editor -> Editor
@@ -51,108 +56,54 @@ update msg editor =
 
         activateAlterationDial activation =
             { tracking | alterationDial = activation }
-
-        activateOverlay activation =
-            { tracking | overlay = activation }
     in
     case log "msg" msg of
-        StartEdit layout partNum measureNum pos ->
-            let
-                measure =
-                    Score.measure partNum measureNum editor.score
-
-                duration =
-                    editor.subdivisionSetting
-
-                loc =
-                    positionToLocation
-                        -- TODO: depends on time signature
-                        (Layout.subdivide (duration.divisor // 4) layout)
-                        pos
-
-                at =
-                    loc.beat
-
-                pitch =
-                    fromStepNumber loc.step
-
-                note =
-                    Note (Play pitch) duration []
-            in
+        StartEdit partNum measureNum layout ->
             { editor
                 | partNum = partNum
                 , measureNum = measureNum
-                , layout = Just layout
-                , cursor = Just at
-                , selection = Just note
-                , tracking =
-                    activateOverlay <|
-                        Just <|
-                            Overlay.Track at loc
+                , overlay = Just <| Overlay.fromLayout layout
             }
 
-        DragEdit layout pos ->
-            case Editor.measure editor of
-                Just measure ->
-                    case tracking.overlay of
-                        Just overlay ->
-                            let
-                                loc =
-                                    positionToLocation
-                                        -- TODO: depends on time signature
-                                        (Layout.subdivide (editor.subdivisionSetting.divisor // 4) layout)
-                                        pos
-
-                                nextLoc =
-                                    locationAfter layout loc
-
-                                beat =
-                                    overlay.beat
-
-                                modifier note =
-                                    let
-                                        dur =
-                                            durationFrom (Layout.time layout) beat nextLoc.beat
-                                    in
-                                    if Beat.equal beat loc.beat then
-                                        { note
-                                            | do = Play <| fromStepNumber loc.step
-                                            , duration = dur
-                                        }
-
-                                    else
-                                        { note | duration = dur }
-                            in
-                            { editor
-                                | selection = Maybe.map modifier editor.selection
-                            }
-
-                        Nothing ->
-                            editor
+        NoteEdit pos ->
+            case editor.overlay of
+                Just overlay ->
+                    { editor
+                        | overlay =
+                            Just <|
+                                Overlay.start editor.settings.subdivision pos overlay
+                    }
 
                 Nothing ->
                     editor
 
-        FinishEdit ->
-            commit
-                { editor
-                    | tracking = activateOverlay Nothing
-                }
+        DragEdit pos ->
+            case editor.overlay of
+                Just overlay ->
+                    { editor
+                        | overlay =
+                            Just <|
+                                Overlay.drag editor.settings.subdivision pos overlay
+                    }
+
+                Nothing ->
+                    editor
+
+        CommitEdit ->
+            commit { editor | overlay = Maybe.map Overlay.finish editor.overlay }
 
         CancelEdit ->
-            { editor
-                | tracking = activateOverlay Nothing
-            }
+            { editor | overlay = Maybe.map Overlay.deselect editor.overlay }
 
         ChangeSubdivision dur ->
-            { editor | subdivisionSetting = dur }
+            { editor | settings = setSubdivision dur editor.settings }
 
         SubdivisionMsg dialAction ->
             let
                 ( act, maybeMsg ) =
                     Controls.updateSubdivisionDial
                         tracking.subdivisionDial
-                        editor.subdivisionSetting
+                        editor.settings.subdivision
                         dialAction
 
                 updated =
@@ -168,29 +119,45 @@ update msg editor =
         ChangeAlteration semitones ->
             let
                 ed =
-                    { editor | alterationSetting = semitones }
-
-                modifier note =
-                    case note.do of
-                        Play pitch ->
-                            { note
-                                | do = Play { pitch | alter = semitones }
-                            }
-
-                        Rest ->
-                            note
+                    { editor | settings = setAlteration semitones editor.settings }
             in
-            commit
-                { ed
-                    | selection = Maybe.map modifier ed.selection
-                }
+            case editor.overlay of
+                Just overlay ->
+                    let
+                        modifier selection =
+                            let
+                                note =
+                                    selection.note
+                            in
+                            case note.do of
+                                Play pitch ->
+                                    { selection
+                                        | note =
+                                            { note
+                                                | do = Play { pitch | alter = semitones }
+                                            }
+                                    }
+
+                                Rest ->
+                                    selection
+                    in
+                    { ed
+                        | overlay =
+                            Just
+                                { overlay
+                                    | selection = Maybe.map modifier overlay.selection
+                                }
+                    }
+
+                Nothing ->
+                    ed
 
         AlterationMsg dialAction ->
             let
                 ( act, maybeMsg ) =
                     Controls.updateAlterationDial
                         tracking.alterationDial
-                        editor.alterationSetting
+                        editor.settings.alteration
                         dialAction
 
                 updated =
