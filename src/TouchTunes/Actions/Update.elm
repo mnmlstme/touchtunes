@@ -9,7 +9,7 @@ import Music.Models.Layout as Layout
         ( locationAfter
         , positionToLocation
         )
-import Music.Models.Measure exposing (Measure)
+import Music.Models.Measure as Measure exposing (Measure)
 import Music.Models.Note exposing (Note, What(..))
 import Music.Models.Pitch exposing (Pitch, Semitones, fromStepNumber, stepNumber)
 import Music.Models.Score as Score
@@ -202,7 +202,9 @@ update msg editor =
                             layout.direct
 
                         attrs =
-                            { direct | time = Just time }
+                            Measure.essentialAttributes
+                                layout.indirect
+                                { direct | time = Just time }
                     in
                     commit
                         { ed

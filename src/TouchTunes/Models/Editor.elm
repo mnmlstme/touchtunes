@@ -106,9 +106,14 @@ measure editor =
         case editor.overlay of
             Just overlay ->
                 let
+                    l =
+                        overlay.layout
+
                     m =
                         Maybe.map
-                            (Measure.withAttributes overlay.layout.direct)
+                            (Measure.withAttributes <|
+                                Measure.essentialAttributes l.indirect l.direct
+                            )
                             original
                 in
                 case overlay.selection of

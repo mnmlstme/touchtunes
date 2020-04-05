@@ -70,17 +70,12 @@ maybeOr a b =
 propagateAttributes : Array Measure -> Array Attributes
 propagateAttributes measures =
     let
-        defaults =
-            Attributes (Just Staff.treble) (Just Time.common)
-
         fn a b =
             { staff = maybeOr b.staff a.staff
             , time = maybeOr b.time a.time
             }
     in
     Array.fromList <|
-        Maybe.withDefault [] <|
-            List.tail <|
-                scanl fn defaults <|
-                    List.map (\m -> m.attributes) <|
-                        Array.toList measures
+        scanl fn Measure.noAttributes <|
+            List.map (\m -> m.attributes) <|
+                Array.toList measures

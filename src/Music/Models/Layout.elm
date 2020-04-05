@@ -425,7 +425,7 @@ length t measure =
 
 
 forMeasure : Attributes -> Measure -> Layout
-forMeasure attrs measure =
+forMeasure indirect measure =
     -- the layout accounts for the notes in the measure
     let
         t =
@@ -434,13 +434,16 @@ forMeasure attrs measure =
                     theTime
 
                 Nothing ->
-                    Maybe.withDefault Time.common attrs.time
+                    Maybe.withDefault Time.common indirect.time
 
         ft =
             fitTime t measure
 
         divs =
             initialize ft.beats (divisorFor t measure)
+
+        direct =
+            Measure.essentialAttributes indirect measure.attributes
     in
     Layout
         2.0
@@ -448,5 +451,5 @@ forMeasure attrs measure =
             (Nonempty.fromElement 1)
             (Nonempty.fromList divs)
         )
-        attrs
-        measure.attributes
+        indirect
+        direct

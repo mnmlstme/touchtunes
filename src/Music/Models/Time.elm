@@ -4,6 +4,7 @@ module Music.Models.Time exposing
     , common
     , cut
     , divisor
+    , equal
     , toDuration
     )
 
@@ -31,6 +32,14 @@ common =
 cut : Time
 cut =
     Time 2 Two
+
+
+equal : Time -> Time -> Bool
+equal atime btime =
+    atime.beatType
+        == btime.beatType
+        && atime.beats
+        == btime.beats
 
 
 divisor : Time -> Int

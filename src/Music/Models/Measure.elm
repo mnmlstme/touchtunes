@@ -3,6 +3,7 @@ module Music.Models.Measure exposing
     , Measure
     , Sequence
     , aggregateRests
+    , essentialAttributes
     , fromNotes
     , fromSequence
     , initial
@@ -78,6 +79,29 @@ fromNotes attrs notes =
 withAttributes : Attributes -> Measure -> Measure
 withAttributes attrs measure =
     { measure | attributes = attrs }
+
+
+essentialAttributes : Attributes -> Attributes -> Attributes
+essentialAttributes indirect direct =
+    { direct
+        | -- remove direct time if same as indirect time
+          time =
+            case direct.time of
+                Just dtime ->
+                    case indirect.time of
+                        Just itime ->
+                            if Time.equal itime dtime then
+                                Nothing
+
+                            else
+                                Just dtime
+
+                        Nothing ->
+                            Just dtime
+
+                Nothing ->
+                    Nothing
+    }
 
 
 type alias Offset =
