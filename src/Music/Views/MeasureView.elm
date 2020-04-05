@@ -40,7 +40,6 @@ css =
         CssModules.css "./Music/Views/css/measure.css"
             { measure = "measure"
             , staff = "staff"
-            , overflow = "overflow"
             , time = "time"
             }
 
@@ -87,9 +86,6 @@ view layout measure =
         h =
             Layout.height layout
 
-        overflowWidth =
-            w.px - fixed.px
-
         drawNote =
             \( beat, note ) ->
                 NoteView.view layout beat note
@@ -99,16 +95,7 @@ view layout measure =
                 toSequence measure
     in
     div [ class <| css .measure ]
-        [ if overflowWidth > 0 then
-            div
-                [ class <| css .overflow
-                , style "width" (String.fromFloat overflowWidth ++ "px")
-                ]
-                []
-
-          else
-            Html.text ""
-        , svg
+        [ svg
             [ SvgAttr.class [ css .staff ]
             , height <| inPx h
             , width <| inPx w

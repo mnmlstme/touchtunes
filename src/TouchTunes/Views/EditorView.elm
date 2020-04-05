@@ -199,10 +199,9 @@ viewMeasure editor i j ( layout, measure ) =
         [ class <| editorCss .editor, downHandler ]
         (case Maybe.andThen .overlay ed of
             Just overlay ->
-                [ OverlayView.underlay l
+                [ RulerView.view l
                 , MeasureView.view l m
                 , OverlayView.view m overlay
-                , RulerView.view l
                 ]
 
             Nothing ->

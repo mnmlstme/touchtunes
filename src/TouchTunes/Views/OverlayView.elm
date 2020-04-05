@@ -1,6 +1,5 @@
 module TouchTunes.Views.OverlayView exposing
     ( pointerCoordinates
-    , underlay
     , view
     )
 
@@ -19,8 +18,10 @@ import Music.Models.Layout as Layout
         , forMeasure
         , inPx
         , scaleBeat
+        , scalePitch
         )
 import Music.Models.Measure as Measure exposing (Measure, toSequence)
+import Music.Models.Note as Note exposing (Note, What(..))
 import Music.Views.MeasureView as MeasureView
 import TouchTunes.Actions.Top as Action exposing (Msg(..))
 import TouchTunes.Models.Overlay exposing (Overlay)
@@ -56,6 +57,7 @@ css =
             { overlay = "overlay"
             , underlay = "underlay"
             , selection = "selection"
+            , pitchLevel = "pitchLevel"
             , area = "area"
             }
 
@@ -71,6 +73,9 @@ view measure overlay =
 
         m =
             Layout.margins layout
+
+        sp =
+            Layout.spacing layout
 
         seq =
             List.map (\( d, n ) -> ( Beat.fromDuration t d, n )) <|
@@ -145,39 +150,57 @@ view measure overlay =
         , height <| inPx <| Layout.height layout
         , width <| inPx <| Layout.width layout
         ]
-        [ rect
-            (List.append
-                [ class [ css .area ]
-                , x <| inPx <| m.left
-                , y <| px 0
-                , height <| inPx <| Layout.height layout
-                , width <| inPx <| durationSpacing layout <| Measure.length measure
-                , downHandler
-                ]
-                activeHandlers
-            )
-            []
-        , case overlay.selection of
-            Just selection ->
-                rect
-                    [ class [ css .selection ]
-                    , x <| inPx <| scaleBeat overlay.layout selection.location.beat
+        (List.append
+            [ rect
+                (List.append
+                    [ class [ css .area ]
+                    , x <| inPx <| m.left
                     , y <| px 0
                     , height <| inPx <| Layout.height layout
-                    , width <| inPx <| durationSpacing layout duration
+                    , width <| inPx <| durationSpacing layout <| Measure.length measure
+                    , downHandler
                     ]
+                    activeHandlers
+                )
+                []
+            ]
+            (case overlay.selection of
+                Just selection ->
+                    List.append
+                        [ rect
+                            [ class [ css .selection ]
+                            , x <| inPx <| scaleBeat overlay.layout selection.location.beat
+                            , y <| px 0
+                            , height <| inPx <| Layout.height layout
+                            , width <| inPx <| durationSpacing layout duration
+                            ]
+                            []
+                        ]
+                        (case selection.note.do of
+                            Play pitch ->
+                                if selection.dragging then
+                                    [ rect
+                                        [ class [ css .pitchLevel ]
+                                        , x <| px 0
+                                        , y <|
+                                            px <|
+                                                (scalePitch overlay.layout pitch).px
+                                                    - 0.5
+                                                    * sp.px
+                                        , height <| inPx <| sp
+                                        , width <| inPx <| Layout.width layout
+                                        ]
+                                        []
+                                    ]
+
+                                else
+                                    []
+
+                            _ ->
+                                []
+                        )
+
+                Nothing ->
                     []
-
-            Nothing ->
-                text ""
-        ]
-
-
-underlay : Layout -> Svg msg
-underlay layout =
-    svg
-        [ class [ css .underlay ]
-        , height <| inPx <| Layout.height layout
-        , width <| inPx <| Layout.width layout
-        ]
-        []
+            )
+        )
