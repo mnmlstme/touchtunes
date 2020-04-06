@@ -20,6 +20,7 @@ import Debug exposing (log)
 import List.Extra exposing (find, scanl)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Key exposing (Key)
 import Music.Models.Note as Note exposing (Note, restFor)
 import Music.Models.Staff as Staff exposing (Staff)
 import Music.Models.Time as Time exposing (Time)
@@ -34,12 +35,14 @@ type alias Measure =
 type alias Attributes =
     { staff : Maybe Staff
     , time : Maybe Time
+    , key : Maybe Key
     }
 
 
 noAttributes =
     { staff = Nothing
     , time = Nothing
+    , key = Nothing
     }
 
 
@@ -48,12 +51,13 @@ new =
     fromAttributes noAttributes
 
 
-initial : Staff -> Time -> Measure
-initial s t =
+initial : Staff -> Time -> Key -> Measure
+initial s t k =
     let
         attrs =
             { staff = Just s
             , time = Just t
+            , key = Just k
             }
     in
     fromAttributes attrs

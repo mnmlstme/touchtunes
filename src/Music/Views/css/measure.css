@@ -16,3 +16,7 @@ svg.staff {
     font-size: 20px;
     text-anchor: middle;
 }
+
+.key {
+    fill: #333;
+}

@@ -10,6 +10,7 @@ module Music.Models.Part exposing
 import Array exposing (Array)
 import Debug exposing (log)
 import List.Extra exposing (scanl)
+import Music.Models.Key as Key exposing (KeyName(..), Mode(..), keyOf)
 import Music.Models.Measure as Measure exposing (Attributes, Measure)
 import Music.Models.Staff as Staff
 import Music.Models.Time as Time
@@ -29,7 +30,7 @@ empty =
         "Pno."
     <|
         Array.fromList
-            [ Measure.initial Staff.treble Time.common
+            [ Measure.initial Staff.treble Time.common (keyOf C Major)
             , Measure.new
             , Measure.new
             , Measure.new
@@ -73,6 +74,7 @@ propagateAttributes measures =
         fn a b =
             { staff = maybeOr b.staff a.staff
             , time = maybeOr b.time a.time
+            , key = maybeOr b.key a.key
             }
     in
     Array.fromList <|

@@ -12,6 +12,7 @@ module Music.Models.Layout exposing
     , halfSpacing
     , height
     , inPx
+    , keyOffset
     , locationAfter
     , margins
     , positionOnStaff
@@ -23,6 +24,7 @@ module Music.Models.Layout exposing
     , staff
     , subdivide
     , time
+    , timeOffset
     , toPixels
     , toTenths
     , topStep
@@ -201,9 +203,38 @@ margins layout =
                     Nothing ->
                         0.0
                   )
+                + (case layout.direct.key of
+                    Just key ->
+                        toFloat (abs key.fifths) * sp
+
+                    Nothing ->
+                        0.0
+                  )
                 |> Pixels
     in
     Margins vmargin rmargin vmargin lmargin
+
+
+keyOffset : Layout -> Pixels
+keyOffset layout =
+    -- distance from left edge where we start the Key
+    spacing layout
+
+
+timeOffset : Layout -> Pixels
+timeOffset layout =
+    -- distance from left edge where we start the Time
+    let
+        sp =
+            spacing layout |> .px
+    in
+    Pixels <|
+        case layout.direct.key of
+            Just key ->
+                sp + toFloat (abs key.fifths) * sp
+
+            Nothing ->
+                0.0
 
 
 beatSpacing : Layout -> Pixels

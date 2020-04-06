@@ -2,6 +2,7 @@ module Example1 exposing (example)
 
 import Array
 import Music.Models.Duration exposing (dotted, eighth, half, quarter, whole)
+import Music.Models.Key as Key exposing (KeyName(..), Mode(..), keyOf)
 import Music.Models.Measure as Measure
 import Music.Models.Note exposing (playFor, restFor)
 import Music.Models.Part exposing (Part)
@@ -37,6 +38,7 @@ example =
                         (Measure.Attributes
                             (Just Staff.treble)
                             (Just Time.common)
+                            (Just (keyOf B Major))
                         )
                         [ a 3 |> playFor quarter
                         , a 4 |> playFor quarter
