@@ -16,14 +16,16 @@ import Html
         , h1
         , h3
         , header
-        , nav
+        , li
         , section
         , text
+        , ul
         )
 import Html.Attributes exposing (class, classList)
 import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Nonempty as Nonempty exposing (Nonempty)
+import Music.Models.Key exposing (keyName)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Measure)
 import Music.Models.Part as Part exposing (Part, propagateAttributes)
@@ -121,28 +123,32 @@ viewControls editor =
         tracking =
             editor.tracking
     in
-    nav
+    ul
         [ class <| frameCss .controls ]
         (case editor.overlay of
             Just overlay ->
-                List.append
-                    (case overlay.selection of
-                        Just selection ->
-                            [ Controls.viewAlterationDial
-                                tracking.alterationDial
-                                editor.settings.alteration
-                            ]
+                List.map (\e -> li [] [ e ]) <|
+                    List.append
+                        (case overlay.selection of
+                            Just selection ->
+                                [ Controls.viewAlterationDial
+                                    tracking.alterationDial
+                                    editor.settings.alteration
+                                ]
 
-                        Nothing ->
-                            [ Controls.viewTimeDial
-                                tracking.timeDial
-                                editor.settings.time
-                            ]
-                    )
-                    [ Controls.viewSubdivisionDial
-                        tracking.subdivisionDial
-                        editor.settings.subdivision
-                    ]
+                            Nothing ->
+                                [ Controls.viewTimeDial
+                                    tracking.timeDial
+                                    editor.settings.time
+                                , Controls.viewKeyDial
+                                    tracking.keyDial
+                                    (keyName editor.settings.key)
+                                ]
+                        )
+                        [ Controls.viewSubdivisionDial
+                            tracking.subdivisionDial
+                            editor.settings.subdivision
+                        ]
 
             Nothing ->
                 []

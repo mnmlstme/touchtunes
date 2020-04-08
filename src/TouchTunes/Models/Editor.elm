@@ -7,6 +7,7 @@ module TouchTunes.Models.Editor exposing
     , open
     , originalMeasure
     , setAlteration
+    , setKeyName
     , setSubdivision
     , setTime
     )
@@ -15,6 +16,7 @@ import Array exposing (Array)
 import Debug exposing (log)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Key exposing (Key, KeyName(..), Mode(..), keyOf)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Measure, modifyNote)
 import Music.Models.Note exposing (Note)
@@ -30,6 +32,7 @@ type alias Settings =
     { subdivision : Duration
     , alteration : Semitones
     , time : Time
+    , key : Key
     }
 
 
@@ -38,6 +41,7 @@ initialSettings =
         Duration.quarter
         0
         Time.common
+        (keyOf C Major)
 
 
 setSubdivision : Duration -> Settings -> Settings
@@ -53,6 +57,12 @@ setAlteration semi settings =
 setTime : Time -> Settings -> Settings
 setTime time settings =
     { settings | time = time }
+
+
+setKeyName : KeyName -> Settings -> Settings
+setKeyName kn settings =
+    -- TODO: handle other modes
+    { settings | key = keyOf kn Major }
 
 
 type alias Editor =

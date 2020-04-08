@@ -2,10 +2,14 @@ module Music.Models.Key exposing
     ( Key
     , KeyName(..)
     , Mode(..)
+    , displayName
     , flats
+    , keyName
     , keyOf
     , sharps
     )
+
+import Array as Array
 
 
 type alias Key =
@@ -53,6 +57,40 @@ type KeyName
     | F
 
 
+modeShift : Mode -> Int
+modeShift mode =
+    case mode of
+        Major ->
+            0
+
+        Minor ->
+            -3
+
+        Ionian ->
+            0
+
+        Dorian ->
+            -2
+
+        Phrygian ->
+            -4
+
+        Lydian ->
+            1
+
+        Mixolydian ->
+            -1
+
+        Aeolian ->
+            -3
+
+        Locrian ->
+            -5
+
+        None ->
+            0
+
+
 keyOf : KeyName -> Mode -> Key
 keyOf name mode =
     let
@@ -97,43 +135,51 @@ keyOf name mode =
                 F ->
                     -1
 
-        shift =
-            case mode of
-                Major ->
-                    0
-
-                Minor ->
-                    -3
-
-                Ionian ->
-                    0
-
-                Dorian ->
-                    -2
-
-                Phrygian ->
-                    -4
-
-                Lydian ->
-                    1
-
-                Mixolydian ->
-                    -1
-
-                Aeolian ->
-                    -3
-
-                Locrian ->
-                    -5
-
-                None ->
-                    0
-
-        normalized =
+        normalize n =
             -- bring back to [-5, 6]
-            modBy 12 (fifths + shift + 17) - 5
+            modBy 12 (n + 17) - 5
     in
-    Key normalized mode
+    Key (normalize (fifths + modeShift mode)) mode
+
+
+flatKeyNames =
+    Array.fromList [ C, F, Bflat, Eflat, Aflat, Dflat, Gflat ]
+
+
+sharpKeyNames =
+    Array.fromList [ C, G, D, A, E, B, Fsharp ]
+
+
+keyName : Key -> KeyName
+keyName key =
+    -- TODO: handle modes other than Major
+    if key.fifths > 0 then
+        Maybe.withDefault C <|
+            Array.get key.fifths sharpKeyNames
+
+    else
+        Maybe.withDefault C <|
+            Array.get (abs key.fifths) flatKeyNames
+
+
+flatKeys =
+    Array.fromList [ "C", "F", "B♭", "E♭", "A♭", "D♭", "G♭" ]
+
+
+sharpKeys =
+    Array.fromList [ "C", "G", "D", "A", "E", "B", "F♯" ]
+
+
+displayName : Key -> String
+displayName key =
+    -- TODO: handle modes other than Major
+    if key.fifths > 0 then
+        Maybe.withDefault "C" <|
+            Array.get key.fifths sharpKeys
+
+    else
+        Maybe.withDefault "C" <|
+            Array.get (abs key.fifths) flatKeys
 
 
 equal : Key -> Key -> Bool

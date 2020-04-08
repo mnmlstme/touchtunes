@@ -4,6 +4,7 @@ import Array as Array
 import Debug exposing (log)
 import Music.Models.Beat as Beat exposing (Beat, durationFrom)
 import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Key exposing (Key, Mode(..), keyName, keyOf)
 import Music.Models.Layout as Layout
     exposing
         ( locationAfter
@@ -23,6 +24,7 @@ import TouchTunes.Models.Editor as Editor
     exposing
         ( Editor
         , setAlteration
+        , setKeyName
         , setSubdivision
         , setTime
         )
@@ -60,6 +62,9 @@ update msg editor =
 
         activateTimeDial activation =
             { tracking | timeDial = activation }
+
+        activateKeyDial activation =
+            { tracking | keyDial = activation }
     in
     case log "msg" msg of
         StartEdit partNum measureNum layout ->
@@ -224,6 +229,54 @@ update msg editor =
 
                 updated =
                     { editor | tracking = activateTimeDial act }
+            in
+            case maybeMsg of
+                Just theMsg ->
+                    update theMsg updated
+
+                Nothing ->
+                    updated
+
+        ChangeKey keyname ->
+            let
+                ed =
+                    { editor | settings = setKeyName keyname editor.settings }
+
+                key =
+                    ed.settings.key
+            in
+            case editor.overlay of
+                Just overlay ->
+                    let
+                        layout =
+                            overlay.layout
+
+                        direct =
+                            layout.direct
+
+                        attrs =
+                            Measure.essentialAttributes
+                                layout.indirect
+                                { direct | key = Just key }
+                    in
+                    commit
+                        { ed
+                            | overlay = Just { overlay | layout = { layout | direct = attrs } }
+                        }
+
+                Nothing ->
+                    ed
+
+        KeyMsg dialAction ->
+            let
+                ( act, maybeMsg ) =
+                    Controls.updateKeyDial
+                        tracking.keyDial
+                        (keyName editor.settings.key)
+                        dialAction
+
+                updated =
+                    { editor | tracking = activateKeyDial act }
             in
             case maybeMsg of
                 Just theMsg ->

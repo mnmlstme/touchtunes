@@ -134,6 +134,7 @@ css =
             , face = "face"
             , value = "value"
             , option = "option"
+            , viewValue = "viewValue"
             , collar = "collar"
             , active = "active"
             }
@@ -190,12 +191,16 @@ view config toMsg tracking value =
                 [ circle
                     [ r <| px faceRadius ]
                     []
-                , g [ transform [ Scale 0.375 0.375 ] ]
+                , g
+                    [ class [ css .viewValue ]
+                    , transform [ Scale 0.375 0.375 ]
+                    ]
                     [ config.viewValue v ]
                 ]
     in
     svg
-        [ height <| px (2.0 * collarRadius)
+        [ class [ css .dial, active ]
+        , height <| px (2.0 * collarRadius)
         , width <| px (2.0 * collarRadius)
         , viewBox
             (-1.0 * dialRadius)
@@ -220,12 +225,13 @@ view config toMsg tracking value =
             , Pointer.onDown (\_ -> Start |> toMsg)
             ]
             [ circle
-                [ class [ css .option ]
-                , r <| px faceRadius
+                [ r <| px faceRadius
                 ]
                 []
             , g
-                [ transform [ Scale 0.375 0.375 ] ]
+                [ class [ css .viewValue ]
+                , transform [ Scale 0.5 0.5 ]
+                ]
                 [ config.viewValue value ]
             ]
         ]

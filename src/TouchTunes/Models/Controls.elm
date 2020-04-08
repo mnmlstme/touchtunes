@@ -2,15 +2,17 @@ module TouchTunes.Models.Controls exposing
     ( Tracking
     , inactive
     , updateAlterationDial
+    , updateKeyDial
     , updateSubdivisionDial
     , updateTimeDial
     , viewAlterationDial
+    , viewKeyDial
     , viewSubdivisionDial
     , viewTimeDial
     )
 
 import Array as Array
-import Html exposing (Html)
+import Html exposing (Html, text)
 import Music.Models.Duration
     exposing
         ( Duration
@@ -18,6 +20,7 @@ import Music.Models.Duration
         , half
         , quarter
         )
+import Music.Models.Key as Key exposing (KeyName(..), Mode(..), keyOf)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure
 import Music.Models.Pitch as Pitch exposing (Semitones, alter)
@@ -27,22 +30,38 @@ import Music.Views.MeasureView as MeasureView
 import Music.Views.NoteView exposing (StemOrientation(..), isWhole, viewNote)
 import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.Dial as Dial
-import TypedSvg exposing (g)
-import TypedSvg.Attributes exposing (transform)
+import TypedSvg exposing (g, text_)
+import TypedSvg.Attributes
+    exposing
+        ( fontSize
+        , fontWeight
+        , textAnchor
+        , transform
+        , x
+        , y
+        )
 import TypedSvg.Core exposing (Svg)
-import TypedSvg.Types exposing (Transform(..), px)
+import TypedSvg.Types
+    exposing
+        ( AnchorAlignment(..)
+        , FontWeight(..)
+        , Transform(..)
+        , px
+        )
 
 
 type alias Tracking =
     { subdivisionDial : Dial.Tracking
     , alterationDial : Dial.Tracking
     , timeDial : Dial.Tracking
+    , keyDial : Dial.Tracking
     }
 
 
 inactive : Tracking
 inactive =
     Tracking
+        Nothing
         Nothing
         Nothing
         Nothing
@@ -135,7 +154,7 @@ viewAlteration alt =
 
 
 
--- alterationDial: sets alteration (sharp/flat/natural)
+-- timeDial: sets Time signature
 
 
 timeDial : Dial.Config Time msg
@@ -179,3 +198,62 @@ viewTime time =
     g
         [ transform [ Translate (-1.0 * sp.px) (m.top.px - 0.5 * staffHeight.px) ] ]
         [ MeasureView.viewTime layout <| Just time ]
+
+
+
+-- keyDial: sets Key signature
+
+
+keyDial : Dial.Config KeyName msg
+keyDial =
+    { options =
+        Array.fromList
+            [ Gflat
+            , Dflat
+            , Aflat
+            , Eflat
+            , Bflat
+            , F
+            , C
+            , G
+            , D
+            , A
+            , E
+            , B
+            , Fsharp
+            ]
+    , segments = 16
+    , viewValue = viewKey
+    }
+
+
+viewKeyDial =
+    Dial.view keyDial KeyMsg
+
+
+updateKeyDial =
+    Dial.update keyDial ChangeKey
+
+
+viewKey : KeyName -> Svg msg
+viewKey kn =
+    let
+        sp =
+            Layout.spacing layout
+
+        key =
+            -- TODO: handle other modes
+            keyOf kn Major
+    in
+    g []
+        [ text_
+            [ textAnchor AnchorMiddle
+            , fontSize <| px (5.0 * sp.px)
+            , fontWeight <| FontWeight 800
+            , x <| px 0
+            , y <| px (2.0 * sp.px)
+            ]
+            [ text <| Key.displayName key ]
+
+        -- [ text <| String.fromInt key.fifths ]
+        ]

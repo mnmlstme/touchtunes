@@ -2,6 +2,7 @@ module TouchTunes.Actions.Top exposing (Msg(..))
 
 import Music.Models.Beat exposing (Beat)
 import Music.Models.Duration exposing (Duration)
+import Music.Models.Key exposing (KeyName)
 import Music.Models.Layout exposing (Layout, Location)
 import Music.Models.Note exposing (Note)
 import Music.Models.Pitch exposing (Pitch, Semitones)
@@ -21,3 +22,5 @@ type Msg
     | ChangeAlteration Semitones
     | TimeMsg Dial.Action
     | ChangeTime Time
+    | KeyMsg Dial.Action
+    | ChangeKey KeyName
