@@ -14,13 +14,14 @@ module Music.Models.Measure exposing
     , offsets
     , toSequence
     , withAttributes
+    , withEssentialAttributes
     )
 
 import Debug exposing (log)
 import List.Extra exposing (find, scanl)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Duration as Duration exposing (Duration)
-import Music.Models.Key exposing (Key)
+import Music.Models.Key as Key exposing (Key)
 import Music.Models.Note as Note exposing (Note, restFor)
 import Music.Models.Staff as Staff exposing (Staff)
 import Music.Models.Time as Time exposing (Time)
@@ -88,8 +89,8 @@ withAttributes attrs measure =
 essentialAttributes : Attributes -> Attributes -> Attributes
 essentialAttributes indirect direct =
     { direct
-        | -- remove direct time if same as indirect time
-          time =
+        | time =
+            -- remove direct time if same as indirect time
             case direct.time of
                 Just dtime ->
                     case indirect.time of
@@ -105,7 +106,29 @@ essentialAttributes indirect direct =
 
                 Nothing ->
                     Nothing
+        , key =
+            -- remove direct key is same as indirect key
+            case direct.key of
+                Just dkey ->
+                    case indirect.key of
+                        Just ikey ->
+                            if Key.equal ikey dkey then
+                                Nothing
+
+                            else
+                                Just dkey
+
+                        Nothing ->
+                            Just dkey
+
+                Nothing ->
+                    Nothing
     }
+
+
+withEssentialAttributes : Attributes -> Attributes -> Measure -> Measure
+withEssentialAttributes indirect direct measure =
+    withAttributes (essentialAttributes indirect direct) measure
 
 
 type alias Offset =

@@ -17,10 +17,10 @@ type Msg
     | CommitEdit
     | CancelEdit
     | SubdivisionMsg Dial.Action
-    | ChangeSubdivision Duration
     | AlterationMsg Dial.Action
-    | ChangeAlteration Semitones
     | TimeMsg Dial.Action
-    | ChangeTime Time
     | KeyMsg Dial.Action
-    | ChangeKey KeyName
+
+
+
+-- | ChangeKey KeyName

@@ -23,48 +23,19 @@ import TouchTunes.Models.Dial as Dial
 import TouchTunes.Models.Editor as Editor
     exposing
         ( Editor
-        , setAlteration
-        , setKeyName
-        , setSubdivision
-        , setTime
+        , commit
         )
 import TouchTunes.Models.Overlay as Overlay
 
 
-commit : Editor -> Editor
-commit editor =
-    { editor
-        | score =
-            case Editor.measure editor of
-                Just theMeasure ->
-                    Score.setMeasure
-                        editor.partNum
-                        editor.measureNum
-                        (log "commit" theMeasure)
-                        editor.score
-
-                Nothing ->
-                    editor.score
-    }
-
-
-update : Msg -> Editor -> Editor
+update : Msg -> Editor msg -> Editor msg
 update msg editor =
     let
-        tracking =
-            editor.tracking
+        controls =
+            editor.controls
 
-        activateSubdivisionDial activation =
-            { tracking | subdivisionDial = activation }
-
-        activateAlterationDial activation =
-            { tracking | alterationDial = activation }
-
-        activateTimeDial activation =
-            { tracking | timeDial = activation }
-
-        activateKeyDial activation =
-            { tracking | keyDial = activation }
+        subdivisions =
+            Dial.value controls.subdivisionDial
     in
     case log "msg" msg of
         StartEdit partNum measureNum layout ->
@@ -73,7 +44,7 @@ update msg editor =
                 , measureNum = measureNum
                 , overlay =
                     Just <|
-                        Overlay.subdivide editor.settings.subdivision <|
+                        Overlay.subdivide subdivisions <|
                             Overlay.fromLayout layout
             }
 
@@ -83,7 +54,7 @@ update msg editor =
                     { editor
                         | overlay =
                             Just <|
-                                Overlay.start editor.settings.subdivision pos overlay
+                                Overlay.start subdivisions pos overlay
                     }
 
                 Nothing ->
@@ -95,7 +66,7 @@ update msg editor =
                     { editor
                         | overlay =
                             Just <|
-                                Overlay.drag editor.settings.subdivision pos overlay
+                                Overlay.drag subdivisions pos overlay
                     }
 
                 Nothing ->
@@ -107,180 +78,41 @@ update msg editor =
         CancelEdit ->
             { editor | overlay = Maybe.map Overlay.deselect editor.overlay }
 
-        ChangeSubdivision dur ->
-            let
-                ed =
-                    { editor | settings = setSubdivision dur editor.settings }
-
-                overlay =
-                    Maybe.map
-                        (Overlay.subdivide dur)
-                        ed.overlay
-            in
-            { ed | overlay = overlay }
-
         SubdivisionMsg dialAction ->
-            let
-                ( act, maybeMsg ) =
-                    Controls.updateSubdivisionDial
-                        tracking.subdivisionDial
-                        editor.settings.subdivision
-                        dialAction
-
-                updated =
-                    { editor | tracking = activateSubdivisionDial act }
-            in
-            case maybeMsg of
-                Just theMsg ->
-                    update theMsg updated
-
-                Nothing ->
-                    updated
-
-        ChangeAlteration semitones ->
-            let
-                ed =
-                    { editor | settings = setAlteration semitones editor.settings }
-            in
-            case editor.overlay of
-                Just overlay ->
-                    let
-                        modifier selection =
-                            let
-                                note =
-                                    selection.note
-                            in
-                            case note.do of
-                                Play pitch ->
-                                    { selection
-                                        | note =
-                                            { note
-                                                | do = Play { pitch | alter = semitones }
-                                            }
-                                    }
-
-                                Rest ->
-                                    selection
-                    in
-                    commit
-                        { ed
-                            | overlay =
-                                Just
-                                    { overlay
-                                        | selection = Maybe.map modifier overlay.selection
-                                    }
+            commit
+                { editor
+                    | controls =
+                        { controls
+                            | subdivisionDial =
+                                Dial.update dialAction controls.subdivisionDial
                         }
-
-                Nothing ->
-                    ed
+                }
 
         AlterationMsg dialAction ->
-            let
-                ( act, maybeMsg ) =
-                    Controls.updateAlterationDial
-                        tracking.alterationDial
-                        editor.settings.alteration
-                        dialAction
-
-                updated =
-                    { editor | tracking = activateAlterationDial act }
-            in
-            case maybeMsg of
-                Just theMsg ->
-                    update theMsg updated
-
-                Nothing ->
-                    updated
-
-        ChangeTime time ->
-            let
-                ed =
-                    { editor | settings = setTime time editor.settings }
-            in
-            case editor.overlay of
-                Just overlay ->
-                    let
-                        layout =
-                            overlay.layout
-
-                        direct =
-                            layout.direct
-
-                        attrs =
-                            Measure.essentialAttributes
-                                layout.indirect
-                                { direct | time = Just time }
-                    in
-                    commit
-                        { ed
-                            | overlay = Just { overlay | layout = { layout | direct = attrs } }
-                        }
-
-                Nothing ->
-                    ed
+            { editor
+                | controls =
+                    { controls
+                        | alterationDial =
+                            Dial.update dialAction controls.alterationDial
+                    }
+            }
 
         TimeMsg dialAction ->
-            let
-                ( act, maybeMsg ) =
-                    Controls.updateTimeDial
-                        tracking.timeDial
-                        editor.settings.time
-                        dialAction
-
-                updated =
-                    { editor | tracking = activateTimeDial act }
-            in
-            case maybeMsg of
-                Just theMsg ->
-                    update theMsg updated
-
-                Nothing ->
-                    updated
-
-        ChangeKey keyname ->
-            let
-                ed =
-                    { editor | settings = setKeyName keyname editor.settings }
-
-                key =
-                    ed.settings.key
-            in
-            case editor.overlay of
-                Just overlay ->
-                    let
-                        layout =
-                            overlay.layout
-
-                        direct =
-                            layout.direct
-
-                        attrs =
-                            Measure.essentialAttributes
-                                layout.indirect
-                                { direct | key = Just key }
-                    in
-                    commit
-                        { ed
-                            | overlay = Just { overlay | layout = { layout | direct = attrs } }
+            commit
+                { editor
+                    | controls =
+                        { controls
+                            | timeDial =
+                                Dial.update dialAction controls.timeDial
                         }
-
-                Nothing ->
-                    ed
+                }
 
         KeyMsg dialAction ->
-            let
-                ( act, maybeMsg ) =
-                    Controls.updateKeyDial
-                        tracking.keyDial
-                        (keyName editor.settings.key)
-                        dialAction
-
-                updated =
-                    { editor | tracking = activateKeyDial act }
-            in
-            case maybeMsg of
-                Just theMsg ->
-                    update theMsg updated
-
-                Nothing ->
-                    updated
+            commit
+                { editor
+                    | controls =
+                        { controls
+                            | keyDial =
+                                Dial.update dialAction controls.keyDial
+                        }
+                }

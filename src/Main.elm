@@ -14,9 +14,9 @@ import Html
         , text
         )
 import Html.Events exposing (onClick)
-import TouchTunes.Actions.Top as TTAction
-import TouchTunes.Models.Editor as Editor exposing (Editor)
+import TouchTunes.Actions.Top as TTActions
 import TouchTunes.Actions.Update as EditorUpdate
+import TouchTunes.Models.Editor as Editor exposing (Editor)
 import TouchTunes.Views.EditorView as EditorView
 
 
@@ -39,13 +39,13 @@ main =
 
 
 type alias Model =
-    { editor : Editor
+    { editor : Editor TTActions.Msg
     }
 
 
 initialModel : Model
 initialModel =
-    Model Editor.empty
+    Model Editor.init
 
 
 
@@ -55,7 +55,7 @@ initialModel =
 type Msg
     = Clear
     | ShowExample1
-    | EditorMessage TTAction.Msg
+    | EditorMessage TTActions.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -64,7 +64,7 @@ update msg model =
         Clear ->
             let
                 editor =
-                    Editor.empty
+                    Editor.init
             in
             ( Model editor, Cmd.none )
 

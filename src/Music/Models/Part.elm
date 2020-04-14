@@ -10,6 +10,7 @@ module Music.Models.Part exposing
 import Array exposing (Array)
 import Debug exposing (log)
 import List.Extra exposing (scanl)
+import Maybe.Extra
 import Music.Models.Key as Key exposing (KeyName(..), Mode(..), keyOf)
 import Music.Models.Measure as Measure exposing (Attributes, Measure)
 import Music.Models.Staff as Staff
@@ -54,27 +55,13 @@ setMeasure n m p =
     }
 
 
-
--- TODO: import Maybe.Extra instead
-
-
-maybeOr : Maybe val -> Maybe val -> Maybe val
-maybeOr a b =
-    case b of
-        Just v ->
-            Just v
-
-        Nothing ->
-            a
-
-
 propagateAttributes : Array Measure -> Array Attributes
 propagateAttributes measures =
     let
         fn a b =
-            { staff = maybeOr b.staff a.staff
-            , time = maybeOr b.time a.time
-            , key = maybeOr b.key a.key
+            { staff = Maybe.Extra.or b.staff a.staff
+            , time = Maybe.Extra.or b.time a.time
+            , key = Maybe.Extra.or b.key a.key
             }
     in
     Array.fromList <|

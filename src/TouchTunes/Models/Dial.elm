@@ -1,8 +1,11 @@
 module TouchTunes.Models.Dial exposing
     ( Action(..)
     , Config
+    , Dial
     , Tracking
+    , init
     , update
+    , value
     , view
     )
 
@@ -14,7 +17,7 @@ import Html exposing (Html)
 import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Extra exposing (findIndex)
-import Maybe as Maybe exposing (withDefault)
+import Maybe.Extra
 import Tuple exposing (pair)
 import TypedSvg exposing (circle, g, line, rect, svg)
 import TypedSvg.Attributes
@@ -46,9 +49,9 @@ type Action
     | Cancel
 
 
-type alias Config valueType msg =
-    { options : Array valueType
-    , viewValue : valueType -> Svg msg
+type alias Config val msg =
+    { options : Array val
+    , viewValue : val -> Svg msg
     , segments : Int
     }
 
@@ -63,56 +66,75 @@ type alias Tracking =
     Maybe Track
 
 
+type alias Dial val msg =
+    { value : val
+    , config : Config val msg
+    , tracking : Tracking
+    }
+
+
+init : val -> Config val msg -> Dial val msg
+init v config =
+    Dial v config Nothing
+
+
+value : Dial val msg -> val
+value dial =
+    dial.value
+
+
+transientValue : Dial val msg -> val
+transientValue dial =
+    Maybe.withDefault dial.value <|
+        Maybe.Extra.join <|
+            Maybe.map (\t -> Array.get t.index dial.config.options) dial.tracking
+
+
 update :
-    Config valueType msg
-    -> (valueType -> msg)
-    -> Tracking
-    -> valueType
-    -> Action
-    -> ( Tracking, Maybe msg )
-update config onChange tracking currentValue dialAction =
+    Action
+    -> Dial val msg
+    -> Dial val msg
+update dialAction dial =
     let
         i0 =
-            case tracking of
+            case dial.tracking of
                 Just theTrack ->
                     theTrack.originalIndex
 
                 Nothing ->
-                    withDefault 0 <|
-                        log "findIndex" <|
-                            findIndex
-                                ((==) currentValue)
-                            <|
-                                Array.toList config.options
+                    Maybe.withDefault 0 <|
+                        findIndex
+                            ((==) dial.value)
+                        <|
+                            Array.toList dial.config.options
     in
     case dialAction of
         Start ->
-            ( Just
-                { originalIndex = i0
-                , index = i0
-                }
-            , Nothing
-            )
+            { dial
+                | tracking =
+                    Just
+                        { originalIndex = i0
+                        , index = i0
+                        }
+            }
 
         Set i ->
-            ( Just
-                { originalIndex = i0
-                , index = i
-                }
-            , Maybe.map onChange <|
-                Array.get i config.options
-            )
+            { dial
+                | tracking =
+                    Just
+                        { originalIndex = i0
+                        , index = i
+                        }
+            }
 
         Cancel ->
-            ( Nothing
-            , Maybe.map onChange <|
-                Array.get i0 config.options
-            )
+            { dial | tracking = Nothing }
 
         Finish ->
-            ( Nothing
-            , Nothing
-            )
+            { dial
+                | value = transientValue dial
+                , tracking = Nothing
+            }
 
 
 collarRadius =
@@ -141,13 +163,17 @@ css =
 
 
 view :
-    Config valueType msg
+    Dial val msg
     -> (Action -> msg)
-    -> Tracking
-    -> valueType
     -> Html msg
-view config toMsg tracking value =
+view dial toMsg =
     let
+        { config, tracking } =
+            dial
+
+        theValue =
+            transientValue dial
+
         active =
             case tracking of
                 Just _ ->
@@ -172,7 +198,7 @@ view config toMsg tracking value =
             in
             g
                 [ class
-                    [ if v == value then
+                    [ if v == theValue then
                         css .value
 
                       else
@@ -232,6 +258,6 @@ view config toMsg tracking value =
                 [ class [ css .viewValue ]
                 , transform [ Scale 0.5 0.5 ]
                 ]
-                [ config.viewValue value ]
+                [ config.viewValue theValue ]
             ]
         ]

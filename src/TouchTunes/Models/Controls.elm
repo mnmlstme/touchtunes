@@ -1,14 +1,7 @@
 module TouchTunes.Models.Controls exposing
-    ( Tracking
-    , inactive
-    , updateAlterationDial
-    , updateKeyDial
-    , updateSubdivisionDial
-    , updateTimeDial
-    , viewAlterationDial
-    , viewKeyDial
-    , viewSubdivisionDial
-    , viewTimeDial
+    ( ControlSelector
+    , Controls
+    , init
     )
 
 import Array as Array
@@ -29,7 +22,7 @@ import Music.Models.Time as Time exposing (BeatType(..), Time)
 import Music.Views.MeasureView as MeasureView
 import Music.Views.NoteView exposing (StemOrientation(..), isWhole, viewNote)
 import TouchTunes.Actions.Top exposing (Msg(..))
-import TouchTunes.Models.Dial as Dial
+import TouchTunes.Models.Dial as Dial exposing (Dial)
 import TypedSvg exposing (g, text_)
 import TypedSvg.Attributes
     exposing
@@ -50,52 +43,93 @@ import TypedSvg.Types
         )
 
 
-type alias Tracking =
-    { subdivisionDial : Dial.Tracking
-    , alterationDial : Dial.Tracking
-    , timeDial : Dial.Tracking
-    , keyDial : Dial.Tracking
+type alias Controls msg =
+    { subdivisionDial : Dial Duration msg
+    , alterationDial : Dial Semitones msg
+    , timeDial : Dial Time msg
+    , keyDial : Dial KeyName msg
     }
 
 
-inactive : Tracking
-inactive =
-    Tracking
-        Nothing
-        Nothing
-        Nothing
-        Nothing
+type alias ControlSelector a val msg =
+    a -> Dial val msg
+
+
+init : Controls msg
+init =
+    { subdivisionDial =
+        -- sets subdivision of current measure(quarter/eighth...)
+        -- TODO: options depend on time signature
+        -- TODO: initial depends on notes in measure
+        Dial.init
+            quarter
+            { options =
+                Array.fromList
+                    [ eighth
+                    , quarter
+                    , half
+                    ]
+            , segments = 10
+            , viewValue = viewSubdivision
+            }
+    , alterationDial =
+        -- alterationDial: sets alteration (sharp/flat/natural)
+        -- TODO: initial depends on selected note
+        Dial.init
+            0
+            { options =
+                Array.fromList [ -1, 0, 1 ]
+            , segments = 10
+            , viewValue = viewAlteration
+            }
+    , timeDial =
+        -- timeDial: sets Time signature
+        -- TODO: initial depends on current mesaure
+        Dial.init
+            Time.common
+            { options =
+                Array.fromList
+                    [ Time.cut
+                    , Time 2 Four
+                    , Time 3 Four
+                    , Time.common
+                    , Time 5 Four
+                    , Time 6 Eight
+                    , Time 7 Eight
+                    , Time 9 Eight
+                    ]
+            , segments = 10
+            , viewValue = viewTime
+            }
+    , keyDial =
+        -- keyDial: sets Key signature
+        Dial.init
+            C
+            { options =
+                Array.fromList
+                    [ Gflat
+                    , Dflat
+                    , Aflat
+                    , Eflat
+                    , Bflat
+                    , F
+                    , C
+                    , G
+                    , D
+                    , A
+                    , E
+                    , B
+                    , Fsharp
+                    ]
+            , segments = 16
+            , viewValue = viewKey
+            }
+    }
 
 
 layout : Layout
 layout =
     Layout.forMeasure Measure.noAttributes Measure.new
-
-
-
--- subdivisionDial: sets subdividion of current beat (quarter/eighth...)
--- TODO: options depend on time signature
-
-
-subdivisionDial : Dial.Config Duration msg
-subdivisionDial =
-    { options =
-        Array.fromList
-            [ eighth
-            , quarter
-            , half
-            ]
-    , segments = 10
-    , viewValue = viewSubdivision
-    }
-
-
-viewSubdivisionDial =
-    Dial.view subdivisionDial SubdivisionMsg
-
-
-updateSubdivisionDial =
-    Dial.update subdivisionDial ChangeSubdivision
 
 
 viewSubdivision : Duration -> Svg msg
@@ -117,27 +151,6 @@ viewSubdivision d =
         [ viewNote layout d pitch ]
 
 
-
--- alterationDial: sets alteration (sharp/flat/natural)
-
-
-alterationDial : Dial.Config Semitones msg
-alterationDial =
-    { options =
-        Array.fromList [ -1, 0, 1 ]
-    , segments = 10
-    , viewValue = viewAlteration
-    }
-
-
-viewAlterationDial =
-    Dial.view alterationDial AlterationMsg
-
-
-updateAlterationDial =
-    Dial.update alterationDial ChangeAlteration
-
-
 viewAlteration : Semitones -> Svg msg
 viewAlteration alt =
     let
@@ -151,36 +164,6 @@ viewAlteration alt =
     g
         [ transform [ Translate 0 (-0.5 * staffHeight.px) ] ]
         [ viewNote layout quarter pitch ]
-
-
-
--- timeDial: sets Time signature
-
-
-timeDial : Dial.Config Time msg
-timeDial =
-    { options =
-        Array.fromList
-            [ Time.cut
-            , Time 2 Four
-            , Time 3 Four
-            , Time.common
-            , Time 5 Four
-            , Time 6 Eight
-            , Time 7 Eight
-            , Time 9 Eight
-            ]
-    , segments = 10
-    , viewValue = viewTime
-    }
-
-
-viewTimeDial =
-    Dial.view timeDial TimeMsg
-
-
-updateTimeDial =
-    Dial.update timeDial ChangeTime
 
 
 viewTime : Time -> Svg msg
@@ -198,41 +181,6 @@ viewTime time =
     g
         [ transform [ Translate (-1.0 * sp.px) (m.top.px - 0.5 * staffHeight.px) ] ]
         [ MeasureView.viewTime layout <| Just time ]
-
-
-
--- keyDial: sets Key signature
-
-
-keyDial : Dial.Config KeyName msg
-keyDial =
-    { options =
-        Array.fromList
-            [ Gflat
-            , Dflat
-            , Aflat
-            , Eflat
-            , Bflat
-            , F
-            , C
-            , G
-            , D
-            , A
-            , E
-            , B
-            , Fsharp
-            ]
-    , segments = 16
-    , viewValue = viewKey
-    }
-
-
-viewKeyDial =
-    Dial.view keyDial KeyMsg
-
-
-updateKeyDial =
-    Dial.update keyDial ChangeKey
 
 
 viewKey : KeyName -> Svg msg

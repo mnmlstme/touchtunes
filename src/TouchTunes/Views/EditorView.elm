@@ -32,7 +32,7 @@ import Music.Models.Part as Part exposing (Part, propagateAttributes)
 import Music.Models.Score as Score exposing (Score)
 import Music.Models.Time as Time
 import Music.Views.MeasureView as MeasureView
-import TouchTunes.Actions.Top as Action exposing (Msg(..))
+import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Dial as Dial
 import TouchTunes.Models.Editor as Editor exposing (Editor)
@@ -76,7 +76,7 @@ editorCss =
             { editor = "editor" }
 
 
-view : Editor -> Html Msg
+view : Editor Msg -> Html Msg
 view editor =
     let
         s =
@@ -117,11 +117,11 @@ view editor =
         ]
 
 
-viewControls : Editor -> Html Msg
+viewControls : Editor Msg -> Html Msg
 viewControls editor =
     let
-        tracking =
-            editor.tracking
+        controls =
+            editor.controls
     in
     ul
         [ class <| frameCss .controls ]
@@ -131,23 +131,15 @@ viewControls editor =
                     List.append
                         (case overlay.selection of
                             Just selection ->
-                                [ Controls.viewAlterationDial
-                                    tracking.alterationDial
-                                    editor.settings.alteration
+                                [ Dial.view controls.alterationDial Actions.AlterationMsg
                                 ]
 
                             Nothing ->
-                                [ Controls.viewTimeDial
-                                    tracking.timeDial
-                                    editor.settings.time
-                                , Controls.viewKeyDial
-                                    tracking.keyDial
-                                    (keyName editor.settings.key)
+                                [ Dial.view controls.timeDial Actions.TimeMsg
+                                , Dial.view controls.keyDial Actions.KeyMsg
                                 ]
                         )
-                        [ Controls.viewSubdivisionDial
-                            tracking.subdivisionDial
-                            editor.settings.subdivision
+                        [ Dial.view controls.subdivisionDial Actions.SubdivisionMsg
                         ]
 
             Nothing ->
@@ -155,7 +147,7 @@ viewControls editor =
         )
 
 
-viewPart : Editor -> Int -> Part -> Html Msg
+viewPart : Editor msg -> Int -> Part -> Html Msg
 viewPart editor i part =
     let
         layoutMeasures =
@@ -179,7 +171,7 @@ viewPart editor i part =
         ]
 
 
-viewMeasure : Editor -> Int -> Int -> ( Layout, Measure ) -> Html Msg
+viewMeasure : Editor msg -> Int -> Int -> ( Layout, Measure ) -> Html Msg
 viewMeasure editor i j ( layout, measure ) =
     let
         ed =
@@ -199,7 +191,7 @@ viewMeasure editor i j ( layout, measure ) =
 
         downHandler =
             Pointer.onDown <|
-                \_ -> Action.StartEdit i j l
+                \_ -> Actions.StartEdit i j l
     in
     div
         [ class <| editorCss .editor, downHandler ]

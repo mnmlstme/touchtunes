@@ -3,6 +3,7 @@ module Music.Models.Key exposing
     , KeyName(..)
     , Mode(..)
     , displayName
+    , equal
     , flats
     , keyName
     , keyOf
