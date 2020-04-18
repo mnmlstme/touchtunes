@@ -5,7 +5,6 @@ module TouchTunes.Models.Controls exposing
     )
 
 import Array as Array
-import Html exposing (Html, text)
 import Music.Models.Duration
     exposing
         ( Duration
@@ -21,10 +20,9 @@ import Music.Models.Staff as Staff
 import Music.Models.Time as Time exposing (BeatType(..), Time)
 import Music.Views.MeasureView as MeasureView
 import Music.Views.NoteView exposing (StemOrientation(..), isWhole, viewNote)
-import TouchTunes.Actions.Top exposing (Msg(..))
-import TouchTunes.Models.Dial as Dial exposing (Dial)
-import TypedSvg exposing (g, text_)
-import TypedSvg.Attributes
+import String exposing (fromFloat)
+import Svg.Styled exposing (Svg, g, text, text_)
+import Svg.Styled.Attributes
     exposing
         ( fontSize
         , fontWeight
@@ -33,14 +31,8 @@ import TypedSvg.Attributes
         , x
         , y
         )
-import TypedSvg.Core exposing (Svg)
-import TypedSvg.Types
-    exposing
-        ( AnchorAlignment(..)
-        , FontWeight(..)
-        , Transform(..)
-        , px
-        )
+import TouchTunes.Actions.Top exposing (Msg(..))
+import TouchTunes.Models.Dial as Dial exposing (Dial)
 
 
 type alias Controls msg =
@@ -147,7 +139,7 @@ viewSubdivision d =
             Layout.height layout
     in
     g
-        [ transform [ Translate 0 (-0.5 * staffHeight.px) ] ]
+        [ transform ("translate(0," ++ fromFloat (-0.5 * staffHeight.px) ++ ")") ]
         [ viewNote layout d pitch ]
 
 
@@ -162,7 +154,7 @@ viewAlteration alt =
             Layout.height layout
     in
     g
-        [ transform [ Translate 0 (-0.5 * staffHeight.px) ] ]
+        [ transform ("translate(0," ++ fromFloat (-0.5 * staffHeight.px) ++ ")") ]
         [ viewNote layout quarter pitch ]
 
 
@@ -179,7 +171,14 @@ viewTime time =
             Layout.spacing layout
     in
     g
-        [ transform [ Translate (-1.0 * sp.px) (m.top.px - 0.5 * staffHeight.px) ] ]
+        [ transform
+            ("translate("
+                ++ fromFloat (-1.0 * sp.px)
+                ++ ","
+                ++ fromFloat (m.top.px - 0.5 * staffHeight.px)
+                ++ ")"
+            )
+        ]
         [ MeasureView.viewTime layout <| Just time ]
 
 
@@ -195,13 +194,11 @@ viewKey kn =
     in
     g []
         [ text_
-            [ textAnchor AnchorMiddle
-            , fontSize <| px (5.0 * sp.px)
-            , fontWeight <| FontWeight 800
-            , x <| px 0
-            , y <| px (2.0 * sp.px)
+            [ textAnchor "middle"
+            , fontSize <| fromFloat (5.0 * sp.px)
+            , fontWeight "800"
+            , x <| "0"
+            , y <| fromFloat (2.0 * sp.px)
             ]
             [ text <| Key.displayName key ]
-
-        -- [ text <| String.fromInt key.fifths ]
         ]

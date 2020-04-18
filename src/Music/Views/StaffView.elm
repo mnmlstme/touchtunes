@@ -1,37 +1,34 @@
 module Music.Views.StaffView exposing (draw)
 
-import CssModules as CssModules
 import Music.Models.Layout as Layout
     exposing
         ( Layout
         , Pixels
-        , inPx
         )
-import TypedSvg
+import Music.Views.StaffStyles as Styles
+import String exposing (fromFloat)
+import Svg.Styled
     exposing
-        ( g
+        ( Svg
+        , g
         , line
         )
-import TypedSvg.Attributes exposing (class, x1, x2, y1, y2)
-import TypedSvg.Core exposing (Svg)
-import TypedSvg.Types exposing (px)
+import Svg.Styled.Attributes
+    exposing
+        ( css
+        , x1
+        , x2
+        , y1
+        , y2
+        )
 
 
 draw : Layout -> Svg msg
 draw layout =
-    let
-        css =
-            .toString <|
-                CssModules.css "./Music/Views/css/staff.css"
-                    { staff = "staff"
-                    , barline = "barline"
-                    , lines = "lines"
-                    }
-    in
-    g [ class [ css .staff ] ]
-        [ g [ class [ css .lines ] ]
+    g [ css [ Styles.staff ] ]
+        [ g [ css [ Styles.lines ] ]
             (List.map (drawStaffLine layout) (List.range 0 4))
-        , g [ class [ css .barline ] ]
+        , g [ css [ Styles.barline ] ]
             [ drawBarLine layout ]
         ]
 
@@ -49,10 +46,10 @@ drawStaffLine layout n =
             toFloat n * s.px
     in
     line
-        [ x1 <| px 0
-        , x2 <| inPx width
-        , y1 <| px y
-        , y2 <| px y
+        [ x1 "0"
+        , x2 <| fromFloat width.px
+        , y1 <| fromFloat y
+        , y2 <| fromFloat y
         ]
         []
 
@@ -70,9 +67,9 @@ drawBarLine layout =
             4.0 * sp.px
     in
     line
-        [ x1 <| inPx width
-        , y1 <| px 0
-        , x2 <| inPx width
-        , y2 <| px height
+        [ x1 <| fromFloat width.px
+        , y1 "0"
+        , x2 <| fromFloat width.px
+        , y2 <| fromFloat height
         ]
         []

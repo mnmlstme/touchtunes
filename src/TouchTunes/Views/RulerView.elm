@@ -1,32 +1,26 @@
 module TouchTunes.Views.RulerView exposing (view)
 
-import CssModules as CssModules
-import Html exposing (Html)
+import Html.Styled exposing (Html)
 import List.Nonempty as Nonempty
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
-import Music.Models.Layout as Layout exposing (Layout, inPx)
-import TypedSvg exposing (g, rect, svg)
-import TypedSvg.Attributes
+import Music.Models.Layout as Layout exposing (Layout, Pixels)
+import String exposing (fromFloat)
+import Svg.Styled exposing (Svg, g, rect, svg)
+import Svg.Styled.Attributes
     exposing
-        ( class
+        ( css
         , height
         , width
         , x
         , y
         )
-import TypedSvg.Core exposing (Svg)
-import TypedSvg.Types exposing (px)
+import TouchTunes.Views.EditorStyles as Styles
 
 
-css =
-    .toString <|
-        CssModules.css "./TouchTunes/Views/css/editor.css"
-            { ruler = "ruler"
-            , underlay = "underlay"
-            , margins = "margins"
-            , overflow = "overflow"
-            }
+fromPixels : Pixels -> String
+fromPixels p =
+    fromFloat p.px
 
 
 viewBand : Layout -> Float -> Float -> Svg msg
@@ -40,18 +34,18 @@ viewBand layout x_ w =
     in
     g []
         [ rect
-            [ class [ css .underlay ]
-            , x <| px <| x_
-            , y <| px 0
-            , height <| px <| h.px
-            , width <| px <| w
+            [ css [ Styles.underlay ]
+            , x <| fromFloat x_
+            , y "0"
+            , height <| fromFloat h.px
+            , width <| fromFloat w
             ]
             []
         , rect
-            [ x <| px <| x_
-            , y <| px <| h.px - sp.px / 4.0
-            , height <| px <| sp.px / 4.0
-            , width <| px <| w
+            [ x <| fromFloat x_
+            , y <| fromFloat <| h.px - sp.px / 4.0
+            , height <| fromFloat <| sp.px / 4.0
+            , width <| fromFloat w
             ]
             []
         ]
@@ -129,18 +123,18 @@ view layout =
             Layout.fixedWidth layout
     in
     svg
-        [ class [ css .ruler ]
-        , height <| inPx h
-        , width <| inPx w
+        [ css [ Styles.ruler ]
+        , height <| fromPixels h
+        , width <| fromPixels w
         ]
         (List.concat
-            [ [ g [ class [ css .margins ] ]
+            [ [ g [ css [ Styles.margins ] ]
                     [ viewBand layout 0 (m.left.px - pad)
                     , viewBand layout (w.px - m.right.px + pad) (m.right.px - pad)
                     ]
               ]
             , if w.px > fixed.px then
-                [ g [ class [ css .overflow ] ]
+                [ g [ css [ Styles.overflow ] ]
                     [ viewBand layout (fixed.px - m.right.px + pad) (w.px - fixed.px - 2.0 * pad) ]
                 ]
 

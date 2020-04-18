@@ -1,9 +1,9 @@
-module Main exposing (Model, Msg(..), main, update, view)
+module Main exposing (Model, main, update, view)
 
 import Browser exposing (Document)
-import CssModules exposing (css)
 import Example1
-import Html
+import Html as Unstyled
+import Html.Styled as Html
     exposing
         ( Html
         , button
@@ -12,12 +12,15 @@ import Html
         , header
         , section
         , text
+        , toUnstyled
         )
-import Html.Events exposing (onClick)
-import TouchTunes.Actions.Top as TTActions
-import TouchTunes.Actions.Update as EditorUpdate
-import TouchTunes.Models.Editor as Editor exposing (Editor)
-import TouchTunes.Views.EditorView as EditorView
+import Html.Styled.Attributes exposing (css)
+import Html.Styled.Events exposing (onClick)
+import Music.Models.Score as Score exposing (Score)
+import TouchTunes.Actions.Top as Actions
+import TouchTunes.Models.App as App exposing (App)
+import TouchTunes.Views.AppStyles as Styles
+import TouchTunes.Views.AppView as AppView
 
 
 
@@ -34,81 +37,53 @@ main =
         }
 
 
+type Msg
+    = Open Score
+    | AppMessage Actions.Msg
+
+
 
 -- MODEL
 
 
 type alias Model =
-    { editor : Editor TTActions.Msg
+    { app : App
     }
 
 
 initialModel : Model
 initialModel =
-    Model Editor.init
+    Model <| App.init Score.empty
 
 
 
 -- UPDATE
 
 
-type Msg
-    = Clear
-    | ShowExample1
-    | EditorMessage TTActions.Msg
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Clear ->
-            let
-                editor =
-                    Editor.init
-            in
-            ( Model editor, Cmd.none )
+        Open score ->
+            ( { model | app = App.init score }
+            , Cmd.none
+            )
 
-        ShowExample1 ->
-            let
-                editor =
-                    Editor.open Example1.example
-            in
-            ( Model editor, Cmd.none )
-
-        EditorMessage ttmsg ->
-            ( Model <| EditorUpdate.update ttmsg model.editor
+        AppMessage appmsg ->
+            ( { model | app = App.update appmsg model.app }
             , Cmd.none
             )
 
 
-
--- VIEW
-
-
-view : Model -> Html Msg
+view : Model -> Unstyled.Html Msg
 view model =
-    let
-        styles =
-            css "./app.css"
-                { app = "app"
-                , fullscreen = "fullscreen"
-                , body = "body"
-                , footer = "footer"
-                }
-    in
-    section
-        [ styles.classList
-            [ ( .fullscreen, True )
-            , ( .app, True )
+    toUnstyled <|
+        section
+            [ css [ Styles.app, Styles.fullScreen ]
             ]
-        ]
-        [ div [ styles.class .body ]
-            [ Html.map
-                EditorMessage
-                (EditorView.view model.editor)
+            [ Html.map AppMessage <| AppView.view model.app
+            , footer
+                [ css [ Styles.footer ] ]
+                [ button [ onClick <| Open Score.empty ] [ text "Clear" ]
+                , button [ onClick <| Open Example1.example ] [ text "Example 1" ]
+                ]
             ]
-        , footer [ styles.class .footer ]
-            [ button [ onClick Clear ] [ text "Clear" ]
-            , button [ onClick ShowExample1 ] [ text "Example 1" ]
-            ]
-        ]

@@ -9,7 +9,6 @@ module Music.Models.Time exposing
     )
 
 import Music.Models.Duration exposing (Duration)
-import TypedSvg.Core exposing (Svg)
 
 
 type BeatType

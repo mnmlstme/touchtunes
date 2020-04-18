@@ -5,9 +5,7 @@ module Music.Views.NoteView exposing
     , viewNote
     )
 
-import CssModules as CssModules
 import Debug exposing (log)
-import Icon.SvgAsset as SvgAsset exposing (SvgAsset, svgAsset)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Layout as Layout
@@ -15,7 +13,6 @@ import Music.Models.Layout as Layout
         ( Layout
         , Pixels
         , halfSpacing
-        , inPx
         , margins
         , positionOnStaff
         , scaleBeat
@@ -26,18 +23,37 @@ import Music.Models.Layout as Layout
 import Music.Models.Note exposing (..)
 import Music.Models.Pitch as Pitch exposing (Pitch)
 import Music.Models.Time as Time exposing (Time)
-import String
-import TypedSvg
+import Music.Views.SvgAsset as SvgAsset
     exposing
-        ( g
+        ( SvgAsset
+        , eighthRest
+        , flat
+        , halfRest
+        , ledgerLine
+        , noteheadClosed
+        , noteheadOpen
+        , quarterRest
+        , sharp
+        , singleDot
+        , stemDown
+        , stemDown1Flag
+        , stemUp
+        , stemUp1Flag
+        , wholeRest
+        )
+import String exposing (fromFloat)
+import Svg.Styled
+    exposing
+        ( Svg
+        , g
         , line
         , svg
         , text_
         , use
         )
-import TypedSvg.Attributes
+import Svg.Styled.Attributes
     exposing
-        ( class
+        ( css
         , height
         , transform
         , width
@@ -49,69 +65,11 @@ import TypedSvg.Attributes
         , y1
         , y2
         )
-import TypedSvg.Core exposing (Svg)
-import TypedSvg.Types exposing (Transform(..), px)
 
 
 type StemOrientation
     = StemUp
     | StemDown
-
-
-wholeRest =
-    svgAsset "./Music/Views/svg/tt-rest-whole.svg"
-
-
-halfRest =
-    svgAsset "./Music/Views/svg/tt-rest-half.svg"
-
-
-quarterRest =
-    svgAsset "./Music/Views/svg/tt-rest-quarter.svg"
-
-
-eighthRest =
-    svgAsset "./Music/Views/svg/tt-rest-eighth.svg"
-
-
-noteheadClosed =
-    svgAsset "./Music/Views/svg/tt-notehead-closed.svg"
-
-
-noteheadOpen =
-    svgAsset "./Music/Views/svg/tt-notehead-open.svg"
-
-
-singleDot =
-    svgAsset "./Music/Views/svg/tt-dot.svg"
-
-
-sharp =
-    svgAsset "./Music/Views/svg/tt-sharp.svg"
-
-
-flat =
-    svgAsset "./Music/Views/svg/tt-flat.svg"
-
-
-ledgerLine =
-    svgAsset "./Music/Views/svg/tt-ledger-line.svg"
-
-
-stemUp =
-    svgAsset "./Music/Views/svg/tt-stem-up.svg"
-
-
-stemDown =
-    svgAsset "./Music/Views/svg/tt-stem-down.svg"
-
-
-stemUp1Flag =
-    svgAsset "./Music/Views/svg/tt-stem-up-1flag.svg"
-
-
-stemDown1Flag =
-    svgAsset "./Music/Views/svg/tt-stem-down-1flag.svg"
 
 
 isWhole : Duration -> Bool
@@ -244,17 +202,6 @@ ledgerLines layout p =
     List.map spaceToPixels spaces
 
 
-css =
-    .toString <|
-        CssModules.css "./Music/Views/css/note.css"
-            { note = "note"
-            , rest = "rest"
-            , stem = "stem"
-            , ledger = "ledger"
-            , blank = "blank"
-            }
-
-
 notePlacement : Time -> Duration -> Beat -> Beat
 notePlacement time dur beat =
     -- place the note in the center of its duration
@@ -278,18 +225,9 @@ view layout beat note =
         xpos =
             scaleBeat layout <|
                 notePlacement (Layout.time layout) d beat
-
-        className =
-            case note.do of
-                Play _ ->
-                    css .note
-
-                Rest ->
-                    css .rest
     in
     g
-        [ class [ className ]
-        , transform [ Translate xpos.px 0 ]
+        [ transform ("translate(" ++ fromFloat xpos.px ++ ",0)")
         ]
         [ case note.do of
             Play p ->
@@ -313,7 +251,11 @@ viewRest layout d =
             restSymbol d
     in
     g
-        [ transform [ Translate 0 (m.top.px + 2.0 * sp.px) ]
+        [ transform
+            ("translate(0,"
+                ++ fromFloat (m.top.px + 2.0 * sp.px)
+                ++ ")"
+            )
         ]
         [ SvgAsset.view rest
         , viewDot d
@@ -353,11 +295,11 @@ viewNote layout d p =
             alteration p
 
         viewLedger y =
-            g [ transform [ Translate 0 y.px ] ]
+            g [ transform ("translate(0," ++ fromFloat y.px ++ ")") ]
                 [ SvgAsset.view ledgerLine ]
     in
     g
-        [ transform [ Translate 0 ypos.px ]
+        [ transform ("translate(0," ++ fromFloat ypos.px ++ ")")
         ]
         [ SvgAsset.view note
         , viewDot d
@@ -367,7 +309,7 @@ viewNote layout d p =
 
             Nothing ->
                 text_ [] []
-        , g [ class [ css .ledger ] ]
+        , g []
             (List.map viewLedger ledgers)
         , case alt of
             Just theAlt ->

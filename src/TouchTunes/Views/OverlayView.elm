@@ -3,9 +3,7 @@ module TouchTunes.Views.OverlayView exposing
     , view
     )
 
-import CssModules as CssModules
-import Html exposing (text)
-import Html.Events.Extra.Pointer as Pointer
+import Json.Decode as Json
 import List.Extra exposing (find)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration, quarter)
@@ -13,53 +11,53 @@ import Music.Models.Layout as Layout
     exposing
         ( Layout
         , Location
+        , Pixels
         , beatSpacing
         , durationSpacing
         , forMeasure
-        , inPx
         , scaleBeat
         , scalePitch
         )
 import Music.Models.Measure as Measure exposing (Measure, toSequence)
 import Music.Models.Note as Note exposing (Note, What(..))
 import Music.Views.MeasureView as MeasureView
-import TouchTunes.Actions.Top as Action exposing (Msg(..))
-import TouchTunes.Models.Overlay exposing (Overlay)
-import Tuple exposing (pair)
-import TypedSvg
+import String exposing (fromFloat)
+import Svg.Styled
     exposing
-        ( circle
+        ( Svg
+        , circle
         , g
         , rect
         , svg
+        , text
         )
-import TypedSvg.Attributes
+import Svg.Styled.Attributes
     exposing
-        ( class
+        ( css
         , height
         , transform
         , width
         , x
         , y
         )
-import TypedSvg.Core exposing (Svg)
-import TypedSvg.Types exposing (Transform(..), px)
+import Svg.Styled.Events as Events
+import TouchTunes.Actions.Top as Action exposing (Msg(..))
+import TouchTunes.Models.Overlay exposing (Overlay)
+import TouchTunes.Views.EditorStyles as Styles
+import Tuple exposing (pair)
 
 
-pointerCoordinates : Pointer.Event -> ( Float, Float )
-pointerCoordinates event =
-    event.pointer.offsetPos
+pointerCoordinates : (( Float, Float ) -> msg) -> Json.Decoder msg
+pointerCoordinates toMsg =
+    Json.map2
+        (\x y -> toMsg ( x, y ))
+        (Json.field "offsetX" Json.float)
+        (Json.field "offsetY" Json.float)
 
 
-css =
-    .toString <|
-        CssModules.css "./TouchTunes/Views/css/editor.css"
-            { overlay = "overlay"
-            , underlay = "underlay"
-            , selection = "selection"
-            , pitchLevel = "pitchLevel"
-            , area = "area"
-            }
+fromPixels : Pixels -> String
+fromPixels p =
+    fromFloat p.px
 
 
 view : Measure -> Overlay -> Svg Msg
@@ -101,32 +99,20 @@ view measure overlay =
             ( x + m.left.px, y )
 
         downHandler =
-            Pointer.onWithOptions "pointerdown"
-                { stopPropagation = True, preventDefault = True }
-            <|
+            Events.on "mousedown" <|
                 pointerCoordinates
-                    >> adjustCoordinates
-                    >> Tuple.mapBoth floor floor
-                    >> Action.NoteEdit
+                    (adjustCoordinates >> Tuple.mapBoth floor floor >> Action.NoteEdit)
 
         upHandler =
-            Pointer.onUp (\_ -> Action.CommitEdit)
-
-        cancelHandler =
-            Pointer.onCancel (\_ -> Action.CancelEdit)
-
-        leaveHandler =
-            Pointer.onLeave (\_ -> Action.CancelEdit)
+            Events.onMouseUp Action.CommitEdit
 
         outHandler =
-            Pointer.onOut (\_ -> Action.CancelEdit)
+            Events.onMouseOut Action.CancelEdit
 
         moveHandler =
-            Pointer.onMove <|
+            Events.on "mousemove" <|
                 pointerCoordinates
-                    >> adjustCoordinates
-                    >> Tuple.mapBoth floor floor
-                    >> Action.DragEdit
+                    (adjustCoordinates >> Tuple.mapBoth floor floor >> Action.DragEdit)
 
         activeHandlers =
             case overlay.selection of
@@ -134,8 +120,6 @@ view measure overlay =
                     if selection.dragging then
                         [ moveHandler
                         , upHandler
-                        , cancelHandler
-                        , leaveHandler
                         , outHandler
                         ]
 
@@ -146,18 +130,18 @@ view measure overlay =
                     []
     in
     svg
-        [ class [ css .overlay ]
-        , height <| inPx <| Layout.height layout
-        , width <| inPx <| Layout.width layout
+        [ css [ Styles.overlay ]
+        , height <| fromPixels <| Layout.height layout
+        , width <| fromPixels <| Layout.width layout
         ]
         (List.append
             [ rect
                 (List.append
-                    [ class [ css .area ]
-                    , x <| inPx <| m.left
-                    , y <| px 0
-                    , height <| inPx <| Layout.height layout
-                    , width <| inPx <| durationSpacing layout <| Measure.length measure
+                    [ css [ Styles.area ]
+                    , x <| fromPixels <| m.left
+                    , y "0"
+                    , height <| fromPixels <| Layout.height layout
+                    , width <| fromPixels <| durationSpacing layout <| Measure.length measure
                     , downHandler
                     ]
                     activeHandlers
@@ -168,11 +152,11 @@ view measure overlay =
                 Just selection ->
                     List.append
                         [ rect
-                            [ class [ css .selection ]
-                            , x <| inPx <| scaleBeat overlay.layout selection.location.beat
-                            , y <| px 0
-                            , height <| inPx <| Layout.height layout
-                            , width <| inPx <| durationSpacing layout duration
+                            [ css [ Styles.selection ]
+                            , x <| fromPixels <| scaleBeat overlay.layout selection.location.beat
+                            , y "0"
+                            , height <| fromPixels <| Layout.height layout
+                            , width <| fromPixels <| durationSpacing layout duration
                             ]
                             []
                         ]
@@ -180,15 +164,15 @@ view measure overlay =
                             Play pitch ->
                                 if selection.dragging then
                                     [ rect
-                                        [ class [ css .pitchLevel ]
-                                        , x <| px 0
+                                        [ css [ Styles.pitchLevel ]
+                                        , x "0"
                                         , y <|
-                                            px <|
+                                            fromFloat <|
                                                 (scalePitch overlay.layout pitch).px
                                                     - 0.5
                                                     * sp.px
-                                        , height <| inPx <| sp
-                                        , width <| inPx <| Layout.width layout
+                                        , height <| fromPixels <| sp
+                                        , width <| fromPixels <| Layout.width layout
                                         ]
                                         []
                                     ]

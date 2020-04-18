@@ -28,7 +28,7 @@ import TouchTunes.Models.Editor as Editor
 import TouchTunes.Models.Overlay as Overlay
 
 
-update : Msg -> Editor msg -> Editor msg
+update : Msg -> Editor -> Editor
 update msg editor =
     let
         controls =
@@ -43,40 +43,27 @@ update msg editor =
                 | partNum = partNum
                 , measureNum = measureNum
                 , overlay =
-                    Just <|
-                        Overlay.subdivide subdivisions <|
-                            Overlay.fromLayout layout
+                    Overlay.subdivide subdivisions <|
+                        Overlay.fromLayout layout
             }
 
         NoteEdit pos ->
-            case editor.overlay of
-                Just overlay ->
-                    { editor
-                        | overlay =
-                            Just <|
-                                Overlay.start subdivisions pos overlay
-                    }
-
-                Nothing ->
-                    editor
+            { editor
+                | overlay =
+                    Overlay.start subdivisions pos editor.overlay
+            }
 
         DragEdit pos ->
-            case editor.overlay of
-                Just overlay ->
-                    { editor
-                        | overlay =
-                            Just <|
-                                Overlay.drag subdivisions pos overlay
-                    }
-
-                Nothing ->
-                    editor
+            { editor
+                | overlay =
+                    Overlay.drag subdivisions pos editor.overlay
+            }
 
         CommitEdit ->
-            commit { editor | overlay = Maybe.map Overlay.finish editor.overlay }
+            commit { editor | overlay = Overlay.finish editor.overlay }
 
         CancelEdit ->
-            { editor | overlay = Maybe.map Overlay.deselect editor.overlay }
+            { editor | overlay = Overlay.deselect editor.overlay }
 
         SubdivisionMsg dialAction ->
             commit

@@ -1,9 +1,6 @@
 module TouchTunes.Models.Editor exposing
     ( Editor
     , commit
-    , editingMeasure
-    , forMeasure
-    , init
     , measure
     , open
     , originalMeasure
@@ -22,50 +19,37 @@ import Music.Models.Pitch exposing (Semitones)
 import Music.Models.Score as Score exposing (Score)
 import Music.Models.Time as Time exposing (Time)
 import String
+import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls exposing (Controls)
 import TouchTunes.Models.Dial as Dial
 import TouchTunes.Models.Overlay as Overlay exposing (Overlay)
 
 
-type alias Editor msg =
+type alias Editor =
     { score : Score
     , partNum : Int
     , measureNum : Int
-    , controls : Controls msg
-    , overlay : Maybe Overlay
+    , controls : Controls Msg
+    , overlay : Overlay
     }
 
 
-init : Editor msg
-init =
-    Editor
-        Score.empty
-        0
-        0
-        Controls.init
-        Nothing
-
-
-open : Score -> Editor msg
-open score =
+open : Int -> Int -> Layout -> Score -> Editor
+open pnum mnum layout score =
     let
         maybeMeasure =
-            Score.measure 0 0 score
-
-        maybeLayout =
-            Maybe.map
-                (\m -> Layout.forMeasure m.attributes m)
-                maybeMeasure
+            Score.measure pnum mnum score
     in
     Editor
         score
-        0
-        0
+        pnum
+        mnum
+        -- TODO: initialize controls from measure
         Controls.init
-        Nothing
+        (Overlay.fromLayout layout)
 
 
-commit : Editor msg -> Editor msg
+commit : Editor -> Editor
 commit editor =
     case measure editor of
         Just theMeasure ->
@@ -76,14 +60,14 @@ commit editor =
                         editor.measureNum
                         (log "commit" theMeasure)
                         editor.score
-                , overlay = Maybe.map (adjustOverlay theMeasure editor.controls) editor.overlay
+                , overlay = adjustOverlay theMeasure editor.controls editor.overlay
             }
 
         Nothing ->
             editor
 
 
-adjustOverlay : Measure -> Controls msg -> Overlay -> Overlay
+adjustOverlay : Measure -> Controls Msg -> Overlay -> Overlay
 adjustOverlay newMeasure controls overlay =
     let
         indirect =
@@ -98,79 +82,74 @@ adjustOverlay newMeasure controls overlay =
     Overlay.subdivide dur { overlay | layout = newLayout }
 
 
-measure : Editor msg -> Maybe Measure
+measure : Editor -> Maybe Measure
 measure editor =
     let
         original =
             originalMeasure editor
+
+        layout =
+            editor.overlay.layout
+
+        override m =
+            let
+                direct =
+                    m.attributes
+            in
+            Measure.withEssentialAttributes
+                layout.indirect
+                { direct
+                    | time = Just editor.controls.timeDial.value
+                    , key = Just <| keyOf editor.controls.keyDial.value Major
+                }
+                m
+
+        controlled =
+            Maybe.map override original
     in
     log "Editor.measure editor" <|
-        case editor.overlay of
-            Just overlay ->
+        case editor.overlay.selection of
+            Just selection ->
                 let
-                    layout =
-                        overlay.layout
+                    t =
+                        Layout.time layout
 
-                    override m =
-                        let
-                            direct =
-                                m.attributes
-                        in
-                        Measure.withEssentialAttributes
-                            layout.indirect
-                            { direct
-                                | time = Just editor.controls.timeDial.value
-                                , key = Just <| keyOf editor.controls.keyDial.value Major
-                            }
-                            m
-
-                    controlled =
-                        Maybe.map override original
+                    fn =
+                        modifyNote
+                            (\_ -> selection.note)
+                            (Beat.toDuration t selection.location.beat)
                 in
-                case overlay.selection of
-                    Just selection ->
-                        let
-                            t =
-                                Layout.time layout
-
-                            fn =
-                                modifyNote
-                                    (\_ -> selection.note)
-                                    (Beat.toDuration t selection.location.beat)
-                        in
-                        Maybe.map fn controlled
-
-                    Nothing ->
-                        controlled
+                Maybe.map fn controlled
 
             Nothing ->
-                original
+                controlled
 
 
-originalMeasure : Editor msg -> Maybe Measure
+originalMeasure : Editor -> Maybe Measure
 originalMeasure editor =
     Score.measure editor.partNum editor.measureNum editor.score
 
 
-forMeasure : Int -> Int -> Editor msg -> Maybe (Editor msg)
-forMeasure partNum measureNum editor =
-    if
-        partNum
-            == editor.partNum
-            && measureNum
-            == editor.measureNum
-    then
-        Just editor
 
-    else
-        Nothing
-
-
-editingMeasure : Int -> Int -> Editor msg -> Maybe Measure
-editingMeasure partNum measureNum editor =
-    case forMeasure partNum measureNum editor of
-        Just ed ->
-            measure editor
-
-        Nothing ->
-            Nothing
+-- forMeasure : Int -> Int -> Editor -> Maybe Editor
+-- forMeasure partNum measureNum editor =
+--     if
+--         partNum
+--             == editor.partNum
+--             && measureNum
+--             == editor.measureNum
+--     then
+--         Just editor
+--
+--     else
+--         Nothing
+--
+--
+-- editingMeasure : Int -> Int -> Editor -> Maybe Measure
+-- editingMeasure partNum measureNum editor =
+--     case forMeasure partNum measureNum editor of
+--         Just ed ->
+--             measure editor
+--
+--         Nothing ->
+--             Nothing

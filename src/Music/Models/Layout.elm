@@ -11,7 +11,6 @@ module Music.Models.Layout exposing
     , forMeasure
     , halfSpacing
     , height
-    , inPx
     , keyOffset
     , locationAfter
     , margins
@@ -49,7 +48,6 @@ import Music.Models.Pitch as Pitch exposing (Pitch, StepNumber)
 import Music.Models.Staff as Staff exposing (Staff)
 import Music.Models.Time as Time exposing (Time)
 import Tuple exposing (first, second)
-import TypedSvg.Types exposing (Length, px)
 
 
 
@@ -117,11 +115,6 @@ toPixels layout tenths =
 toTenths : Layout -> Pixels -> Tenths
 toTenths layout pixels =
     Tenths <| pixels.px / layout.zoom
-
-
-inPx : Pixels -> Length
-inPx =
-    .px >> px
 
 
 type alias Location =
