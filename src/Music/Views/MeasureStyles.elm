@@ -1,9 +1,4 @@
-module Music.Views.MeasureStyles exposing
-    ( key
-    , measure
-    , staff
-    , time
-    )
+module Music.Views.MeasureStyles exposing (..)
 
 import Css exposing (..)
 

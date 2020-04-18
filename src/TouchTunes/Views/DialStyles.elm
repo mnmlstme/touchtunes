@@ -28,6 +28,9 @@ dial =
         [ property "stroke" "#f0f0f0"
         , fill white
         , zIndex (int 1)
+        , position absolute
+        , top (pct -50)
+        , left (pct -50)
         ]
 
 
@@ -57,8 +60,7 @@ collarActive =
 collarCircle =
     batch
         [ -- .collar > circle {
-          fill (hex "484244")
-        , property "fillOpacity" "0.2"
+          fill (rgba 72 66 68 0.2)
         ]
 
 

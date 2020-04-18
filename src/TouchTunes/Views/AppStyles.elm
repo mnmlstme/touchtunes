@@ -1,9 +1,4 @@
-module TouchTunes.Views.AppStyles exposing
-    ( app
-    , body
-    , footer
-    , fullScreen
-    )
+module TouchTunes.Views.AppStyles exposing (..)
 
 import Css exposing (..)
 
@@ -35,6 +30,7 @@ body =
         [ flexGrow (num 100)
         , displayFlex
         , flexDirection column
+        , position relative
         ]
 
 

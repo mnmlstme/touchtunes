@@ -41,13 +41,9 @@ import TouchTunes.Views.RulerView as RulerView
 
 view : Editor -> Html Msg
 view editor =
-    article
-        [ css [ Styles.frame ] ]
-        [ div
-            [ css [ Styles.body ] ]
-            [ viewMeasure editor
-            , viewControls editor
-            ]
+    article [ css [ Styles.frame ] ]
+        [ viewControls editor
+        , viewMeasure editor
         ]
 
 

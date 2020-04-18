@@ -81,7 +81,7 @@ view dial toMsg =
                 , transform
                     ("rotate("
                         ++ fromFloat (-1 * ri)
-                        ++ ",0,0"
+                        ++ ",0,0)"
                         ++ " translate("
                         ++ fromFloat (dialRadius / 2.0 + collarRadius / 2.0)
                         ++ ",0)"
@@ -107,11 +107,18 @@ view dial toMsg =
                 ]
     in
     svg
-        [ css [ Styles.dialActive ]
+        [ css
+            [ case dial.tracking of
+                Just _ ->
+                    Styles.dialActive
+
+                Nothing ->
+                    Styles.dial
+            ]
         , height <| fromFloat (2.0 * collarRadius)
         , width <| fromFloat (2.0 * collarRadius)
         , viewBox
-            (fromFloat (-1.0 * dialRadius)
+            (fromFloat (-1.0 * collarRadius)
                 ++ " "
                 ++ fromFloat (-1.0 * collarRadius)
                 ++ " "
@@ -121,7 +128,14 @@ view dial toMsg =
             )
         ]
         [ g
-            [ css [ Styles.collarActive ]
+            [ css
+                [ case dial.tracking of
+                    Just _ ->
+                        Styles.collarActive
+
+                    Nothing ->
+                        Styles.collar
+                ]
             , Events.onMouseLeave <| toMsg Cancel
             ]
           <|

@@ -1,8 +1,4 @@
-module Music.Views.StaffStyles exposing
-    ( barline
-    , lines
-    , staff
-    )
+module Music.Views.StaffStyles exposing (..)
 
 import Css exposing (..)
 

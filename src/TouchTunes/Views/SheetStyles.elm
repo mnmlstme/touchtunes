@@ -1,14 +1,4 @@
-module TouchTunes.Views.SheetStyles exposing
-    ( body
-    , frame
-    , header
-    , sheet
-    , stats
-    , statsData
-    , statsItem
-    , statsTerm
-    , title
-    )
+module TouchTunes.Views.SheetStyles exposing (..)
 
 import Css exposing (..)
 
@@ -25,7 +15,17 @@ frame =
         , flexDirection column
         , justifyContent spaceBetween
         , flexGrow (num 100) -- for child frame
-        , position relative
+        , position absolute
+        , width (pct 100)
+        , height (pct 100)
+        ]
+
+
+pane : Style
+pane =
+    batch
+        [ overflow auto
+        , flexGrow (num 100)
         ]
 
 

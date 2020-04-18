@@ -124,10 +124,10 @@ view measure overlay =
                         ]
 
                     else
-                        []
+                        [ downHandler ]
 
                 Nothing ->
-                    []
+                    [ downHandler ]
     in
     svg
         [ css [ Styles.overlay ]
@@ -142,7 +142,6 @@ view measure overlay =
                     , y "0"
                     , height <| fromPixels <| Layout.height layout
                     , width <| fromPixels <| durationSpacing layout <| Measure.length measure
-                    , downHandler
                     ]
                     activeHandlers
                 )

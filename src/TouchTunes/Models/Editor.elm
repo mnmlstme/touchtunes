@@ -128,28 +128,3 @@ measure editor =
 originalMeasure : Editor -> Maybe Measure
 originalMeasure editor =
     Score.measure editor.partNum editor.measureNum editor.score
-
-
-
--- forMeasure : Int -> Int -> Editor -> Maybe Editor
--- forMeasure partNum measureNum editor =
---     if
---         partNum
---             == editor.partNum
---             && measureNum
---             == editor.measureNum
---     then
---         Just editor
---
---     else
---         Nothing
---
---
--- editingMeasure : Int -> Int -> Editor -> Maybe Measure
--- editingMeasure partNum measureNum editor =
---     case forMeasure partNum measureNum editor of
---         Just ed ->
---             measure editor
---
---         Nothing ->
---             Nothing

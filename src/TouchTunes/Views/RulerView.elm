@@ -140,11 +140,13 @@ view layout =
 
               else
                 []
-            , List.map2
-                (viewBeat layout)
-                (Nonempty.toList layout.divisors)
-              <|
-                List.map Beat.fullBeat <|
-                    List.range 0 (beats - 1)
+            , [ g [ css [ Styles.rulerRect ] ] <|
+                    List.map2
+                        (viewBeat layout)
+                        (Nonempty.toList layout.divisors)
+                    <|
+                        List.map Beat.fullBeat <|
+                            List.range 0 (beats - 1)
+              ]
             ]
         )

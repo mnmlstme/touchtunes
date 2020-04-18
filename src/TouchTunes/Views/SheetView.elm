@@ -68,7 +68,7 @@ view viewer =
             ]
         , div
             [ css
-                [ Styles.frame
+                [ Styles.pane
                 , ScoreStyles.parts
                 ]
             ]

@@ -1,21 +1,4 @@
-module TouchTunes.Views.EditorStyles exposing
-    ( area
-    , body
-    , controls
-    , controlsItem
-    , controlsSvg
-    , editor
-    , frame
-    , header
-    , margins
-    , overflow
-    , overlay
-    , pitchLevel
-    , ruler
-    , rulerRect
-    , selection
-    , underlay
-    )
+module TouchTunes.Views.EditorStyles exposing (..)
 
 import Css exposing (..)
 
@@ -23,47 +6,35 @@ import Css exposing (..)
 controls : Style
 controls =
     batch
-        [ position absolute
-        , top zero
-        , left zero
-        , height (pct 100)
-        , width (px 90)
-        , displayFlex
-        , flexDirection column
-        , justifyContent center
+        [ backgroundColor (rgba 255 255 255 0.9)
+        , borderRadius (px 20)
         ]
 
 
 controlsItem : Style
 controlsItem =
     batch
-        [ -- .controls > li {
-          height (px 100)
+        [ height (px 100)
+        , width (px 100)
         , position relative
-        ]
-
-
-controlsSvg : Style
-controlsSvg =
-    batch
-        [ -- .controls > li > svg {
-          position absolute
-        , top zero
-        , marginTop (pct -50)
         ]
 
 
 editor =
     batch
         [ position relative
+        , padding (px 20)
+        , margin auto
+        , backgroundColor (rgba 255 255 255 0.9)
+        , borderRadius (px 20)
         ]
 
 
 ruler =
     batch
         [ position absolute
-        , bottom zero
-        , left zero
+        , bottom (px 20)
+        , left (px 20)
         ]
 
 
@@ -77,15 +48,15 @@ rulerRect =
 overlay =
     batch
         [ position absolute
-        , top zero
-        , left zero
+        , top (px 20)
+        , left (px 20)
         , cursor cell
         ]
 
 
 underlay =
     batch
-        [ property "fillOpacity" "0.2"
+        [ property "fill-opacity" "0.2"
         ]
 
 
@@ -112,6 +83,7 @@ selection =
     batch
         [ property "fill" "none"
         , property "stroke" "#0072d7"
+        , pointerEvents none
         ]
 
 
@@ -125,11 +97,15 @@ pitchLevel =
 
 frame =
     batch
-        [ displayFlex
-        , flexDirection column
-        , justifyContent spaceBetween
-        , flexGrow (num 100) -- for child frame
-        , position relative
+        [ position absolute
+        , height (pct 100)
+        , width (pct 100)
+        , padding (px 20)
+        , flexGrow (num 100)
+        , displayFlex
+        , flexDirection row
+        , alignItems center
+        , backgroundColor (rgba 145 124 155 0.2)
         ]
 
 
@@ -138,14 +114,4 @@ header =
         [ displayFlex
         , marginLeft (px 175)
         , justifyContent spaceBetween
-        ]
-
-
-body =
-    batch
-        [ flexGrow (num 100)
-        , displayFlex
-        , flexDirection column
-        , marginLeft (px 175)
-        , Css.overflow auto
         ]
