@@ -3,8 +3,8 @@ module Music.Views.MeasureView exposing
     , viewTime
     )
 
-import Html.Styled exposing (Html, div, text)
-import Html.Styled.Attributes as HtmlAttr exposing (style)
+import Html exposing (Html, div, text)
+import Html.Attributes as HtmlAttr exposing (style)
 import List.Nonempty as Nonempty
 import Music.Models.Beat as Beat
 import Music.Models.Key as Key exposing (Key)
@@ -18,15 +18,15 @@ import Music.Models.Measure as Measure exposing (..)
 import Music.Models.Pitch as Pitch exposing (Pitch, flat, sharp)
 import Music.Models.Staff as Staff
 import Music.Models.Time as Time exposing (Time)
-import Music.Views.MeasureStyles as Styles
+import Music.Views.MeasureStyles exposing (css)
 import Music.Views.NoteView as NoteView
 import Music.Views.StaffView as StaffView
 import Music.Views.SvgAsset as SvgAsset
 import String exposing (fromFloat, fromInt)
-import Svg.Styled exposing (Svg, g, svg, text_)
-import Svg.Styled.Attributes
+import Svg exposing (Svg, g, svg, text_)
+import Svg.Attributes
     exposing
-        ( css
+        ( class
         , fontSize
         , height
         , transform
@@ -48,7 +48,7 @@ viewTime layout time =
     case time of
         Just t ->
             g
-                [ css [ Styles.time ]
+                [ class (css .time)
                 , transform ("translate(" ++ fromFloat offset.px ++ ",0)")
                 ]
                 [ text_
@@ -149,7 +149,7 @@ viewKey layout key =
                     Layout.keyOffset layout
             in
             g
-                [ css [ Styles.key ]
+                [ class (css .key)
                 , transform ("translate(" ++ fromFloat offset.px ++ ",0)")
                 ]
             <|
@@ -183,9 +183,9 @@ view layout measure =
             List.map (\( d, n ) -> ( Beat.fromDuration t d, n )) <|
                 toSequence measure
     in
-    div [ HtmlAttr.css [ Styles.measure ] ]
+    div [ HtmlAttr.class (css .measure) ]
         [ svg
-            [ css [ Styles.staff ]
+            [ class (css .staff)
             , height <| fromFloat h.px
             , width <| fromFloat w.px
             ]

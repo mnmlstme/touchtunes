@@ -1,21 +1,21 @@
 module TouchTunes.Views.RulerView exposing (view)
 
-import Html.Styled exposing (Html)
+import Html exposing (Html)
 import List.Nonempty as Nonempty
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Layout as Layout exposing (Layout, Pixels)
 import String exposing (fromFloat)
-import Svg.Styled exposing (Svg, g, rect, svg)
-import Svg.Styled.Attributes
+import Svg exposing (Svg, g, rect, svg)
+import Svg.Attributes
     exposing
-        ( css
+        ( class
         , height
         , width
         , x
         , y
         )
-import TouchTunes.Views.EditorStyles as Styles
+import TouchTunes.Views.EditorStyles exposing (css)
 
 
 fromPixels : Pixels -> String
@@ -34,7 +34,7 @@ viewBand layout x_ w =
     in
     g []
         [ rect
-            [ css [ Styles.underlay ]
+            [ class (css .underlay)
             , x <| fromFloat x_
             , y "0"
             , height <| fromFloat h.px
@@ -123,24 +123,24 @@ view layout =
             Layout.fixedWidth layout
     in
     svg
-        [ css [ Styles.ruler ]
+        [ class (css .ruler)
         , height <| fromPixels h
         , width <| fromPixels w
         ]
         (List.concat
-            [ [ g [ css [ Styles.margins ] ]
+            [ [ g [ class (css .margins) ]
                     [ viewBand layout 0 (m.left.px - pad)
                     , viewBand layout (w.px - m.right.px + pad) (m.right.px - pad)
                     ]
               ]
             , if w.px > fixed.px then
-                [ g [ css [ Styles.overflow ] ]
+                [ g [ class (css .overflow) ]
                     [ viewBand layout (fixed.px - m.right.px + pad) (w.px - fixed.px - 2.0 * pad) ]
                 ]
 
               else
                 []
-            , [ g [ css [ Styles.rulerRect ] ] <|
+            , [ g [] <|
                     List.map2
                         (viewBeat layout)
                         (Nonempty.toList layout.divisors)

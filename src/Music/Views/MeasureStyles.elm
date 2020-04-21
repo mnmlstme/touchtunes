@@ -1,32 +1,13 @@
 module Music.Views.MeasureStyles exposing (..)
 
-import Css exposing (..)
+import CssModules
 
 
-measure =
-    batch
-        [ position relative
-        ]
-
-
-staff =
-    batch
-        [ overflow visible
-        , property "stroke" "#333"
-        , fill (hex "333")
-        , pointerEvents none
-        ]
-
-
-time =
-    batch
-        [ fontWeight (int 800)
-        , fontSize (px 20)
-        , property "textAnchor" "middle"
-        ]
-
-
-key =
-    batch
-        [ fill (hex "333")
-        ]
+css =
+    .toString <|
+        CssModules.css "./Music/Views/css/measure.css"
+            { measure = "measure"
+            , staff = "staff"
+            , time = "time"
+            , key = "key"
+            }

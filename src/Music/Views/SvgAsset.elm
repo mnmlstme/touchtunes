@@ -21,8 +21,8 @@ module Music.Views.SvgAsset exposing
     )
 
 import String exposing (fromFloat)
-import Svg.Styled exposing (Svg, use)
-import Svg.Styled.Attributes
+import Svg exposing (Svg, use)
+import Svg.Attributes
     exposing
         ( height
         , width

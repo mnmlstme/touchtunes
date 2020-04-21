@@ -5,17 +5,17 @@ import Music.Models.Layout as Layout
         ( Layout
         , Pixels
         )
-import Music.Views.StaffStyles as Styles
+import Music.Views.StaffStyles exposing (css)
 import String exposing (fromFloat)
-import Svg.Styled
+import Svg
     exposing
         ( Svg
         , g
         , line
         )
-import Svg.Styled.Attributes
+import Svg.Attributes
     exposing
-        ( css
+        ( class
         , x1
         , x2
         , y1
@@ -25,10 +25,10 @@ import Svg.Styled.Attributes
 
 draw : Layout -> Svg msg
 draw layout =
-    g [ css [ Styles.staff ] ]
-        [ g [ css [ Styles.lines ] ]
+    g [ class (css .staff) ]
+        [ g [ class (css .lines) ]
             (List.map (drawStaffLine layout) (List.range 0 4))
-        , g [ css [ Styles.barline ] ]
+        , g [ class (css .barline) ]
             [ drawBarLine layout ]
         ]
 

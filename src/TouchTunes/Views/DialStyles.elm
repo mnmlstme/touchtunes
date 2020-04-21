@@ -1,110 +1,16 @@
-module TouchTunes.Views.DialStyles exposing
-    ( collar
-    , collarActive
-    , collarCircle
-    , dial
-    , dialActive
-    , face
-    , option
-    , optionCircle
-    , value
-    , valueCircle
-    , viewValue
-    )
+module TouchTunes.Views.DialStyles exposing (..)
 
-import Css exposing (..)
+import CssModules
 
 
-white =
-    hex "fff"
-
-
-black =
-    hex "000"
-
-
-dial =
-    batch
-        [ property "stroke" "#f0f0f0"
-        , fill white
-        , zIndex (int 1)
-        , position absolute
-        , top (pct -50)
-        , left (pct -50)
-        ]
-
-
-dialActive =
-    batch
-        [ dial
-        , zIndex (int 2)
-        ]
-
-
-collar =
-    batch
-        [ visibility hidden
-        , opacity zero
-        , fill white
-        ]
-
-
-collarActive =
-    batch
-        [ collar
-        , visibility visible
-        , opacity (num 1)
-        ]
-
-
-collarCircle =
-    batch
-        [ -- .collar > circle {
-          fill (rgba 72 66 68 0.2)
-        ]
-
-
-option =
-    batch
-        [ fill (hex "484244")
-        ]
-
-
-optionCircle =
-    batch
-        [ fill white
-        ]
-
-
-face =
-    batch
-        [ fill black
-        , property "stroke" "#ffffc3"
-        , property "strokeWidth" "1"
-        ]
-
-
-value =
-    batch
-        [ fill (hex "484244")
-        ]
-
-
-valueCircle =
-    batch
-        [ fill (hex "e4e0e4")
-        , property "stroke" "#68b2f0"
-        ]
-
-
-viewValue =
-    batch
-        [ pointerEvents none
-        ]
-
-
-viewValueText =
-    batch
-        [ property "userSelect" "none"
-        , fontWeight (int 800)
-        ]
+css =
+    .toString <|
+        CssModules.css "./TouchTunes/Views/css/dial.css"
+            { dial = "dial"
+            , face = "face"
+            , value = "value"
+            , option = "option"
+            , viewValue = "viewValue"
+            , collar = "collar"
+            , active = "active"
+            }

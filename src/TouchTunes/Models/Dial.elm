@@ -14,7 +14,7 @@ import Array.Extra exposing (indexedMapToList)
 import Debug exposing (log)
 import List.Extra exposing (findIndex)
 import Maybe.Extra
-import Svg.Styled exposing (Svg)
+import Svg exposing (Svg)
 import Tuple exposing (pair)
 
 

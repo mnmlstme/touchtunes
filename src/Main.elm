@@ -2,8 +2,7 @@ module Main exposing (Model, main, update, view)
 
 import Browser exposing (Document)
 import Example1
-import Html as Unstyled
-import Html.Styled as Html
+import Html as Html
     exposing
         ( Html
         , button
@@ -12,14 +11,13 @@ import Html.Styled as Html
         , header
         , section
         , text
-        , toUnstyled
         )
-import Html.Styled.Attributes exposing (css)
-import Html.Styled.Events exposing (onClick)
+import Html.Attributes exposing (class, classList)
+import Html.Events exposing (onClick)
 import Music.Models.Score as Score exposing (Score)
 import TouchTunes.Actions.Top as Actions
 import TouchTunes.Models.App as App exposing (App)
-import TouchTunes.Views.AppStyles as Styles
+import TouchTunes.Views.AppStyles exposing (css)
 import TouchTunes.Views.AppView as AppView
 
 
@@ -74,16 +72,18 @@ update msg model =
             )
 
 
-view : Model -> Unstyled.Html Msg
+view : Model -> Html Msg
 view model =
-    toUnstyled <|
-        section
-            [ css [ Styles.app, Styles.fullScreen ]
+    section
+        [ classList
+            [ ( css .app, True )
+            , ( css .fullscreen, True )
             ]
-            [ Html.map AppMessage <| AppView.view model.app
-            , footer
-                [ css [ Styles.footer ] ]
-                [ button [ onClick <| Open Score.empty ] [ text "Clear" ]
-                , button [ onClick <| Open Example1.example ] [ text "Example 1" ]
-                ]
+        ]
+        [ Html.map AppMessage <| AppView.view model.app
+        , footer
+            [ class (css .footer) ]
+            [ button [ onClick <| Open Score.empty ] [ text "Clear" ]
+            , button [ onClick <| Open Example1.example ] [ text "Example 1" ]
             ]
+        ]

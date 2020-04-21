@@ -1,0 +1,22 @@
+/* Measure */
+
+.measure {
+    position: relative;
+}
+
+svg.staff {
+    overflow: visible;
+    stroke: #333;
+    fill: #333;
+    pointer-events: none;
+}
+
+.time {
+    font-weight: 800;
+    font-size: 20px;
+    text-anchor: middle;
+}
+
+.key {
+    fill: #333;
+}

@@ -3,7 +3,7 @@ module TouchTunes.Views.EditorView exposing (view)
 import Array exposing (Array)
 import Array.Extra
 import Debug exposing (log)
-import Html.Styled
+import Html
     exposing
         ( Html
         , article
@@ -20,7 +20,7 @@ import Html.Styled
         , text
         , ul
         )
-import Html.Styled.Attributes exposing (classList, css)
+import Html.Attributes exposing (class, classList)
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Key exposing (keyName)
@@ -34,14 +34,14 @@ import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Editor as Editor exposing (Editor)
 import TouchTunes.Views.DialView as Dial
-import TouchTunes.Views.EditorStyles as Styles
+import TouchTunes.Views.EditorStyles exposing (css)
 import TouchTunes.Views.OverlayView as OverlayView exposing (pointerCoordinates)
 import TouchTunes.Views.RulerView as RulerView
 
 
 view : Editor -> Html Msg
 view editor =
-    article [ css [ Styles.frame ] ]
+    article [ class (css .frame) ]
         [ viewControls editor
         , viewMeasure editor
         ]
@@ -57,9 +57,9 @@ viewControls editor =
             editor.overlay
     in
     ul
-        [ css [ Styles.controls ] ]
+        [ class (css .controls) ]
         (List.map
-            (\e -> li [ css [ Styles.controlsItem ] ] [ e ])
+            (\e -> li [] [ e ])
          <|
             List.append
                 (case overlay.selection of
@@ -87,7 +87,7 @@ viewMeasure editor =
             editor.overlay.layout
     in
     div
-        [ css [ Styles.editor ] ]
+        [ class (css .editor) ]
         [ RulerView.view l
         , MeasureView.view l m
         , OverlayView.view m editor.overlay

@@ -1,0 +1,23 @@
+/* Part */
+
+.part {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.abbrev {
+}
+
+.body {
+    flex-grow: 100;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}

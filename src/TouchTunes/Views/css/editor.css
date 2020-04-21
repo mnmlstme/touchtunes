@@ -1,0 +1,85 @@
+/* Editor */
+
+.frame {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    flex-grow: 100;
+    position: relative;
+    background: rgba(104, 86, 106, 0.5);
+}
+
+.editor {
+    position: relative;
+    padding: 20px;
+    margin: auto;
+    background: rgba(255,255,255,0.9);
+    border-radius: 20px;
+}
+
+.overlay {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    cursor: cell;
+}
+
+.underlay {
+    fill-opacity: 0.2;
+}
+
+.area {
+    fill: rgba(255,255,255,0.05);
+    stroke: none;
+}
+
+.ruler {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.ruler rect {
+    fill: #d4e6f5;
+    stroke: none;
+}
+
+.ruler .margins rect {
+    fill: #eee8c0;
+}
+
+.ruler .overflow rect {
+    fill: rgba(255,48,0,0.25);
+}
+
+.selection {
+    fill: none;
+    stroke: #0072d7;
+    pointer-events: none;
+}
+
+.pitchLevel {
+    stroke: none;
+    fill: rgba(32,240,0,0.1);
+    pointer-events: none;
+}
+
+
+.controls {
+    background: rgba(255,255,255,0.9);
+    border-radius: 20px;
+    margin-left: 20px;
+}
+
+.controls > li {
+    height: 100px;
+    width: 100px;
+    position: relative;
+}
+
+.controls > li > svg {
+  position: absolute;
+  margin-top: -50%;
+  margin-left: -50%;
+}

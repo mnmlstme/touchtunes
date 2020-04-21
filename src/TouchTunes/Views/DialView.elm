@@ -2,16 +2,15 @@ module TouchTunes.Views.DialView exposing (view)
 
 import Array as Array exposing (Array)
 import Array.Extra exposing (indexedMapToList)
-import Html.Styled exposing (Html)
-import Html.Styled.Events as Events
+import Html exposing (Html)
+import Html.Events as Events
 import List.Extra exposing (findIndex)
 import Maybe.Extra
 import String exposing (fromFloat)
-import Svg.Styled exposing (Svg, circle, g, line, rect, svg)
-import Svg.Styled.Attributes
+import Svg exposing (Svg, circle, g, line, rect, svg)
+import Svg.Attributes
     exposing
         ( class
-        , css
         , cx
         , cy
         , height
@@ -28,7 +27,7 @@ import Svg.Styled.Attributes
         , y2
         )
 import TouchTunes.Models.Dial as Dial exposing (Action(..), Dial)
-import TouchTunes.Views.DialStyles as Styles
+import TouchTunes.Views.DialStyles exposing (css)
 import Tuple exposing (pair)
 
 
@@ -71,13 +70,13 @@ view dial toMsg =
                     toFloat ((2 * i - n + 1) * sect) / 2
             in
             g
-                [ css
-                    [ if v == theValue then
-                        Styles.value
+                [ class
+                    (if v == theValue then
+                        css .value
 
-                      else
-                        Styles.option
-                    ]
+                     else
+                        css .option
+                    )
                 , transform
                     ("rotate("
                         ++ fromFloat (-1 * ri)
@@ -95,26 +94,25 @@ view dial toMsg =
                 , Events.onMouseUp <| toMsg Finish
                 ]
                 [ circle
-                    [ css [ Styles.optionCircle ]
-                    , r <| fromFloat faceRadius
+                    [ r <| fromFloat faceRadius
                     ]
                     []
                 , g
-                    [ css [ Styles.viewValue ]
+                    [ class (css .viewValue)
                     , transform "scale(0.375,0.375)"
                     ]
                     [ config.viewValue v ]
                 ]
     in
     svg
-        [ css
-            [ case dial.tracking of
+        [ class
+            (case dial.tracking of
                 Just _ ->
-                    Styles.dialActive
+                    css .dial ++ " " ++ css .active
 
                 Nothing ->
-                    Styles.dial
-            ]
+                    css .dial
+            )
         , height <| fromFloat (2.0 * collarRadius)
         , width <| fromFloat (2.0 * collarRadius)
         , viewBox
@@ -128,35 +126,34 @@ view dial toMsg =
             )
         ]
         [ g
-            [ css
-                [ case dial.tracking of
+            [ class
+                (case dial.tracking of
                     Just _ ->
-                        Styles.collarActive
+                        css .collar ++ " " ++ css .active
 
                     Nothing ->
-                        Styles.collar
-                ]
+                        css .collar
+                )
             , Events.onMouseLeave <| toMsg Cancel
             ]
           <|
             List.append
                 [ circle
-                    [ css [ Styles.collarCircle ], r <| fromFloat collarRadius ]
+                    [ r <| fromFloat collarRadius ]
                     []
                 ]
             <|
                 indexedMapToList viewOption config.options
         , g
-            [ css [ Styles.value ]
+            [ class (css .value)
             , Events.onMouseDown <| toMsg Start
             ]
             [ circle
-                [ css [ Styles.valueCircle ]
-                , r <| fromFloat faceRadius
+                [ r <| fromFloat faceRadius
                 ]
                 []
             , g
-                [ css [ Styles.viewValue ]
+                [ class (css .viewValue)
                 , transform "scale(0.5,0.5)"
                 ]
                 [ config.viewValue theValue ]

@@ -21,8 +21,8 @@ import Music.Models.Time as Time exposing (BeatType(..), Time)
 import Music.Views.MeasureView as MeasureView
 import Music.Views.NoteView exposing (StemOrientation(..), isWhole, viewNote)
 import String exposing (fromFloat)
-import Svg.Styled exposing (Svg, g, text, text_)
-import Svg.Styled.Attributes
+import Svg exposing (Svg, g, text, text_)
+import Svg.Attributes
     exposing
         ( fontSize
         , fontWeight

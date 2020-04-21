@@ -3,7 +3,7 @@ module TouchTunes.Views.SheetView exposing (view)
 import Array exposing (Array)
 import Array.Extra
 import Debug exposing (log)
-import Html.Styled
+import Html
     exposing
         ( Html
         , article
@@ -12,7 +12,6 @@ import Html.Styled
         , dl
         , dt
         , footer
-        , fromUnstyled
         , h1
         , h3
         , header
@@ -21,8 +20,8 @@ import Html.Styled
         , text
         , ul
         )
-import Html.Styled.Attributes exposing (css)
-import Html.Styled.Events exposing (onClick)
+import Html.Attributes exposing (class, classList)
+import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Key exposing (keyName)
@@ -32,10 +31,11 @@ import Music.Models.Part as Part exposing (Part, propagateAttributes)
 import Music.Models.Score as Score exposing (Score)
 import Music.Models.Time as Time
 import Music.Views.MeasureView as MeasureView
+import Music.Views.PartStyles as PartStyles
 import Music.Views.ScoreStyles as ScoreStyles
 import TouchTunes.Actions.Top as Actions exposing (Msg)
 import TouchTunes.Models.Sheet as Sheet exposing (Sheet)
-import TouchTunes.Views.SheetStyles as Styles
+import TouchTunes.Views.SheetStyles exposing (css)
 
 
 view : Sheet -> Html Msg
@@ -51,25 +51,25 @@ view viewer =
             Score.length s
     in
     article
-        [ css [ Styles.frame ] ]
-        [ header [ css [ Styles.header ] ]
-            [ h1 [ css [ Styles.title ] ]
+        [ class (css .frame) ]
+        [ header [ class (css .header) ]
+            [ h1 [ class (ScoreStyles.css .title) ]
                 [ text s.title ]
-            , dl [ css [ Styles.stats ] ]
-                [ dt [ css [ Styles.statsItem ] ]
+            , dl [ class (ScoreStyles.css .stats) ]
+                [ dt []
                     [ text "Parts" ]
-                , dd [ css [ Styles.statsItem ] ]
+                , dd []
                     [ text (String.fromInt nParts) ]
-                , dt [ css [ Styles.statsItem ] ]
+                , dt []
                     [ text "Measures" ]
-                , dd [ css [ Styles.statsItem ] ]
+                , dd []
                     [ text (String.fromInt nMeasures) ]
                 ]
             ]
         , div
-            [ css
-                [ Styles.pane
-                , ScoreStyles.parts
+            [ classList
+                [ ( css .pane, True )
+                , ( ScoreStyles.css .parts, True )
                 ]
             ]
           <|
@@ -88,14 +88,14 @@ viewPart viewer i part =
                 part.measures
     in
     section
-        [ css [ ScoreStyles.part ]
+        [ class (PartStyles.css .part)
         ]
-        [ header [ css [ ScoreStyles.partHeader ] ]
-            [ h3 [ css [ ScoreStyles.partAbbrev ] ]
+        [ header [ class (PartStyles.css .header) ]
+            [ h3 [ class (PartStyles.css .abbrev) ]
                 [ text part.abbrev ]
             ]
         , div
-            [ css [ ScoreStyles.partBody ] ]
+            [ class (PartStyles.css .body) ]
           <|
             Array.toList <|
                 Array.indexedMap (viewMeasure viewer i) layoutMeasures
@@ -105,5 +105,7 @@ viewPart viewer i part =
 viewMeasure : Sheet -> Int -> Int -> ( Layout, Measure ) -> Html Msg
 viewMeasure viewer i j ( layout, measure ) =
     div
-        [ onClick <| Actions.StartEdit i j layout ]
+        [ Pointer.onDown <|
+            \_ -> Actions.StartEdit i j layout
+        ]
         [ MeasureView.view layout measure ]

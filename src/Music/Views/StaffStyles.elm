@@ -1,21 +1,12 @@
 module Music.Views.StaffStyles exposing (..)
 
-import Css exposing (..)
+import CssModules
 
 
-staff =
-    batch
-        [ property "strokeWidth" "1"
-        , property "stroke" "#646464"
-        ]
-
-
-barline =
-    batch
-        [ property "strokeWidth" "2"
-        ]
-
-
-lines =
-    batch
-        []
+css =
+    .toString <|
+        CssModules.css "./Music/Views/css/staff.css"
+            { staff = "staff"
+            , barline = "barline"
+            , lines = "lines"
+            }

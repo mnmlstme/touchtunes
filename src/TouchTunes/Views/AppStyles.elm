@@ -1,44 +1,13 @@
 module TouchTunes.Views.AppStyles exposing (..)
 
-import Css exposing (..)
+import CssModules
 
 
-app : Style
-app =
-    batch
-        [ displayFlex
-        , flexDirection column
-        , justifyContent spaceBetween
-        , flexGrow (num 100)
-        , position relative
-        , backgroundColor (hex "f8f8f8")
-        ]
-
-
-fullScreen : Style
-fullScreen =
-    batch
-        [ position fixed
-        , width (pct 100)
-        , height (pct 100)
-        ]
-
-
-body : Style
-body =
-    batch
-        [ flexGrow (num 100)
-        , displayFlex
-        , flexDirection column
-        , position relative
-        ]
-
-
-footer : Style
-footer =
-    batch
-        [ position absolute
-        , bottom zero
-        , left zero
-        , width (pct 100)
-        ]
+css =
+    .toString <|
+        CssModules.css "./TouchTunes/Views/css/app.css"
+            { app = "app"
+            , fullscreen = "fullscreen"
+            , body = "body"
+            , footer = "footer"
+            }

@@ -23,6 +23,7 @@ import Music.Models.Layout as Layout
 import Music.Models.Note exposing (..)
 import Music.Models.Pitch as Pitch exposing (Pitch)
 import Music.Models.Time as Time exposing (Time)
+import Music.Views.NoteStyles exposing (css)
 import Music.Views.SvgAsset as SvgAsset
     exposing
         ( SvgAsset
@@ -42,7 +43,7 @@ import Music.Views.SvgAsset as SvgAsset
         , wholeRest
         )
 import String exposing (fromFloat)
-import Svg.Styled
+import Svg
     exposing
         ( Svg
         , g
@@ -51,9 +52,9 @@ import Svg.Styled
         , text_
         , use
         )
-import Svg.Styled.Attributes
+import Svg.Attributes
     exposing
-        ( css
+        ( class
         , height
         , transform
         , width
@@ -227,7 +228,8 @@ view layout beat note =
                 notePlacement (Layout.time layout) d beat
     in
     g
-        [ transform ("translate(" ++ fromFloat xpos.px ++ ",0)")
+        [ class (css .note)
+        , transform ("translate(" ++ fromFloat xpos.px ++ ",0)")
         ]
         [ case note.do of
             Play p ->

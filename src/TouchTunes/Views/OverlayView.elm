@@ -3,6 +3,7 @@ module TouchTunes.Views.OverlayView exposing
     , view
     )
 
+import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Json
 import List.Extra exposing (find)
 import Music.Models.Beat as Beat exposing (Beat)
@@ -22,7 +23,7 @@ import Music.Models.Measure as Measure exposing (Measure, toSequence)
 import Music.Models.Note as Note exposing (Note, What(..))
 import Music.Views.MeasureView as MeasureView
 import String exposing (fromFloat)
-import Svg.Styled
+import Svg
     exposing
         ( Svg
         , circle
@@ -31,28 +32,24 @@ import Svg.Styled
         , svg
         , text
         )
-import Svg.Styled.Attributes
+import Svg.Attributes
     exposing
-        ( css
+        ( class
         , height
         , transform
         , width
         , x
         , y
         )
-import Svg.Styled.Events as Events
 import TouchTunes.Actions.Top as Action exposing (Msg(..))
 import TouchTunes.Models.Overlay exposing (Overlay)
-import TouchTunes.Views.EditorStyles as Styles
+import TouchTunes.Views.EditorStyles exposing (css)
 import Tuple exposing (pair)
 
 
-pointerCoordinates : (( Float, Float ) -> msg) -> Json.Decoder msg
-pointerCoordinates toMsg =
-    Json.map2
-        (\x y -> toMsg ( x, y ))
-        (Json.field "offsetX" Json.float)
-        (Json.field "offsetY" Json.float)
+pointerCoordinates : Pointer.Event -> ( Float, Float )
+pointerCoordinates event =
+    event.pointer.offsetPos
 
 
 fromPixels : Pixels -> String
@@ -99,20 +96,32 @@ view measure overlay =
             ( x + m.left.px, y )
 
         downHandler =
-            Events.on "mousedown" <|
+            Pointer.onWithOptions "pointerdown"
+                { stopPropagation = True, preventDefault = True }
+            <|
                 pointerCoordinates
-                    (adjustCoordinates >> Tuple.mapBoth floor floor >> Action.NoteEdit)
+                    >> adjustCoordinates
+                    >> Tuple.mapBoth floor floor
+                    >> Action.NoteEdit
 
         upHandler =
-            Events.onMouseUp Action.CommitEdit
+            Pointer.onUp (\_ -> Action.CommitEdit)
+
+        cancelHandler =
+            Pointer.onCancel (\_ -> Action.CancelEdit)
+
+        leaveHandler =
+            Pointer.onLeave (\_ -> Action.CancelEdit)
 
         outHandler =
-            Events.onMouseOut Action.CancelEdit
+            Pointer.onOut (\_ -> Action.CancelEdit)
 
         moveHandler =
-            Events.on "mousemove" <|
+            Pointer.onMove <|
                 pointerCoordinates
-                    (adjustCoordinates >> Tuple.mapBoth floor floor >> Action.DragEdit)
+                    >> adjustCoordinates
+                    >> Tuple.mapBoth floor floor
+                    >> Action.DragEdit
 
         activeHandlers =
             case overlay.selection of
@@ -120,6 +129,8 @@ view measure overlay =
                     if selection.dragging then
                         [ moveHandler
                         , upHandler
+                        , cancelHandler
+                        , leaveHandler
                         , outHandler
                         ]
 
@@ -130,14 +141,14 @@ view measure overlay =
                     [ downHandler ]
     in
     svg
-        [ css [ Styles.overlay ]
+        [ class (css .overlay)
         , height <| fromPixels <| Layout.height layout
         , width <| fromPixels <| Layout.width layout
         ]
         (List.append
             [ rect
                 (List.append
-                    [ css [ Styles.area ]
+                    [ class (css .area)
                     , x <| fromPixels <| m.left
                     , y "0"
                     , height <| fromPixels <| Layout.height layout
@@ -151,7 +162,7 @@ view measure overlay =
                 Just selection ->
                     List.append
                         [ rect
-                            [ css [ Styles.selection ]
+                            [ class (css .selection)
                             , x <| fromPixels <| scaleBeat overlay.layout selection.location.beat
                             , y "0"
                             , height <| fromPixels <| Layout.height layout
@@ -163,7 +174,7 @@ view measure overlay =
                             Play pitch ->
                                 if selection.dragging then
                                     [ rect
-                                        [ css [ Styles.pitchLevel ]
+                                        [ class (css .pitchLevel)
                                         , x "0"
                                         , y <|
                                             fromFloat <|
