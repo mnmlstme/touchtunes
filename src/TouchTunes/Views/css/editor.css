@@ -8,12 +8,13 @@
     flex-grow: 100;
     position: relative;
     background: rgba(104, 86, 106, 0.5);
+    z-index: 1;
 }
 
 .editor {
     position: relative;
     padding: 20px;
-    margin: auto;
+    margin: 30px auto;
     background: rgba(255,255,255,0.9);
     border-radius: 20px;
 }
@@ -82,4 +83,13 @@
   position: absolute;
   margin-top: -50%;
   margin-left: -50%;
+}
+
+.navigation {
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    top: 100%;
+    width: 100%;
+    margin-left: -20px;
 }

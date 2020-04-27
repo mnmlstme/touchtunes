@@ -14,7 +14,7 @@ import Music.Models.Duration
         )
 import Music.Models.Key as Key exposing (KeyName(..), Mode(..), keyOf)
 import Music.Models.Layout as Layout exposing (Layout)
-import Music.Models.Measure as Measure
+import Music.Models.Measure as Measure exposing (Measure)
 import Music.Models.Pitch as Pitch exposing (Semitones, alter)
 import Music.Models.Staff as Staff
 import Music.Models.Time as Time exposing (BeatType(..), Time)
@@ -47,76 +47,103 @@ type alias ControlSelector a val msg =
     a -> Dial val msg
 
 
-init : Controls msg
-init =
-    { subdivisionDial =
-        -- sets subdivision of current measure(quarter/eighth...)
-        -- TODO: options depend on time signature
-        -- TODO: initial depends on notes in measure
-        Dial.init
-            quarter
-            { options =
-                Array.fromList
-                    [ eighth
-                    , quarter
-                    , half
-                    ]
-            , segments = 10
-            , viewValue = viewSubdivision
+init : Maybe Measure -> Controls msg
+init m =
+    case m of
+        Just measure ->
+            { keyDial =
+                initKeyDial <|
+                    Maybe.map Key.keyName measure.attributes.key
+            , alterationDial = initAlterationDial
+            , timeDial = initTimeDial measure.attributes.time
+            , subdivisionDial = initSubdivisionDial
             }
-    , alterationDial =
-        -- alterationDial: sets alteration (sharp/flat/natural)
-        -- TODO: initial depends on selected note
-        Dial.init
-            0
-            { options =
-                Array.fromList [ -1, 0, 1 ]
-            , segments = 10
-            , viewValue = viewAlteration
+
+        Nothing ->
+            { subdivisionDial = initSubdivisionDial
+            , alterationDial = initAlterationDial
+            , timeDial = initTimeDial Nothing
+            , keyDial = initKeyDial Nothing
             }
-    , timeDial =
-        -- timeDial: sets Time signature
-        -- TODO: initial depends on current mesaure
-        Dial.init
-            Time.common
-            { options =
-                Array.fromList
-                    [ Time.cut
-                    , Time 2 Four
-                    , Time 3 Four
-                    , Time.common
-                    , Time 5 Four
-                    , Time 6 Eight
-                    , Time 7 Eight
-                    , Time 9 Eight
-                    ]
-            , segments = 10
-            , viewValue = viewTime
-            }
-    , keyDial =
-        -- keyDial: sets Key signature
-        Dial.init
-            C
-            { options =
-                Array.fromList
-                    [ Gflat
-                    , Dflat
-                    , Aflat
-                    , Eflat
-                    , Bflat
-                    , F
-                    , C
-                    , G
-                    , D
-                    , A
-                    , E
-                    , B
-                    , Fsharp
-                    ]
-            , segments = 16
-            , viewValue = viewKey
-            }
-    }
+
+
+initSubdivisionDial : Dial Duration msg
+initSubdivisionDial =
+    -- sets subdivision of current measure(quarter/eighth...)
+    -- TODO: options depend on time signature
+    -- TODO: initial depends on notes in measure
+    Dial.init
+        quarter
+        { options =
+            Array.fromList
+                [ eighth
+                , quarter
+                , half
+                ]
+        , segments = 10
+        , viewValue = viewSubdivision
+        }
+
+
+initAlterationDial : Dial Semitones msg
+initAlterationDial =
+    -- alterationDial: sets alteration (sharp/flat/natural)
+    -- TODO: initial depends on selected note
+    Dial.init
+        0
+        { options =
+            Array.fromList [ -1, 0, 1 ]
+        , segments = 10
+        , viewValue = viewAlteration
+        }
+
+
+initTimeDial : Maybe Time -> Dial Time msg
+initTimeDial t =
+    -- timeDial: sets Time signature
+    -- TODO: initial depends on current mesaure
+    Dial.init
+        (Maybe.withDefault Time.common t)
+        { options =
+            Array.fromList
+                [ Time.cut
+                , Time 2 Four
+                , Time 3 Four
+                , Time.common
+                , Time 5 Four
+                , Time 6 Eight
+                , Time 7 Eight
+                , Time 9 Eight
+                ]
+        , segments = 10
+        , viewValue = viewTime
+        }
+
+
+initKeyDial : Maybe KeyName -> Dial KeyName msg
+initKeyDial k =
+    -- keyDial: sets Key signature
+    Dial.init
+        (Maybe.withDefault C k)
+        { options =
+            Array.fromList
+                [ Gflat
+                , Dflat
+                , Aflat
+                , Eflat
+                , Bflat
+                , F
+                , C
+                , G
+                , D
+                , A
+                , E
+                , B
+                , Fsharp
+                ]
+        , segments = 16
+        , viewValue = viewKey
+        }
 
 
 layout : Layout

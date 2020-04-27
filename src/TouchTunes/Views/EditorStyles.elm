@@ -17,4 +17,5 @@ css =
             , margins = "margins"
             , overflow = "overflow"
             , controls = "controls"
+            , navigation = "navigation"
             }

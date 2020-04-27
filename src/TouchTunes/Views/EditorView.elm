@@ -7,6 +7,7 @@ import Html
     exposing
         ( Html
         , article
+        , button
         , dd
         , div
         , dl
@@ -21,12 +22,13 @@ import Html
         , ul
         )
 import Html.Attributes exposing (class, classList)
+import Html.Events exposing (onClick)
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Key exposing (keyName)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Measure)
-import Music.Models.Part as Part exposing (Part, propagateAttributes)
+import Music.Models.Part as Part exposing (Part)
 import Music.Models.Score as Score exposing (Score)
 import Music.Models.Time as Time
 import Music.Views.MeasureView as MeasureView
@@ -81,7 +83,7 @@ viewMeasure : Editor -> Html Msg
 viewMeasure editor =
     let
         m =
-            Maybe.withDefault Measure.new <| Editor.measure editor
+            Editor.latent editor
 
         l =
             editor.overlay.layout
@@ -91,4 +93,27 @@ viewMeasure editor =
         [ RulerView.view l
         , MeasureView.view l m
         , OverlayView.view m editor.overlay
+        , viewNavigation editor
+        ]
+
+
+viewNavigation : Editor -> Html Msg
+viewNavigation editor =
+    ul [ class (css .navigation) ]
+        [ li []
+            [ button [ onClick PreviousEdit ]
+                [ text "<Previous" ]
+            ]
+        , li []
+            [ button [ onClick CancelEdit ]
+                [ text "Cancel" ]
+            ]
+        , li []
+            [ button [ onClick DoneEdit ]
+                [ text "Done" ]
+            ]
+        , li []
+            [ button [ onClick NextEdit ]
+                [ text "Next>" ]
+            ]
         ]

@@ -38,14 +38,8 @@ update msg editor =
             Dial.value controls.subdivisionDial
     in
     case log "msg" msg of
-        StartEdit partNum measureNum layout ->
-            { editor
-                | partNum = partNum
-                , measureNum = measureNum
-                , overlay =
-                    Overlay.subdivide subdivisions <|
-                        Overlay.fromLayout layout
-            }
+        StartEdit _ _ attributes measure ->
+            Editor.open attributes measure
 
         NoteEdit pos ->
             { editor
@@ -59,8 +53,20 @@ update msg editor =
                     Overlay.drag subdivisions pos editor.overlay
             }
 
-        CommitEdit ->
-            commit { editor | overlay = Overlay.finish editor.overlay }
+        FinishEdit ->
+            Editor.finish editor
+
+        SaveEdit ->
+            Editor.commit editor
+
+        DoneEdit ->
+            Editor.commit editor
+
+        NextEdit ->
+            Editor.commit editor
+
+        PreviousEdit ->
+            Editor.commit editor
 
         CancelEdit ->
             { editor | overlay = Overlay.deselect editor.overlay }

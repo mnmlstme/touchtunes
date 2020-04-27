@@ -27,7 +27,7 @@ import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Key exposing (keyName)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Measure)
-import Music.Models.Part as Part exposing (Part, propagateAttributes)
+import Music.Models.Part as Part exposing (Id, Part)
 import Music.Models.Score as Score exposing (Score)
 import Music.Models.Time as Time
 import Music.Views.MeasureView as MeasureView
@@ -73,19 +73,18 @@ view viewer =
                 ]
             ]
           <|
-            Array.toList <|
-                Array.indexedMap (viewPart viewer) s.parts
+            List.map (viewPart viewer s) s.parts
         ]
 
 
-viewPart : Sheet -> Int -> Part -> Html Msg
-viewPart viewer i part =
+viewPart : Sheet -> Score -> Part -> Html Msg
+viewPart viewer score part =
     let
         layoutMeasures =
             Array.Extra.map2
                 (\a m -> ( Layout.forMeasure a m, m ))
-                (propagateAttributes part.measures)
-                part.measures
+                (Score.attributes score)
+                score.measures
     in
     section
         [ class (PartStyles.css .part)
@@ -98,14 +97,14 @@ viewPart viewer i part =
             [ class (PartStyles.css .body) ]
           <|
             Array.toList <|
-                Array.indexedMap (viewMeasure viewer i) layoutMeasures
+                Array.indexedMap (viewMeasure viewer part.id) layoutMeasures
         ]
 
 
-viewMeasure : Sheet -> Int -> Int -> ( Layout, Measure ) -> Html Msg
-viewMeasure viewer i j ( layout, measure ) =
+viewMeasure : Sheet -> Part.Id -> Int -> ( Layout, Measure ) -> Html Msg
+viewMeasure viewer id j ( layout, measure ) =
     div
         [ Pointer.onDown <|
-            \_ -> Actions.StartEdit i j layout
+            \_ -> Actions.StartEdit id j layout.indirect measure
         ]
         [ MeasureView.view layout measure ]

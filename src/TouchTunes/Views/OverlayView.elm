@@ -105,16 +105,7 @@ view measure overlay =
                     >> Action.NoteEdit
 
         upHandler =
-            Pointer.onUp (\_ -> Action.CommitEdit)
-
-        cancelHandler =
-            Pointer.onCancel (\_ -> Action.CancelEdit)
-
-        leaveHandler =
-            Pointer.onLeave (\_ -> Action.CancelEdit)
-
-        outHandler =
-            Pointer.onOut (\_ -> Action.CancelEdit)
+            Pointer.onUp (\_ -> Action.FinishEdit)
 
         moveHandler =
             Pointer.onMove <|
@@ -129,9 +120,6 @@ view measure overlay =
                     if selection.dragging then
                         [ moveHandler
                         , upHandler
-                        , cancelHandler
-                        , leaveHandler
-                        , outHandler
                         ]
 
                     else

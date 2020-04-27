@@ -19,9 +19,9 @@ view : App -> Html Msg
 view app =
     div [ class (css .body) ]
         [ SheetView.view <| Sheet app.score
-        , case app.editor of
+        , case app.editing of
             Just e ->
-                EditorView.view e
+                EditorView.view e.editor
 
             Nothing ->
                 text ""

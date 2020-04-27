@@ -1,9 +1,9 @@
 module TouchTunes.Models.Editor exposing
     ( Editor
     , commit
-    , measure
+    , finish
+    , latent
     , open
-    , originalMeasure
     )
 
 import Array exposing (Array)
@@ -13,10 +13,9 @@ import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Key exposing (Key, KeyName(..), Mode(..), keyOf)
 import Music.Models.Layout as Layout exposing (Layout)
-import Music.Models.Measure as Measure exposing (Measure, modifyNote)
+import Music.Models.Measure as Measure exposing (Attributes, Measure, modifyNote)
 import Music.Models.Note exposing (Note)
 import Music.Models.Pitch exposing (Semitones)
-import Music.Models.Score as Score exposing (Score)
 import Music.Models.Time as Time exposing (Time)
 import String
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
@@ -26,68 +25,54 @@ import TouchTunes.Models.Overlay as Overlay exposing (Overlay)
 
 
 type alias Editor =
-    { score : Score
-    , partNum : Int
-    , measureNum : Int
+    { measure : Measure
     , controls : Controls Msg
     , overlay : Overlay
     }
 
 
-open : Int -> Int -> Layout -> Score -> Editor
-open pnum mnum layout score =
+open : Attributes -> Measure -> Editor
+open indirect measure =
     let
-        maybeMeasure =
-            Score.measure pnum mnum score
+        layout =
+            Layout.forMeasure indirect measure
     in
     Editor
-        score
-        pnum
-        mnum
-        -- TODO: initialize controls from measure
-        Controls.init
+        measure
+        (Controls.init (Just measure))
         (Overlay.fromLayout layout)
 
 
 commit : Editor -> Editor
 commit editor =
-    case measure editor of
-        Just theMeasure ->
-            { editor
-                | score =
-                    Score.setMeasure
-                        editor.partNum
-                        editor.measureNum
-                        (log "commit" theMeasure)
-                        editor.score
-                , overlay = adjustOverlay theMeasure editor.controls editor.overlay
-            }
-
-        Nothing ->
-            editor
-
-
-adjustOverlay : Measure -> Controls Msg -> Overlay -> Overlay
-adjustOverlay newMeasure controls overlay =
     let
-        indirect =
-            overlay.layout.indirect
+        theMeasure =
+            latent editor
+
+        overlay =
+            editor.overlay
 
         newLayout =
-            Layout.forMeasure indirect newMeasure
+            Layout.forMeasure overlay.layout.indirect theMeasure
 
         dur =
-            Dial.value controls.subdivisionDial
+            Dial.value editor.controls.subdivisionDial
     in
-    Overlay.subdivide dur { overlay | layout = newLayout }
+    { editor
+        | measure =
+            log "commit" theMeasure
+        , overlay = Overlay.subdivide dur { overlay | layout = newLayout }
+    }
 
 
-measure : Editor -> Maybe Measure
-measure editor =
+finish : Editor -> Editor
+finish editor =
+    commit { editor | overlay = Overlay.finish editor.overlay }
+
+
+latent : Editor -> Measure
+latent editor =
     let
-        original =
-            originalMeasure editor
-
         layout =
             editor.overlay.layout
 
@@ -105,9 +90,9 @@ measure editor =
                 m
 
         controlled =
-            Maybe.map override original
+            override editor.measure
     in
-    log "Editor.measure editor" <|
+    log "Editor.current editor" <|
         case editor.overlay.selection of
             Just selection ->
                 let
@@ -119,12 +104,7 @@ measure editor =
                             (\_ -> selection.note)
                             (Beat.toDuration t selection.location.beat)
                 in
-                Maybe.map fn controlled
+                fn controlled
 
             Nothing ->
                 controlled
-
-
-originalMeasure : Editor -> Maybe Measure
-originalMeasure editor =
-    Score.measure editor.partNum editor.measureNum editor.score
