@@ -1,5 +1,6 @@
 module TouchTunes.Models.Overlay exposing
     ( Overlay
+    , Selection
     , deselect
     , drag
     , finish
@@ -64,6 +65,9 @@ start duration pos overlay =
         time =
             Layout.time overlay.layout
 
+        key =
+            Layout.key overlay.layout
+
         loc =
             Layout.positionToLocation
                 (Layout.subdivide
@@ -73,7 +77,7 @@ start duration pos overlay =
                 pos
 
         pitch =
-            Pitch.fromStepNumber loc.step
+            Pitch.fromStepNumber key loc.step
 
         note =
             Note (Play pitch) duration []
@@ -100,6 +104,9 @@ drag duration pos overlay =
                     time =
                         Layout.time layout
 
+                    key =
+                        Layout.key layout
+
                     loc =
                         positionToLocation
                             (Layout.subdivide
@@ -121,7 +128,7 @@ drag duration pos overlay =
                         in
                         if Beat.equal beat loc.beat then
                             { note
-                                | do = Play <| Pitch.fromStepNumber loc.step
+                                | do = Play <| Pitch.fromStepNumber key loc.step
                                 , duration = dur
                             }
 

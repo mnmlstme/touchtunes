@@ -1,11 +1,14 @@
-module Music.Views.SvgAsset exposing
-    ( SvgAsset
+module Music.Views.Symbols exposing
+    ( Symbol
     , ViewBox
+    , doubleFlat
+    , doubleSharp
     , eighthRest
     , flat
     , halfRest
     , ledgerLine
     , leftAlign
+    , natural
     , noteheadClosed
     , noteheadOpen
     , quarterRest
@@ -16,6 +19,7 @@ module Music.Views.SvgAsset exposing
     , stemDown1Flag
     , stemUp
     , stemUp1Flag
+    , trebleClef
     , view
     , wholeRest
     )
@@ -32,7 +36,7 @@ import Svg.Attributes
         )
 
 
-type alias SvgAsset =
+type alias Symbol =
     { viewbox : ViewBox
     , id : String
     }
@@ -47,70 +51,86 @@ type alias ViewBox =
 
 
 
--- SvgAsset definitions for symbols in sprite from ./svg folder
+-- Symbol definitions for symbols in sprite from ./svg folder
+
+
+trebleClef =
+    Symbol (ViewBox 0 0 64 135) "tt-treble-clef"
 
 
 wholeRest =
-    SvgAsset (ViewBox 0 0 30 80) "tt-rest-whole"
+    Symbol (ViewBox 0 0 30 80) "tt-rest-whole"
 
 
 halfRest =
-    SvgAsset (ViewBox 0 0 30 80) "tt-rest-half"
+    Symbol (ViewBox 0 0 30 80) "tt-rest-half"
 
 
 quarterRest =
-    SvgAsset (ViewBox 0 0 30 80) "tt-rest-quarter"
+    Symbol (ViewBox 0 0 30 80) "tt-rest-quarter"
 
 
 eighthRest =
-    SvgAsset (ViewBox 0 0 40 80) "tt-rest-eighth"
+    Symbol (ViewBox 0 0 40 80) "tt-rest-eighth"
 
 
 noteheadClosed =
-    SvgAsset (ViewBox 0 0 34 24) "tt-notehead-closed"
+    Symbol (ViewBox 0 0 34 24) "tt-notehead-closed"
 
 
 noteheadOpen =
-    SvgAsset (ViewBox 0 0 34 24) "tt-notehead-open"
+    Symbol (ViewBox 0 0 34 24) "tt-notehead-open"
 
 
 singleDot =
-    SvgAsset (ViewBox 0 0 20 20) "tt-dot"
+    Symbol (ViewBox 0 0 20 20) "tt-dot"
+
+
+natural =
+    Symbol (ViewBox 0 0 22 62) "tt-natural"
 
 
 sharp =
-    SvgAsset (ViewBox 0 0 22 62) "tt-sharp"
+    Symbol (ViewBox 0 0 22 62) "tt-sharp"
 
 
 flat =
-    SvgAsset (ViewBox 0 0 22 62) "tt-flat"
+    Symbol (ViewBox 0 0 22 62) "tt-flat"
+
+
+doubleSharp =
+    Symbol (ViewBox 0 0 22 62) "tt-double-sharp"
+
+
+doubleFlat =
+    Symbol (ViewBox 0 0 22 62) "tt-double-flat"
 
 
 ledgerLine =
-    SvgAsset (ViewBox 0 0 60 12) "tt-ledger-line"
+    Symbol (ViewBox 0 0 60 12) "tt-ledger-line"
 
 
 stemUp =
-    SvgAsset (ViewBox 0 0 34 164) "tt-stem-up"
+    Symbol (ViewBox 0 0 34 164) "tt-stem-up"
 
 
 stemDown =
-    SvgAsset (ViewBox 0 0 34 164) "tt-stem-down"
+    Symbol (ViewBox 0 0 34 164) "tt-stem-down"
 
 
 stemUp1Flag =
-    SvgAsset (ViewBox 0 0 80 164) "tt-stem-up-1flag"
+    Symbol (ViewBox 0 0 80 164) "tt-stem-up-1flag"
 
 
 stemDown1Flag =
-    SvgAsset (ViewBox 0 0 34 164) "tt-stem-down-1flag"
+    Symbol (ViewBox 0 0 34 164) "tt-stem-down-1flag"
 
 
 
 -- default view is centered; leftAlign and rightAlign adjust viewbox
 
 
-leftAlign : Float -> SvgAsset -> SvgAsset
+leftAlign : Float -> Symbol -> Symbol
 leftAlign xOffset asset =
     let
         box =
@@ -125,7 +145,7 @@ leftAlign xOffset asset =
     { asset | viewbox = newBox }
 
 
-rightAlign : Float -> SvgAsset -> SvgAsset
+rightAlign : Float -> Symbol -> Symbol
 rightAlign xOffset asset =
     let
         box =
@@ -140,7 +160,7 @@ rightAlign xOffset asset =
     { asset | viewbox = newBox }
 
 
-view : SvgAsset -> Svg msg
+view : Symbol -> Svg msg
 view asset =
     let
         box =

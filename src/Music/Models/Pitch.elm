@@ -17,12 +17,15 @@ module Music.Models.Pitch exposing
     , fromStepNumber
     , g
     , natural
+    , setAlter
     , sharp
+    , stepAlteredIn
     , stepNumber
     , toString
     )
 
 import Array
+import Music.Models.Key as Key exposing (Key)
 import String
 
 
@@ -97,16 +100,51 @@ stepFromNumber n =
             C
 
 
-fromStepNumber : StepNumber -> Pitch
-fromStepNumber number =
+sharpSteps : List Step
+sharpSteps =
+    [ F, C, G, D, A, E ]
+
+
+flatSteps : List Step
+flatSteps =
+    [ B, E, A, D, G, C ]
+
+
+stepAlteredIn : Key -> Step -> Semitones
+stepAlteredIn key step =
+    if key.fifths > 0 then
+        if
+            List.member step <|
+                List.take key.fifths sharpSteps
+        then
+            1
+
+        else
+            0
+
+    else if
+        List.member step <|
+            List.take (0 - key.fifths) flatSteps
+    then
+        -1
+
+    else
+        0
+
+
+fromStepNumber : Key -> StepNumber -> Pitch
+fromStepNumber key number =
     let
         octave =
             number // 7
 
         step =
             stepFromNumber number
+
+        alt =
+            stepAlteredIn key step
     in
-    Pitch step 0 octave
+    Pitch step alt octave
 
 
 
@@ -199,6 +237,11 @@ doubleSharp =
 doubleFlat : (Octave -> Pitch) -> (Octave -> Pitch)
 doubleFlat =
     alter -2
+
+
+setAlter : Semitones -> Pitch -> Pitch
+setAlter semitones pitch =
+    { pitch | alter = semitones }
 
 
 toString : Pitch -> String

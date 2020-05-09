@@ -4,6 +4,7 @@ module TouchTunes.Models.Editor exposing
     , finish
     , latent
     , open
+    , withOverlay
     )
 
 import Array exposing (Array)
@@ -14,8 +15,8 @@ import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Key exposing (Key, KeyName(..), Mode(..), keyOf)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Attributes, Measure, modifyNote)
-import Music.Models.Note exposing (Note)
-import Music.Models.Pitch exposing (Semitones)
+import Music.Models.Note as Note exposing (Note)
+import Music.Models.Pitch as Pitch exposing (Semitones)
 import Music.Models.Time as Time exposing (Time)
 import String
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
@@ -39,8 +40,25 @@ open indirect measure =
     in
     Editor
         measure
-        (Controls.init (Just measure))
+        (Controls.init (Just layout))
         (Overlay.fromLayout layout)
+
+
+withOverlay : Overlay -> Editor -> Editor
+withOverlay overlay editor =
+    let
+        controls =
+            case overlay.selection of
+                Just selection ->
+                    Controls.forSelection selection editor.controls
+
+                Nothing ->
+                    editor.controls
+    in
+    { editor
+        | overlay = overlay
+        , controls = controls
+    }
 
 
 commit : Editor -> Editor
@@ -92,16 +110,22 @@ latent editor =
         controlled =
             override editor.measure
     in
-    log "Editor.current editor" <|
+    log "Editor.latent editor" <|
         case editor.overlay.selection of
             Just selection ->
                 let
                     t =
                         Layout.time layout
 
+                    alteration =
+                        Dial.value editor.controls.alterationDial
+
+                    note =
+                        Note.modPitch (Pitch.setAlter alteration) selection.note
+
                     fn =
                         modifyNote
-                            (\_ -> selection.note)
+                            (\_ -> note)
                             (Beat.toDuration t selection.location.beat)
                 in
                 fn controlled

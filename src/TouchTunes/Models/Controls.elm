@@ -1,6 +1,7 @@
 module TouchTunes.Models.Controls exposing
     ( ControlSelector
     , Controls
+    , forSelection
     , init
     )
 
@@ -15,11 +16,13 @@ import Music.Models.Duration
 import Music.Models.Key as Key exposing (KeyName(..), Mode(..), keyOf)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Measure)
+import Music.Models.Note as Note exposing (Note)
 import Music.Models.Pitch as Pitch exposing (Semitones, alter)
 import Music.Models.Staff as Staff
 import Music.Models.Time as Time exposing (BeatType(..), Time)
 import Music.Views.MeasureView as MeasureView
-import Music.Views.NoteView exposing (StemOrientation(..), isWhole, viewNote)
+import Music.Views.NoteView as NoteView exposing (StemOrientation(..), isWhole, viewNote)
+import Music.Views.Symbols as Symbols
 import String exposing (fromFloat)
 import Svg exposing (Svg, g, text, text_)
 import Svg.Attributes
@@ -33,6 +36,7 @@ import Svg.Attributes
         )
 import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.Dial as Dial exposing (Dial)
+import TouchTunes.Models.Overlay as Overlay exposing (Selection)
 
 
 type alias Controls msg =
@@ -47,24 +51,33 @@ type alias ControlSelector a val msg =
     a -> Dial val msg
 
 
-init : Maybe Measure -> Controls msg
-init m =
-    case m of
-        Just measure ->
+init : Maybe Layout -> Controls msg
+init layout =
+    case layout of
+        Just l ->
             { keyDial =
                 initKeyDial <|
-                    Maybe.map Key.keyName measure.attributes.key
-            , alterationDial = initAlterationDial
-            , timeDial = initTimeDial measure.attributes.time
+                    Maybe.map Key.keyName <|
+                        Just <|
+                            Layout.key l
+            , alterationDial = initAlterationDial 0
+            , timeDial = initTimeDial <| Just <| Layout.time l
             , subdivisionDial = initSubdivisionDial
             }
 
         Nothing ->
             { subdivisionDial = initSubdivisionDial
-            , alterationDial = initAlterationDial
+            , alterationDial = initAlterationDial 0
             , timeDial = initTimeDial Nothing
             , keyDial = initKeyDial Nothing
             }
+
+
+forSelection : Selection -> Controls msg -> Controls msg
+forSelection selection controls =
+    Maybe.withDefault controls <|
+        Maybe.map (\p -> { controls | alterationDial = initAlterationDial p.alter }) <|
+            Note.pitch selection.note
 
 
 initSubdivisionDial : Dial Duration msg
@@ -85,15 +98,15 @@ initSubdivisionDial =
         }
 
 
-initAlterationDial : Dial Semitones msg
-initAlterationDial =
+initAlterationDial : Semitones -> Dial Semitones msg
+initAlterationDial alt =
     -- alterationDial: sets alteration (sharp/flat/natural)
     -- TODO: initial depends on selected note
     Dial.init
-        0
+        alt
         { options =
-            Array.fromList [ -1, 0, 1 ]
-        , segments = 10
+            Array.fromList [ -2, -1, 0, 1, 2 ]
+        , segments = 6
         , viewValue = viewAlteration
         }
 
@@ -146,8 +159,8 @@ initKeyDial k =
         }
 
 
-layout : Layout
-layout =
+fakeLayout : Layout
+fakeLayout =
     Layout.forMeasure Measure.noAttributes Measure.new
 
 
@@ -163,39 +176,35 @@ viewSubdivision d =
                 Pitch.e_ 4
 
         staffHeight =
-            Layout.height layout
+            Layout.height fakeLayout
     in
     g
         [ transform ("translate(0," ++ fromFloat (-0.5 * staffHeight.px) ++ ")") ]
-        [ viewNote layout d pitch ]
+        [ viewNote fakeLayout d pitch ]
 
 
 viewAlteration : Semitones -> Svg msg
 viewAlteration alt =
     let
-        -- choose a pitch which centers the alter+note+stem on staff
-        pitch =
-            alter alt Pitch.f 4
-
-        staffHeight =
-            Layout.height layout
+        symbol =
+            NoteView.alteration alt
     in
-    g
-        [ transform ("translate(0," ++ fromFloat (-0.5 * staffHeight.px) ++ ")") ]
-        [ viewNote layout quarter pitch ]
+    g [ transform "scale(2,2) translate(0,0)" ] <|
+        Maybe.withDefault [] <|
+            Maybe.map (List.singleton << Symbols.view) symbol
 
 
 viewTime : Time -> Svg msg
 viewTime time =
     let
         staffHeight =
-            Layout.height layout
+            Layout.height fakeLayout
 
         m =
-            Layout.margins layout
+            Layout.margins fakeLayout
 
         sp =
-            Layout.spacing layout
+            Layout.spacing fakeLayout
     in
     g
         [ transform
@@ -206,14 +215,14 @@ viewTime time =
                 ++ ")"
             )
         ]
-        [ MeasureView.viewTime layout <| Just time ]
+        [ MeasureView.viewTime fakeLayout <| Just time ]
 
 
 viewKey : KeyName -> Svg msg
 viewKey kn =
     let
         sp =
-            Layout.spacing layout
+            Layout.spacing fakeLayout
 
         key =
             -- TODO: handle other modes

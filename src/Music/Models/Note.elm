@@ -2,6 +2,8 @@ module Music.Models.Note exposing
     ( Note
     , What(..)
     , isPlayed
+    , modPitch
+    , pitch
     , playFor
     , restFor
     )
@@ -58,3 +60,23 @@ isPlayed n =
 
         Rest ->
             False
+
+
+modPitch : (Pitch -> Pitch) -> Note -> Note
+modPitch fn note =
+    case note.do of
+        Play p ->
+            { note | do = Play <| fn p }
+
+        Rest ->
+            note
+
+
+pitch : Note -> Maybe Pitch
+pitch note =
+    case note.do of
+        Play p ->
+            Just p
+
+        Rest ->
+            Nothing

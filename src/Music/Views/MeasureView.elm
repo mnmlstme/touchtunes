@@ -21,7 +21,7 @@ import Music.Models.Time as Time exposing (Time)
 import Music.Views.MeasureStyles exposing (css)
 import Music.Views.NoteView as NoteView
 import Music.Views.StaffView as StaffView
-import Music.Views.SvgAsset as SvgAsset
+import Music.Views.Symbols as Symbols
 import String exposing (fromFloat, fromInt)
 import Svg exposing (Svg, g, svg, text_)
 import Svg.Attributes
@@ -90,11 +90,11 @@ flatPitches =
 
 
 sharpSymbol =
-    SvgAsset.sharp
+    Symbols.sharp
 
 
 flatSymbol =
-    SvgAsset.flat
+    Symbols.flat
 
 
 drawKeySymbol : Layout -> Int -> Pitch -> Svg msg
@@ -120,7 +120,7 @@ drawKeySymbol layout n p =
         [ transform
             ("translate(" ++ fromFloat xpos.px ++ "," ++ fromFloat ypos.px ++ ")")
         ]
-        [ SvgAsset.view symbol ]
+        [ Symbols.view symbol ]
 
 
 viewKey : Layout -> Maybe Key -> Svg msg

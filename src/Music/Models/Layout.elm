@@ -11,6 +11,7 @@ module Music.Models.Layout exposing
     , forMeasure
     , halfSpacing
     , height
+    , key
     , keyOffset
     , locationAfter
     , margins
@@ -38,6 +39,7 @@ import List.Extra exposing (initialize)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration, division)
+import Music.Models.Key as Key exposing (Key, Mode(..), keyOf)
 import Music.Models.Measure as Measure
     exposing
         ( Attributes
@@ -86,6 +88,11 @@ getAttribute getter layout =
 time : Layout -> Time
 time layout =
     Maybe.withDefault Time.common <| getAttribute .time layout
+
+
+key : Layout -> Key
+key layout =
+    Maybe.withDefault (keyOf Key.C Major) <| getAttribute .key layout
 
 
 staff : Layout -> Staff
@@ -197,8 +204,8 @@ margins layout =
                         0.0
                   )
                 + (case layout.direct.key of
-                    Just key ->
-                        toFloat (abs key.fifths) * sp
+                    Just k ->
+                        toFloat (abs k.fifths) * sp
 
                     Nothing ->
                         0.0
@@ -223,8 +230,8 @@ timeOffset layout =
     in
     Pixels <|
         case layout.direct.key of
-            Just key ->
-                sp + toFloat (abs key.fifths) * sp
+            Just k ->
+                sp + toFloat (abs k.fifths) * sp
 
             Nothing ->
                 0.0
@@ -366,8 +373,12 @@ scalePitch layout p =
 unscalePitch : Layout -> Pixels -> Pitch
 unscalePitch layout y =
     -- return the pitch, given Y pixels from top of layout
+    let
+        k =
+            key layout
+    in
     unscaleStep layout y
-        |> Pitch.fromStepNumber
+        |> Pitch.fromStepNumber k
 
 
 scaleBeat : Layout -> Beat -> Pixels

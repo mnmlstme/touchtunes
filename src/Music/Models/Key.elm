@@ -143,10 +143,12 @@ keyOf name mode =
     Key (normalize (fifths + modeShift mode)) mode
 
 
+flatKeyNames : Array.Array KeyName
 flatKeyNames =
     Array.fromList [ C, F, Bflat, Eflat, Aflat, Dflat, Gflat ]
 
 
+sharpKeyNames : Array.Array KeyName
 sharpKeyNames =
     Array.fromList [ C, G, D, A, E, B, Fsharp ]
 
@@ -163,10 +165,12 @@ keyName key =
             Array.get (abs key.fifths) flatKeyNames
 
 
+flatKeys : Array.Array String
 flatKeys =
     Array.fromList [ "C", "F", "B♭", "E♭", "A♭", "D♭", "G♭" ]
 
 
+sharpKeys : Array.Array String
 sharpKeys =
     Array.fromList [ "C", "G", "D", "A", "E", "B", "F♯" ]
 

@@ -37,21 +37,23 @@ update msg editor =
         subdivisions =
             Dial.value controls.subdivisionDial
     in
-    case log "msg" msg of
+    case log "Editor got msg" msg of
         StartEdit _ _ attributes measure ->
             Editor.open attributes measure
 
         NoteEdit pos ->
-            { editor
-                | overlay =
+            let
+                overlay =
                     Overlay.start subdivisions pos editor.overlay
-            }
+            in
+            Editor.withOverlay overlay editor
 
         DragEdit pos ->
-            { editor
-                | overlay =
+            let
+                overlay =
                     Overlay.drag subdivisions pos editor.overlay
-            }
+            in
+            Editor.withOverlay overlay editor
 
         FinishEdit ->
             Editor.finish editor

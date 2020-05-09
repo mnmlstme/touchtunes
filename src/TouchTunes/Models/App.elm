@@ -1,5 +1,6 @@
 module TouchTunes.Models.App exposing (App, init, update)
 
+import Debug exposing (log)
 import Music.Models.Part as Part
 import Music.Models.Score as Score exposing (Score)
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
@@ -54,7 +55,7 @@ update msg app =
                         | score = Score.setMeasure e.measureNum e.editor.measure app.score
                     }
             in
-            case msg of
+            case log "App got msg" msg of
                 CancelEdit ->
                     close updatedApp
 
@@ -78,7 +79,7 @@ update msg app =
 
         Nothing ->
             -- these are the only messages we can accept without an editor
-            case msg of
+            case log "App got msg" msg of
                 StartEdit id mnum _ _ ->
                     open id mnum app
 

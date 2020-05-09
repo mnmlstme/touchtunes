@@ -37,7 +37,7 @@ import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Editor as Editor exposing (Editor)
 import TouchTunes.Views.DialView as Dial
 import TouchTunes.Views.EditorStyles exposing (css)
-import TouchTunes.Views.OverlayView as OverlayView exposing (pointerCoordinates)
+import TouchTunes.Views.OverlayView as OverlayView
 import TouchTunes.Views.RulerView as RulerView
 
 

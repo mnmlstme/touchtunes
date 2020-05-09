@@ -1,13 +1,17 @@
 module Music.Views.NoteView exposing
     ( StemOrientation(..)
+    , accidental
+    , alteration
     , isWhole
     , view
     , viewNote
     )
 
 import Debug exposing (log)
+import Dict exposing (Dict)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Key as Key exposing (Key)
 import Music.Models.Layout as Layout
     exposing
         ( Layout
@@ -21,12 +25,12 @@ import Music.Models.Layout as Layout
         , toPixels
         )
 import Music.Models.Note exposing (..)
-import Music.Models.Pitch as Pitch exposing (Pitch)
+import Music.Models.Pitch as Pitch exposing (Pitch, Semitones, stepAlteredIn)
 import Music.Models.Time as Time exposing (Time)
 import Music.Views.NoteStyles exposing (css)
-import Music.Views.SvgAsset as SvgAsset
+import Music.Views.Symbols as Symbols
     exposing
-        ( SvgAsset
+        ( Symbol
         , eighthRest
         , flat
         , halfRest
@@ -78,7 +82,7 @@ isWhole d =
     d.count // d.divisor == 1
 
 
-noteHead : Duration -> SvgAsset
+noteHead : Duration -> Symbol
 noteHead d =
     if toFloat d.divisor / toFloat d.count > 2.0 then
         noteheadClosed
@@ -87,7 +91,7 @@ noteHead d =
         noteheadOpen
 
 
-noteStem : Layout -> Duration -> Pitch -> Maybe SvgAsset
+noteStem : Layout -> Duration -> Pitch -> Maybe Symbol
 noteStem layout d p =
     let
         down =
@@ -115,7 +119,7 @@ noteStem layout d p =
             )
 
 
-restSymbol : Duration -> SvgAsset
+restSymbol : Duration -> Symbol
 restSymbol d =
     let
         div =
@@ -134,7 +138,7 @@ restSymbol d =
         eighthRest
 
 
-dotted : Duration -> Maybe SvgAsset
+dotted : Duration -> Maybe Symbol
 dotted d =
     let
         b =
@@ -147,16 +151,29 @@ dotted d =
         Nothing
 
 
-alteration : Pitch -> Maybe SvgAsset
-alteration p =
-    if p.alter > 0 then
-        Just sharp
+alterationSymbols : Dict Int Symbol
+alterationSymbols =
+    Dict.fromList
+        [ ( -2, Symbols.doubleFlat )
+        , ( -1, Symbols.flat )
+        , ( 0, Symbols.natural )
+        , ( 1, Symbols.sharp )
+        , ( 2, Symbols.doubleSharp )
+        ]
 
-    else if p.alter < 0 then
-        Just flat
+
+alteration : Semitones -> Maybe Symbol
+alteration alt =
+    Dict.get alt alterationSymbols
+
+
+accidental : Key -> Pitch -> Maybe Symbol
+accidental key p =
+    if stepAlteredIn key p.step == p.alter then
+        Nothing
 
     else
-        Nothing
+        alteration p.alter
 
 
 ledgerLines : Layout -> Pitch -> List Pixels
@@ -259,7 +276,7 @@ viewRest layout d =
                 ++ ")"
             )
         ]
-        [ SvgAsset.view rest
+        [ Symbols.view rest
         , viewDot d
         ]
 
@@ -294,20 +311,20 @@ viewNote layout d p =
             ledgerLines layout p
 
         alt =
-            alteration p
+            accidental (Layout.key layout) p
 
         viewLedger y =
             g [ transform ("translate(0," ++ fromFloat y.px ++ ")") ]
-                [ SvgAsset.view ledgerLine ]
+                [ Symbols.view ledgerLine ]
     in
     g
         [ transform ("translate(0," ++ fromFloat ypos.px ++ ")")
         ]
-        [ SvgAsset.view note
+        [ Symbols.view note
         , viewDot d
         , case stem of
             Just theStem ->
-                SvgAsset.view theStem
+                Symbols.view theStem
 
             Nothing ->
                 text_ [] []
@@ -315,8 +332,8 @@ viewNote layout d p =
             (List.map viewLedger ledgers)
         , case alt of
             Just theAlt ->
-                SvgAsset.view <|
-                    SvgAsset.rightAlign 0 theAlt
+                Symbols.view <|
+                    Symbols.rightAlign 0 theAlt
 
             Nothing ->
                 text_ [] []
@@ -337,8 +354,8 @@ viewDot d =
     in
     case dot of
         Just theDot ->
-            SvgAsset.view <|
-                SvgAsset.leftAlign xOffset theDot
+            Symbols.view <|
+                Symbols.leftAlign xOffset theDot
 
         Nothing ->
             text_ [] []

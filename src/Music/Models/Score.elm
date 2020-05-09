@@ -84,9 +84,9 @@ attributes s =
             s.measures
 
         fn a b =
-            { staff = Maybe.Extra.or b.staff a.staff
-            , time = Maybe.Extra.or b.time a.time
-            , key = Maybe.Extra.or b.key a.key
+            { staff = Maybe.Extra.or a.staff b.staff
+            , time = Maybe.Extra.or a.time b.time
+            , key = Maybe.Extra.or a.key b.key
             }
     in
     Array.fromList <|

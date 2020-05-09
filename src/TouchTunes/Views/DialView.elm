@@ -3,7 +3,7 @@ module TouchTunes.Views.DialView exposing (view)
 import Array as Array exposing (Array)
 import Array.Extra exposing (indexedMapToList)
 import Html exposing (Html)
-import Html.Events as Events
+import Html.Events.Extra.Pointer as Pointer
 import List.Extra exposing (findIndex)
 import Maybe.Extra
 import String exposing (fromFloat)
@@ -89,9 +89,7 @@ view dial toMsg =
                         ++ ",0,0)"
                         ++ " scale(0.66,0.66)"
                     )
-                , Events.onMouseDown <| toMsg <| Set i
-                , Events.onMouseEnter <| toMsg <| Set i
-                , Events.onMouseUp <| toMsg Finish
+                , Pointer.onEnter <| \_ -> toMsg (Set i)
                 ]
                 [ circle
                     [ r <| fromFloat faceRadius
@@ -124,29 +122,24 @@ view dial toMsg =
                 ++ " "
                 ++ fromFloat (2.0 * collarRadius)
             )
+        , Pointer.onUp <| \_ -> toMsg Finish
         ]
         [ g
-            [ class
-                (case dial.tracking of
-                    Just _ ->
-                        css .collar ++ " " ++ css .active
-
-                    Nothing ->
-                        css .collar
-                )
-            , Events.onMouseLeave <| toMsg Cancel
+            [ class (css .collar)
             ]
           <|
             List.append
                 [ circle
-                    [ r <| fromFloat collarRadius ]
+                    [ r <| fromFloat collarRadius
+                    , Pointer.onOut <| \_ -> toMsg Cancel
+                    ]
                     []
                 ]
             <|
                 indexedMapToList viewOption config.options
         , g
             [ class (css .value)
-            , Events.onMouseDown <| toMsg Start
+            , Pointer.onDown <| \_ -> toMsg Start
             ]
             [ circle
                 [ r <| fromFloat faceRadius
