@@ -80,7 +80,7 @@ start duration pos overlay =
             Pitch.fromStepNumber key loc.step
 
         note =
-            Note (Play pitch) duration []
+            Note (Play pitch) duration [] Nothing
     in
     { overlay
         | selection =

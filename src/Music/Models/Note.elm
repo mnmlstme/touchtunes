@@ -1,6 +1,7 @@
 module Music.Models.Note exposing
     ( Note
     , What(..)
+    , harmonize
     , isPlayed
     , modPitch
     , pitch
@@ -9,6 +10,7 @@ module Music.Models.Note exposing
     )
 
 import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Harmony exposing (Harmony)
 import Music.Models.Pitch as Pitch exposing (Pitch)
 
 
@@ -16,6 +18,7 @@ type alias Note =
     { do : What
     , duration : Duration
     , modifiers : List Modifier
+    , harmony : Maybe Harmony
     }
 
 
@@ -39,12 +42,12 @@ type StartStop
 
 playFor : Duration -> Pitch -> Note
 playFor d p =
-    Note (Play p) d []
+    Note (Play p) d [] Nothing
 
 
 restFor : Duration -> Note
 restFor d =
-    Note Rest d []
+    Note Rest d [] Nothing
 
 
 mod : Modifier -> Note -> Note
@@ -80,3 +83,8 @@ pitch note =
 
         Rest ->
             Nothing
+
+
+harmonize : Harmony -> Note -> Note
+harmonize harmony note =
+    { note | harmony = Just harmony }

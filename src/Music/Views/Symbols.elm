@@ -5,6 +5,7 @@ module Music.Views.Symbols exposing
     , doubleSharp
     , eighthRest
     , flat
+    , glyph
     , halfRest
     , ledgerLine
     , leftAlign
@@ -24,11 +25,13 @@ module Music.Views.Symbols exposing
     , wholeRest
     )
 
+import Html exposing (Html)
 import String exposing (fromFloat)
-import Svg exposing (Svg, use)
+import Svg exposing (Svg, svg, use)
 import Svg.Attributes
     exposing
         ( height
+        , viewBox
         , width
         , x
         , xlinkHref
@@ -180,3 +183,30 @@ view asset =
         , width <| fromFloat box.width
         ]
         []
+
+
+glyph : Symbol -> Html msg
+glyph asset =
+    let
+        box =
+            asset.viewbox
+
+        h =
+            fromFloat box.height
+
+        w =
+            fromFloat box.width
+    in
+    svg
+        [ height "1em"
+        , viewBox <| "0 0 " ++ w ++ " " ++ h
+        ]
+        [ use
+            [ xlinkHref <| "#" ++ asset.id
+            , x "0"
+            , y "0"
+            , height h
+            , width w
+            ]
+            []
+        ]

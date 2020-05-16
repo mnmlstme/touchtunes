@@ -1,0 +1,41 @@
+/* Harmony */
+
+
+
+.harmony {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.harmony > * {
+    vertical-align: top;
+}
+
+.root {
+    font-size: 200%;
+}
+
+.chromatic {
+    font-size: 166%;
+}
+
+.kind {
+    font-size: 133%;
+    letter-spacing: -.04em
+}
+
+.degree {
+    font-size: 166%;
+}
+
+.alts {
+    display: inline-block;
+}
+
+.alts > * {
+    display: block;
+}

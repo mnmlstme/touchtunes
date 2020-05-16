@@ -1,8 +1,11 @@
 /* Score */
 
 .title {
-    font-weight: 700;
+    font-weight: bold;
+    font-size: 300%;
     text-align: center;
+    flex-grow: 1;
+    font-variant-caps: small-caps;
 }
 
 .parts {

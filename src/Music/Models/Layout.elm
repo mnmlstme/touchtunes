@@ -48,7 +48,7 @@ import Music.Models.Measure as Measure
         )
 import Music.Models.Pitch as Pitch exposing (Pitch, StepNumber)
 import Music.Models.Staff as Staff exposing (Staff)
-import Music.Models.Time as Time exposing (Time)
+import Music.Models.Time as Time exposing (BeatType(..), Time)
 import Tuple exposing (first, second)
 
 
@@ -239,17 +239,35 @@ timeOffset layout =
 
 beatSpacing : Layout -> Pixels
 beatSpacing layout =
-    Tenths 40.0 |> toPixels layout
+    let
+        t =
+            time layout
+
+        tenths =
+            case t.beatType of
+                Two ->
+                    80.0
+
+                Four ->
+                    40.0
+
+                Eight ->
+                    30.0
+    in
+    Tenths tenths |> toPixels layout
 
 
 durationSpacing : Layout -> Duration -> Pixels
 durationSpacing layout dur =
     let
+        bs =
+            beatSpacing layout
+
         beats =
             Beat.toFloat <|
                 Beat.fromDuration (time layout) dur
     in
-    Tenths (40.0 * beats) |> toPixels layout
+    beats * bs.px |> Pixels
 
 
 width : Layout -> Pixels

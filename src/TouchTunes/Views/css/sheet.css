@@ -20,8 +20,8 @@
 
 .header {
     display: flex;
-    margin-left: 175px;
     justify-content: space-between;
+    margin-bottom: 2em;
 }
 
 .body {

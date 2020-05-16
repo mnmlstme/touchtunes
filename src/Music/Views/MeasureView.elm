@@ -52,15 +52,15 @@ viewTime layout time =
                 , transform ("translate(" ++ fromFloat offset.px ++ ",0)")
                 ]
                 [ text_
-                    [ fontSize <| fromFloat <| 2.5 * sp.px
-                    , x <| fromFloat <| sp.px
+                    [ fontSize <| fromFloat <| 3.0 * sp.px
+                    , x <| fromFloat <| 0.8 * sp.px
                     , y <| fromFloat <| 2.0 * sp.px
                     ]
                     [ text <| fromInt t.beats ]
                 , text_
-                    [ fontSize <| fromFloat (2.5 * sp.px)
-                    , x <| fromFloat sp.px
-                    , y <| fromFloat (4.0 * sp.px)
+                    [ fontSize <| fromFloat <| 3.0 * sp.px
+                    , x <| fromFloat <| 1.2 * sp.px
+                    , y <| fromFloat <| 4.0 * sp.px
                     ]
                     [ text <| fromInt (Time.divisor t) ]
                 ]
@@ -183,23 +183,22 @@ view layout measure =
             List.map (\( d, n ) -> ( Beat.fromDuration t d, n )) <|
                 toSequence measure
     in
-    div [ HtmlAttr.class (css .measure) ]
-        [ svg
-            [ class (css .staff)
-            , height <| fromFloat h.px
-            , width <| fromFloat w.px
-            ]
-            [ g
-                [ transform
-                    ("translate(0," ++ fromFloat (Layout.margins layout).top.px ++ ")")
+    div [ HtmlAttr.class (css .measure) ] <|
+        List.append
+            [ svg
+                [ class (css .staff)
+                , height <| fromFloat h.px
+                , width <| fromFloat w.px
                 ]
-                [ StaffView.draw layout
-                , viewTime layout layout.direct.time
+                [ g
+                    [ transform
+                        ("translate(0," ++ fromFloat (Layout.margins layout).top.px ++ ")")
+                    ]
+                    [ StaffView.draw layout
+                    , viewTime layout layout.direct.time
+                    ]
+                , viewKey layout layout.direct.key
                 ]
-            , viewKey layout layout.direct.key
-            , g
-                []
-              <|
-                List.map drawNote noteSequence
             ]
-        ]
+        <|
+            List.map drawNote noteSequence

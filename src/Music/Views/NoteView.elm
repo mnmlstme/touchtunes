@@ -9,6 +9,8 @@ module Music.Views.NoteView exposing
 
 import Debug exposing (log)
 import Dict exposing (Dict)
+import Html exposing (Html, div)
+import Html.Attributes as HtmlAttr exposing (style)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Key as Key exposing (Key)
@@ -25,8 +27,9 @@ import Music.Models.Layout as Layout
         , toPixels
         )
 import Music.Models.Note exposing (..)
-import Music.Models.Pitch as Pitch exposing (Pitch, Semitones, stepAlteredIn)
+import Music.Models.Pitch as Pitch exposing (Chromatic(..), Pitch, chromatic, stepAlteredIn)
 import Music.Models.Time as Time exposing (Time)
+import Music.Views.HarmonyView as HarmonyView
 import Music.Views.NoteStyles exposing (css)
 import Music.Views.Symbols as Symbols
     exposing
@@ -53,6 +56,7 @@ import Svg
         , g
         , line
         , svg
+        , text
         , text_
         , use
         )
@@ -61,6 +65,7 @@ import Svg.Attributes
         ( class
         , height
         , transform
+        , viewBox
         , width
         , x
         , x1
@@ -151,20 +156,23 @@ dotted d =
         Nothing
 
 
-alterationSymbols : Dict Int Symbol
-alterationSymbols =
-    Dict.fromList
-        [ ( -2, Symbols.doubleFlat )
-        , ( -1, Symbols.flat )
-        , ( 0, Symbols.natural )
-        , ( 1, Symbols.sharp )
-        , ( 2, Symbols.doubleSharp )
-        ]
+alteration : Chromatic -> Symbol
+alteration chr =
+    case chr of
+        DoubleFlat ->
+            Symbols.doubleFlat
 
+        Flat ->
+            Symbols.flat
 
-alteration : Semitones -> Maybe Symbol
-alteration alt =
-    Dict.get alt alterationSymbols
+        Natural ->
+            Symbols.natural
+
+        Sharp ->
+            Symbols.sharp
+
+        DoubleSharp ->
+            Symbols.doubleSharp
 
 
 accidental : Key -> Pitch -> Maybe Symbol
@@ -173,7 +181,7 @@ accidental key p =
         Nothing
 
     else
-        alteration p.alter
+        Maybe.map alteration <| chromatic p.alter
 
 
 ledgerLines : Layout -> Pitch -> List Pixels
@@ -234,26 +242,59 @@ notePlacement time dur beat =
     Beat.add time half beat
 
 
-view : Layout -> Beat -> Note -> Svg msg
+view : Layout -> Beat -> Note -> Html msg
 view layout beat note =
     let
+        h =
+            Layout.height layout
+
         d =
             note.duration
+
+        w =
+            Layout.durationSpacing layout d
+
+        maxWidth =
+            -- maximum width of any note's drawing area
+            80.0
 
         xpos =
             scaleBeat layout <|
                 notePlacement (Layout.time layout) d beat
-    in
-    g
-        [ class (css .note)
-        , transform ("translate(" ++ fromFloat xpos.px ++ ",0)")
-        ]
-        [ case note.do of
-            Play p ->
-                viewNote layout d p
 
-            Rest ->
-                viewRest layout d
+        x0 =
+            scaleBeat layout beat
+    in
+    div
+        [ HtmlAttr.class (css .note)
+        , style "left" <| fromFloat x0.px ++ "px"
+        , style "width" <| fromFloat w.px ++ "px"
+        ]
+        [ svg
+            [ height <| fromFloat h.px
+            , width <| fromFloat maxWidth
+            , viewBox <|
+                fromFloat (-0.5 * maxWidth)
+                    ++ " 0 "
+                    ++ fromFloat maxWidth
+                    ++ " "
+                    ++ fromFloat h.px
+            , transform <|
+                "translate("
+                    ++ fromFloat (xpos.px - x0.px - 0.5 * maxWidth)
+                    ++ ",0)"
+            ]
+            [ case note.do of
+                Play p ->
+                    viewNote layout d p
+
+                Rest ->
+                    viewRest layout d
+            ]
+        , div [ style "top" "0" ]
+            [ Maybe.withDefault (text "") <|
+                Maybe.map (HarmonyView.view layout) note.harmony
+            ]
         ]
 
 

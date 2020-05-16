@@ -1,7 +1,7 @@
 module Main exposing (Model, main, update, view)
 
+import AutumnLeaves
 import Browser exposing (Document)
-import Example1
 import Html as Html
     exposing
         ( Html
@@ -84,6 +84,6 @@ view model =
         , footer
             [ class (css .footer) ]
             [ button [ onClick <| Open Score.empty ] [ text "Clear" ]
-            , button [ onClick <| Open Example1.example ] [ text "Example 1" ]
+            , button [ onClick <| Open AutumnLeaves.score ] [ text "Autumn Leaves" ]
             ]
         ]

@@ -2,13 +2,16 @@ module Example1 exposing (example)
 
 import Array
 import Music.Models.Duration exposing (dotted, eighth, half, quarter, whole)
-import Music.Models.Key as Key exposing (KeyName(..), Mode(..), keyOf)
+import Music.Models.Harmony exposing (Chord(..), major)
+import Music.Models.Key as Key exposing (keyOf)
 import Music.Models.Measure as Measure
-import Music.Models.Note exposing (playFor, restFor)
+import Music.Models.Note exposing (harmonize, playFor, restFor)
 import Music.Models.Part exposing (part)
 import Music.Models.Pitch
     exposing
-        ( a
+        ( Chromatic(..)
+        , Step(..)
+        , a
         , b
         , c
         , d
@@ -18,6 +21,7 @@ import Music.Models.Pitch
         , f
         , flat
         , g
+        , root
         , sharp
         )
 import Music.Models.Score exposing (Score)
@@ -35,9 +39,11 @@ example =
                 (Measure.Attributes
                     (Just Staff.treble)
                     (Just Time.common)
-                    (Just (keyOf B Major))
+                    (Just (keyOf Key.B Key.Major))
                 )
-                [ a 3 |> playFor quarter
+                [ a 3
+                    |> playFor quarter
+                    |> harmonize (root C Natural |> major Triad)
                 , a 4 |> playFor quarter
                 , a 5 |> playFor quarter
                 , f 4 |> playFor eighth

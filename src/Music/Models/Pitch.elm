@@ -1,11 +1,15 @@
 module Music.Models.Pitch exposing
-    ( Pitch
+    ( Chromatic(..)
+    , Pitch
+    , Root
     , Semitones
+    , Step(..)
     , StepNumber
     , a
     , alter
     , b
     , c
+    , chromatic
     , d
     , doubleFlat
     ,  doubleSharp
@@ -17,23 +21,20 @@ module Music.Models.Pitch exposing
     , fromStepNumber
     , g
     , natural
+    , pitch
+    , root
+    , semitones
     , setAlter
     , sharp
     , stepAlteredIn
     , stepNumber
+    , stepToString
     , toString
     )
 
 import Array
 import Music.Models.Key as Key exposing (Key)
 import String
-
-
-type alias Pitch =
-    { step : Step
-    , alter : Semitones
-    , octave : Octave
-    }
 
 
 type Step
@@ -44,6 +45,88 @@ type Step
     | E
     | F
     | G
+
+
+type Chromatic
+    = DoubleFlat
+    | DoubleSharp
+    | Flat
+    | Natural
+    | Sharp
+
+
+type alias Semitones =
+    Int
+
+
+semitones : Chromatic -> Semitones
+semitones chr =
+    case chr of
+        DoubleFlat ->
+            -2
+
+        DoubleSharp ->
+            2
+
+        Flat ->
+            -1
+
+        Sharp ->
+            1
+
+        Natural ->
+            0
+
+
+chromatic : Semitones -> Maybe Chromatic
+chromatic semi =
+    case abs semi of
+        0 ->
+            Just Natural
+
+        1 ->
+            Just
+                (if semi > 0 then
+                    Sharp
+
+                 else
+                    Flat
+                )
+
+        2 ->
+            Just
+                (if semi > 0 then
+                    DoubleSharp
+
+                 else
+                    DoubleFlat
+                )
+
+        _ ->
+            Nothing
+
+
+type alias Root =
+    { step : Step
+    , alter : Semitones
+    }
+
+
+root : Step -> Chromatic -> Root
+root step chr =
+    Root step <| semitones chr
+
+
+type alias Pitch =
+    { step : Step
+    , alter : Semitones
+    , octave : Octave
+    }
+
+
+pitch : Step -> Chromatic -> Octave -> Pitch
+pitch step chr oct =
+    Pitch step (semitones chr) oct
 
 
 
@@ -147,15 +230,6 @@ fromStepNumber key number =
     Pitch step alt octave
 
 
-
--- Semitones of alteration
--- typically from -2 (double-flat) to +2 (double-sharp)
-
-
-type alias Semitones =
-    Int
-
-
 unaltered : Semitones
 unaltered =
     0
@@ -239,36 +313,41 @@ doubleFlat =
     alter -2
 
 
-setAlter : Semitones -> Pitch -> Pitch
-setAlter semitones pitch =
-    { pitch | alter = semitones }
+setAlter : Chromatic -> Pitch -> Pitch
+setAlter chr p =
+    { p | alter = semitones chr }
+
+
+stepToString : Step -> String
+stepToString s =
+    case s of
+        C ->
+            "C"
+
+        D ->
+            "D"
+
+        E ->
+            "E"
+
+        F ->
+            "F"
+
+        G ->
+            "G"
+
+        A ->
+            "A"
+
+        B ->
+            "B"
 
 
 toString : Pitch -> String
 toString p =
     let
         step =
-            case p.step of
-                C ->
-                    "C"
-
-                D ->
-                    "D"
-
-                E ->
-                    "E"
-
-                F ->
-                    "F"
-
-                G ->
-                    "G"
-
-                A ->
-                    "A"
-
-                B ->
-                    "B"
+            stepToString p.step
 
         alteration =
             if p.alter > 0 then

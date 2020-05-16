@@ -17,11 +17,18 @@ import Music.Models.Key as Key exposing (KeyName(..), Mode(..), keyOf)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Measure)
 import Music.Models.Note as Note exposing (Note)
-import Music.Models.Pitch as Pitch exposing (Semitones, alter)
+import Music.Models.Pitch as Pitch exposing (Chromatic(..), Semitones, alter, chromatic)
 import Music.Models.Staff as Staff
 import Music.Models.Time as Time exposing (BeatType(..), Time)
+import Music.Views.HarmonyView as HarmonyView
 import Music.Views.MeasureView as MeasureView
-import Music.Views.NoteView as NoteView exposing (StemOrientation(..), isWhole, viewNote)
+import Music.Views.NoteView as NoteView
+    exposing
+        ( StemOrientation(..)
+        , alteration
+        , isWhole
+        , viewNote
+        )
 import Music.Views.Symbols as Symbols
 import String exposing (fromFloat)
 import Svg exposing (Svg, g, text, text_)
@@ -41,7 +48,7 @@ import TouchTunes.Models.Overlay as Overlay exposing (Selection)
 
 type alias Controls msg =
     { subdivisionDial : Dial Duration msg
-    , alterationDial : Dial Semitones msg
+    , alterationDial : Dial Chromatic msg
     , timeDial : Dial Time msg
     , keyDial : Dial KeyName msg
     }
@@ -60,14 +67,14 @@ init layout =
                     Maybe.map Key.keyName <|
                         Just <|
                             Layout.key l
-            , alterationDial = initAlterationDial 0
+            , alterationDial = initAlterationDial Natural
             , timeDial = initTimeDial <| Just <| Layout.time l
             , subdivisionDial = initSubdivisionDial
             }
 
         Nothing ->
             { subdivisionDial = initSubdivisionDial
-            , alterationDial = initAlterationDial 0
+            , alterationDial = initAlterationDial Natural
             , timeDial = initTimeDial Nothing
             , keyDial = initKeyDial Nothing
             }
@@ -76,8 +83,15 @@ init layout =
 forSelection : Selection -> Controls msg -> Controls msg
 forSelection selection controls =
     Maybe.withDefault controls <|
-        Maybe.map (\p -> { controls | alterationDial = initAlterationDial p.alter }) <|
-            Note.pitch selection.note
+        Maybe.map
+            (\chr -> { controls | alterationDial = initAlterationDial chr })
+        <|
+            case Note.pitch selection.note of
+                Just p ->
+                    chromatic p.alter
+
+                Nothing ->
+                    Nothing
 
 
 initSubdivisionDial : Dial Duration msg
@@ -98,14 +112,14 @@ initSubdivisionDial =
         }
 
 
-initAlterationDial : Semitones -> Dial Semitones msg
-initAlterationDial alt =
+initAlterationDial : Chromatic -> Dial Chromatic msg
+initAlterationDial chr =
     -- alterationDial: sets alteration (sharp/flat/natural)
     -- TODO: initial depends on selected note
     Dial.init
-        alt
+        chr
         { options =
-            Array.fromList [ -2, -1, 0, 1, 2 ]
+            Array.fromList [ DoubleFlat, Flat, Natural, Sharp, DoubleSharp ]
         , segments = 6
         , viewValue = viewAlteration
         }
@@ -183,15 +197,13 @@ viewSubdivision d =
         [ viewNote fakeLayout d pitch ]
 
 
-viewAlteration : Semitones -> Svg msg
-viewAlteration alt =
+viewAlteration : Chromatic -> Svg msg
+viewAlteration chr =
     let
         symbol =
-            NoteView.alteration alt
+            alteration chr
     in
-    g [ transform "scale(2,2) translate(0,0)" ] <|
-        Maybe.withDefault [] <|
-            Maybe.map (List.singleton << Symbols.view) symbol
+    g [ transform "scale(2,2) translate(0,0)" ] [ Symbols.view symbol ]
 
 
 viewTime : Time -> Svg msg
