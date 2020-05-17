@@ -12,5 +12,5 @@ css =
             , degree = "degree"
             , kind = "kind"
             , altList = "alt-list"
-            , alt = "alt-list"
+            , alt = "alt"
             }

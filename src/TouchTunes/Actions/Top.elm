@@ -27,6 +27,9 @@ type Msg
     | TimeMsg Dial.Action
     | KeyMsg Dial.Action
     | RootMsg Dial.Action
+    | KindMsg Dial.Action
+    | ChordMsg Dial.Action
+    | AltHarmonyMsg Dial.Action
 
 
 

@@ -13,7 +13,14 @@ import Music.Models.Duration
         , half
         , quarter
         )
-import Music.Models.Key as Key exposing (KeyName(..), Mode(..), keyOf)
+import Music.Models.Harmony as Harmony
+    exposing
+        ( Alteration(..)
+        , Chord(..)
+        , Degree
+        , Kind(..)
+        )
+import Music.Models.Key as Key exposing (KeyName(..), keyOf)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Measure)
 import Music.Models.Note as Note exposing (Note)
@@ -38,7 +45,7 @@ import Music.Views.NoteView as NoteView
         , viewNote
         )
 import Music.Views.Symbols as Symbols
-import String exposing (fromFloat)
+import String exposing (fromFloat, fromInt)
 import Svg exposing (Svg, g, text, text_)
 import Svg.Attributes
     exposing
@@ -60,6 +67,9 @@ type alias Controls msg =
     , timeDial : Dial Time msg
     , keyDial : Dial KeyName msg
     , rootDial : Dial Root msg
+    , kindDial : Dial Kind msg
+    , chordDial : Dial Chord msg
+    , altHarmonyDial : Dial (List Alteration) msg
     }
 
 
@@ -84,6 +94,9 @@ init layout =
                     Maybe.map Key.tonic <|
                         Just <|
                             Layout.key l
+            , kindDial = initKindDial <| Just (Major Triad)
+            , chordDial = initChordDial <| Just Triad
+            , altHarmonyDial = initAltHarmonyDial <| Just []
             }
 
         Nothing ->
@@ -92,6 +105,9 @@ init layout =
             , timeDial = initTimeDial Nothing
             , keyDial = initKeyDial Nothing
             , rootDial = initRootDial Nothing
+            , kindDial = initKindDial Nothing
+            , chordDial = initChordDial Nothing
+            , altHarmonyDial = initAltHarmonyDial Nothing
             }
 
 
@@ -190,7 +206,7 @@ initKeyDial k =
                 , B
                 , Fsharp
                 ]
-        , segments = 16
+        , segments = 15
         , viewValue = viewKey
         }
 
@@ -217,8 +233,99 @@ initRootDial r =
                 , root Pitch.B Natural
                 , root Pitch.F Sharp
                 ]
-        , segments = 16
+        , segments = 15
         , viewValue = viewRoot
+        }
+
+
+initKindDial : Maybe Kind -> Dial Kind msg
+initKindDial k =
+    -- kindDial sets the Kind of chord (e.g., Major, Minor)
+    let
+        initial =
+            Maybe.withDefault (Major Triad) k
+
+        chord =
+            case initial of
+                Major ch ->
+                    ch
+
+                Minor ch ->
+                    ch
+
+                Diminished ch ->
+                    ch
+
+                Augmented ch ->
+                    ch
+
+                Dominant ch ->
+                    ch
+
+                HalfDiminished ->
+                    Seventh
+
+                MajorMinor ->
+                    Seventh
+
+                Power ->
+                    Triad
+    in
+    Dial.init
+        initial
+        { options =
+            Array.fromList
+                [ Major chord
+                , Minor chord
+                , Diminished chord
+                , Augmented chord
+                , Dominant chord
+                , HalfDiminished
+                , MajorMinor
+                , Power
+                ]
+        , segments = 12
+        , viewValue = viewKind
+        }
+
+
+initChordDial : Maybe Chord -> Dial Chord msg
+initChordDial ch =
+    Dial.init
+        (Maybe.withDefault Triad ch)
+        { options =
+            Array.fromList
+                [ Triad
+                , Sixth
+                , Seventh
+                , Ninth
+                , Eleventh
+                , Thirteenth
+                ]
+        , segments = 9
+        , viewValue = viewChord
+        }
+
+
+initAltHarmonyDial : Maybe (List Alteration) -> Dial (List Alteration) msg
+initAltHarmonyDial ls =
+    Dial.init
+        (Maybe.withDefault [] ls)
+        { options =
+            Array.fromList
+                [ []
+                , [ Sus 2 ]
+                , [ Sus 4 ]
+                , [ Add 9 ]
+                , [ No 3 ]
+                , [ Raised 5 ]
+                , [ Raised 9 ]
+                , [ Raised 11 ]
+                , [ Lowered 5 ]
+                , [ Lowered 9 ]
+                ]
+        , segments = 12
+        , viewValue = viewAltHarmony
         }
 
 
@@ -287,15 +394,15 @@ viewKey kn =
 
         key =
             -- TODO: handle other modes
-            keyOf kn Major
+            keyOf kn Key.Major
     in
     g []
         [ text_
             [ textAnchor "middle"
-            , fontSize <| fromFloat (5.0 * sp.px)
+            , fontSize <| fromFloat (4.0 * sp.px)
             , fontWeight "800"
             , x <| "0"
-            , y <| fromFloat (2.0 * sp.px)
+            , y <| fromFloat (1.5 * sp.px)
             ]
             [ text <| Key.displayName key ]
         ]
@@ -329,4 +436,136 @@ viewRoot r =
             Maybe.map
                 (Symbols.view << Symbols.leftAlign 0.0)
                 symbol
+        ]
+
+
+viewKind : Kind -> Svg msg
+viewKind k =
+    let
+        sp =
+            Layout.spacing fakeLayout
+
+        s =
+            case k of
+                Major _ ->
+                    "Maj"
+
+                Minor _ ->
+                    "min"
+
+                Diminished _ ->
+                    "o"
+
+                Augmented _ ->
+                    "+"
+
+                Dominant _ ->
+                    "Dom"
+
+                HalfDiminished ->
+                    "ø"
+
+                MajorMinor ->
+                    "m/Maj"
+
+                Power ->
+                    "Pow"
+    in
+    g []
+        [ text_
+            [ textAnchor "middle"
+            , fontSize <| fromFloat (2.0 * sp.px)
+            , fontWeight "800"
+            , x <| "0"
+            , y <| fromFloat (2.0 * sp.px)
+            ]
+            [ text s ]
+        ]
+
+
+viewChord : Chord -> Svg msg
+viewChord ch =
+    let
+        sp =
+            Layout.spacing fakeLayout
+
+        s =
+            case ch of
+                Triad ->
+                    "Triad"
+
+                Sixth ->
+                    "6"
+
+                Seventh ->
+                    "7"
+
+                Ninth ->
+                    "9"
+
+                Eleventh ->
+                    "11"
+
+                Thirteenth ->
+                    "13"
+    in
+    g []
+        [ text_
+            [ textAnchor "middle"
+            , fontSize <| fromFloat (2.0 * sp.px)
+            , fontWeight "800"
+            , x <| "0"
+            , y <| fromFloat (2.0 * sp.px)
+            ]
+            [ text s ]
+        ]
+
+
+viewAltHarmony : List Alteration -> Svg msg
+viewAltHarmony ls =
+    -- TODO: allow for >1 alt at a time
+    let
+        sp =
+            Layout.spacing fakeLayout
+
+        ( s, sym ) =
+            case List.head ls of
+                Just alt ->
+                    case alt of
+                        Sus n ->
+                            ( "Sus" ++ fromInt n, Nothing )
+
+                        Add n ->
+                            ( "Add" ++ fromInt n, Nothing )
+
+                        No n ->
+                            ( "No" ++ fromInt n, Nothing )
+
+                        Raised n ->
+                            ( fromInt n, Just Symbols.sharp )
+
+                        Lowered n ->
+                            ( fromInt n, Just Symbols.flat )
+
+                        Altered str n ->
+                            ( str ++ fromInt n, Nothing )
+
+                Nothing ->
+                    ( "()", Nothing )
+    in
+    g []
+        [ case sym of
+            Just symbol ->
+                Symbols.view symbol
+
+            Nothing ->
+                text s
+        , text_
+            [ textAnchor "middle"
+            , fontSize <| fromFloat (2.0 * sp.px)
+            , fontWeight "800"
+            , x <| "0"
+            , y <| fromFloat (2.0 * sp.px)
+            ]
+            [ text s ]
         ]

@@ -92,17 +92,16 @@ viewKind kind =
                     ( Just "m", degreeNumber c )
 
                 Diminished c ->
-                    ( Just "dim", degreeNumber c )
+                    ( Just "o", degreeNumber c )
 
                 Augmented c ->
-                    ( Just "aug", degreeNumber c )
+                    ( Just "+", degreeNumber c )
 
                 Dominant c ->
                     ( Nothing, degreeNumber c )
 
                 HalfDiminished ->
-                    -- flat 5 added later
-                    ( Just "m", degreeNumber Seventh )
+                    ( Just "ø", degreeNumber Seventh )
 
                 MajorMinor ->
                     -- maj 7 added later
@@ -123,13 +122,13 @@ viewAlteration : Alteration -> Html msg
 viewAlteration alteration =
     case alteration of
         Sus n ->
-            span [ class (css .alt) ] [ text <| "Sus" ++ fromInt n ]
+            span [ class (css .alt) ] [ text <| "sus" ++ fromInt n ]
 
         Add n ->
-            span [ class (css .alt) ] [ text <| "Add" ++ fromInt n ]
+            span [ class (css .alt) ] [ text <| "add" ++ fromInt n ]
 
         No n ->
-            span [ class (css .alt) ] [ text <| "No" ++ fromInt n ]
+            span [ class (css .alt) ] [ text <| "no" ++ fromInt n ]
 
         Raised n ->
             span [ class (css .alt) ]

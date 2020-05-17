@@ -67,7 +67,11 @@ viewControls editor =
             List.append
                 (case overlay.selection of
                     HarmonySelection _ _ ->
-                        [ Dial.view controls.rootDial Actions.RootMsg ]
+                        [ Dial.view controls.rootDial Actions.RootMsg
+                        , Dial.view controls.kindDial Actions.KindMsg
+                        , Dial.view controls.chordDial Actions.ChordMsg
+                        , Dial.view controls.altHarmonyDial Actions.AltHarmonyMsg
+                        ]
 
                     NoteSelection _ _ _ ->
                         [ Dial.view controls.alterationDial Actions.AlterationMsg

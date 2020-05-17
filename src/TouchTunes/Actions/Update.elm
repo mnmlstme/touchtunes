@@ -152,3 +152,33 @@ update msg editor =
                                 Dial.update dialAction controls.rootDial
                         }
                 }
+
+        KindMsg dialAction ->
+            commit
+                { editor
+                    | controls =
+                        { controls
+                            | kindDial =
+                                Dial.update dialAction controls.kindDial
+                        }
+                }
+
+        ChordMsg dialAction ->
+            commit
+                { editor
+                    | controls =
+                        { controls
+                            | chordDial =
+                                Dial.update dialAction controls.chordDial
+                        }
+                }
+
+        AltHarmonyMsg dialAction ->
+            commit
+                { editor
+                    | controls =
+                        { controls
+                            | altHarmonyDial =
+                                Dial.update dialAction controls.altHarmonyDial
+                        }
+                }

@@ -12,7 +12,8 @@ import Debug exposing (log)
 import Maybe.Extra
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
-import Music.Models.Key exposing (Key, KeyName(..), Mode(..), keyOf)
+import Music.Models.Harmony as Harmony exposing (Alteration, Chord, Kind(..))
+import Music.Models.Key as Key exposing (Key, KeyName(..), keyOf)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Attributes, Measure, modifyNote)
 import Music.Models.Note as Note exposing (Note)
@@ -98,7 +99,7 @@ latent editor =
                 layout.indirect
                 { direct
                     | time = Just editor.controls.timeDial.value
-                    , key = Just <| keyOf editor.controls.keyDial.value Major
+                    , key = Just <| keyOf editor.controls.keyDial.value Key.Major
                 }
                 m
 
@@ -112,9 +113,38 @@ latent editor =
                 t =
                     Layout.time layout
 
+                ch =
+                    editor.controls.chordDial.value
+
                 h =
                     { harmony
                         | root = editor.controls.rootDial.value
+                        , kind =
+                            case editor.controls.kindDial.value of
+                                Major _ ->
+                                    Major ch
+
+                                Minor _ ->
+                                    Minor ch
+
+                                Diminished _ ->
+                                    Diminished ch
+
+                                Augmented _ ->
+                                    Augmented ch
+
+                                Dominant _ ->
+                                    Dominant ch
+
+                                HalfDiminished ->
+                                    HalfDiminished
+
+                                MajorMinor ->
+                                    MajorMinor
+
+                                Power ->
+                                    Power
+                        , alter = editor.controls.altHarmonyDial.value
                     }
 
                 fn =
