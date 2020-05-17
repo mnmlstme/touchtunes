@@ -17,7 +17,15 @@ import Music.Models.Key as Key exposing (KeyName(..), Mode(..), keyOf)
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Measure)
 import Music.Models.Note as Note exposing (Note)
-import Music.Models.Pitch as Pitch exposing (Chromatic(..), Semitones, alter, chromatic)
+import Music.Models.Pitch as Pitch
+    exposing
+        ( Chromatic(..)
+        , Root
+        , Semitones
+        , alter
+        , chromatic
+        , root
+        )
 import Music.Models.Staff as Staff
 import Music.Models.Time as Time exposing (BeatType(..), Time)
 import Music.Views.HarmonyView as HarmonyView
@@ -43,7 +51,7 @@ import Svg.Attributes
         )
 import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.Dial as Dial exposing (Dial)
-import TouchTunes.Models.Overlay as Overlay exposing (Selection)
+import TouchTunes.Models.Overlay as Overlay exposing (Selection(..))
 
 
 type alias Controls msg =
@@ -51,6 +59,7 @@ type alias Controls msg =
     , alterationDial : Dial Chromatic msg
     , timeDial : Dial Time msg
     , keyDial : Dial KeyName msg
+    , rootDial : Dial Root msg
     }
 
 
@@ -70,6 +79,11 @@ init layout =
             , alterationDial = initAlterationDial Natural
             , timeDial = initTimeDial <| Just <| Layout.time l
             , subdivisionDial = initSubdivisionDial
+            , rootDial =
+                initRootDial <|
+                    Maybe.map Key.tonic <|
+                        Just <|
+                            Layout.key l
             }
 
         Nothing ->
@@ -77,21 +91,29 @@ init layout =
             , alterationDial = initAlterationDial Natural
             , timeDial = initTimeDial Nothing
             , keyDial = initKeyDial Nothing
+            , rootDial = initRootDial Nothing
             }
 
 
 forSelection : Selection -> Controls msg -> Controls msg
 forSelection selection controls =
-    Maybe.withDefault controls <|
-        Maybe.map
-            (\chr -> { controls | alterationDial = initAlterationDial chr })
-        <|
-            case Note.pitch selection.note of
+    case selection of
+        NoSelection ->
+            controls
+
+        HarmonySelection harmony _ ->
+            { controls | rootDial = initRootDial <| Just harmony.root }
+
+        NoteSelection note _ _ ->
+            case Note.pitch note of
                 Just p ->
-                    chromatic p.alter
+                    Maybe.withDefault controls <|
+                        Maybe.map
+                            (\chr -> { controls | alterationDial = initAlterationDial chr })
+                            (chromatic p.alter)
 
                 Nothing ->
-                    Nothing
+                    controls
 
 
 initSubdivisionDial : Dial Duration msg
@@ -173,6 +195,33 @@ initKeyDial k =
         }
 
 
+initRootDial : Maybe Root -> Dial Root msg
+initRootDial r =
+    -- rootDial: sets Root of Chord
+    Dial.init
+        (Maybe.withDefault (root Pitch.C Natural) r)
+        { options =
+            -- TODO: should depend on Key, center on Tonic
+            Array.fromList
+                [ root Pitch.G Flat
+                , root Pitch.D Flat
+                , root Pitch.A Flat
+                , root Pitch.E Flat
+                , root Pitch.B Flat
+                , root Pitch.F Natural
+                , root Pitch.C Natural
+                , root Pitch.G Natural
+                , root Pitch.D Natural
+                , root Pitch.A Natural
+                , root Pitch.E Natural
+                , root Pitch.B Natural
+                , root Pitch.F Sharp
+                ]
+        , segments = 16
+        , viewValue = viewRoot
+        }
+
+
 fakeLayout : Layout
 fakeLayout =
     Layout.forMeasure Measure.noAttributes Measure.new
@@ -249,4 +298,35 @@ viewKey kn =
             , y <| fromFloat (2.0 * sp.px)
             ]
             [ text <| Key.displayName key ]
+        ]
+
+
+viewRoot : Root -> Svg msg
+viewRoot r =
+    let
+        sp =
+            Layout.spacing fakeLayout
+
+        symbol =
+            HarmonyView.chromaticSymbol r.alter
+    in
+    g []
+        [ text_
+            [ textAnchor <|
+                case symbol of
+                    Just _ ->
+                        "end"
+
+                    Nothing ->
+                        "middle"
+            , fontSize <| fromFloat <| 4.0 * sp.px
+            , fontWeight "800"
+            , x <| "0"
+            , y <| fromFloat <| 1.5 * sp.px
+            ]
+            [ text <| Pitch.stepToString r.step ]
+        , Maybe.withDefault (text "") <|
+            Maybe.map
+                (Symbols.view << Symbols.leftAlign 0.0)
+                symbol
         ]

@@ -10,10 +10,12 @@ module Music.Models.Layout exposing
     , fixedWidth
     , forMeasure
     , halfSpacing
+    , harmonyHeight
     , height
     , key
     , keyOffset
     , locationAfter
+    , locationDuration
     , margins
     , positionOnStaff
     , positionToLocation
@@ -28,10 +30,7 @@ module Music.Models.Layout exposing
     , toPixels
     , toTenths
     , topStep
-    ,  width
-       -- , withDivisors
-       --, withTime
-
+    , width
     )
 
 import Browser
@@ -162,6 +161,16 @@ locationAfter layout loc =
     }
 
 
+locationDuration : Layout -> Location -> Duration
+locationDuration layout loc =
+    let
+        divisor =
+            Time.divisor (time layout)
+                * Nonempty.get loc.beat.full layout.divisors
+    in
+    Duration.division divisor
+
+
 type alias Margins =
     { top : Pixels
     , right : Pixels
@@ -213,6 +222,15 @@ margins layout =
                 |> Pixels
     in
     Margins vmargin rmargin vmargin lmargin
+
+
+harmonyHeight : Layout -> Pixels
+harmonyHeight layout =
+    let
+        sp =
+            spacing layout |> .px
+    in
+    Pixels <| 2.0 * sp
 
 
 keyOffset : Layout -> Pixels
@@ -396,7 +414,7 @@ unscalePitch layout y =
             key layout
     in
     unscaleStep layout y
-        |> Pitch.fromStepNumber k
+        |> Key.stepNumberToPitch k
 
 
 scaleBeat : Layout -> Beat -> Pixels

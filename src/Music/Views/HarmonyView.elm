@@ -1,8 +1,9 @@
-module Music.Views.HarmonyView exposing (view)
+module Music.Views.HarmonyView exposing (chromaticSymbol, view)
 
 import Html exposing (Html, div, span, text)
 import Html.Attributes exposing (class, style)
 import Music.Models.Harmony as Harmony exposing (Alteration(..), Chord(..), Harmony, Kind(..))
+import Music.Models.Key exposing (stepAlteredIn)
 import Music.Models.Layout as Layout
     exposing
         ( Layout
@@ -15,7 +16,13 @@ import Music.Models.Layout as Layout
         , spacing
         , toPixels
         )
-import Music.Models.Pitch as Pitch exposing (Chromatic(..), Pitch, Semitones, chromatic, stepAlteredIn)
+import Music.Models.Pitch as Pitch
+    exposing
+        ( Chromatic(..)
+        , Pitch
+        , Semitones
+        , chromatic
+        )
 import Music.Views.HarmonyStyles exposing (css)
 import Music.Views.Symbols as Symbols exposing (Symbol, glyph)
 import String exposing (fromInt)

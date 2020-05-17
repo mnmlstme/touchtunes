@@ -22,7 +22,7 @@ import String
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls exposing (Controls)
 import TouchTunes.Models.Dial as Dial
-import TouchTunes.Models.Overlay as Overlay exposing (Overlay)
+import TouchTunes.Models.Overlay as Overlay exposing (Overlay, Selection(..))
 
 
 type alias Editor =
@@ -48,12 +48,7 @@ withOverlay : Overlay -> Editor -> Editor
 withOverlay overlay editor =
     let
         controls =
-            case overlay.selection of
-                Just selection ->
-                    Controls.forSelection selection editor.controls
-
-                Nothing ->
-                    editor.controls
+            Controls.forSelection overlay.selection editor.controls
     in
     { editor
         | overlay = overlay
@@ -110,25 +105,45 @@ latent editor =
         controlled =
             override editor.measure
     in
-    log "Editor.latent editor" <|
-        case editor.overlay.selection of
-            Just selection ->
-                let
-                    t =
-                        Layout.time layout
+    -- log "Editor.latent editor" <|
+    case log "selection" editor.overlay.selection of
+        HarmonySelection harmony beat ->
+            let
+                t =
+                    Layout.time layout
 
-                    alteration =
-                        Dial.value editor.controls.alterationDial
+                h =
+                    { harmony
+                        | root = editor.controls.rootDial.value
+                    }
 
-                    note =
-                        Note.modPitch (Pitch.setAlter alteration) selection.note
+                fn =
+                    modifyNote
+                        (\original -> { original | harmony = Just h })
+                        (Beat.toDuration t beat)
+            in
+            fn controlled
 
-                    fn =
-                        modifyNote
-                            (\_ -> note)
-                            (Beat.toDuration t selection.location.beat)
-                in
-                fn controlled
+        NoteSelection note location _ ->
+            let
+                t =
+                    Layout.time layout
 
-            Nothing ->
-                controlled
+                alteration =
+                    Dial.value editor.controls.alterationDial
+
+                changed =
+                    Note.modPitch (Pitch.setAlter alteration) note
+
+                replace n orig =
+                    { n | harmony = orig.harmony }
+
+                fn =
+                    modifyNote
+                        (\original -> replace changed original)
+                        (Beat.toDuration t location.beat)
+            in
+            fn controlled
+
+        NoSelection ->
+            controlled

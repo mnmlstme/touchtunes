@@ -13,7 +13,7 @@ import Html exposing (Html, div)
 import Html.Attributes as HtmlAttr exposing (style)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
-import Music.Models.Key as Key exposing (Key)
+import Music.Models.Key as Key exposing (Key, stepAlteredIn)
 import Music.Models.Layout as Layout
     exposing
         ( Layout
@@ -27,7 +27,12 @@ import Music.Models.Layout as Layout
         , toPixels
         )
 import Music.Models.Note exposing (..)
-import Music.Models.Pitch as Pitch exposing (Chromatic(..), Pitch, chromatic, stepAlteredIn)
+import Music.Models.Pitch as Pitch
+    exposing
+        ( Chromatic(..)
+        , Pitch
+        , chromatic
+        )
 import Music.Models.Time as Time exposing (Time)
 import Music.Views.HarmonyView as HarmonyView
 import Music.Views.NoteStyles exposing (css)

@@ -23,16 +23,25 @@
     position: absolute;
     top: 20px;
     left: 20px;
-    cursor: cell;
 }
 
-.underlay {
+.understaff,
+.underharmony {
     fill-opacity: 0.2;
 }
 
-.area {
-    fill: rgba(255,255,255,0.05);
+.notearea,
+.harmonyarea {
     stroke: none;
+    fill: rgba(255,255,255,0.01);
+}
+
+.notearea {
+    cursor: cell;
+}
+
+.harmonyarea {
+    cursor: pointer;
 }
 
 .ruler {

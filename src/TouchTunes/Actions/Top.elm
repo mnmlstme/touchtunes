@@ -14,6 +14,7 @@ import TouchTunes.Models.Dial as Dial
 type Msg
     = StartEdit Part.Id Int Attributes Measure
     | NoteEdit ( Int, Int )
+    | HarmonyEdit ( Int, Int )
     | DragEdit ( Int, Int )
     | FinishEdit
     | SaveEdit
@@ -25,6 +26,7 @@ type Msg
     | AlterationMsg Dial.Action
     | TimeMsg Dial.Action
     | KeyMsg Dial.Action
+    | RootMsg Dial.Action
 
 
 

@@ -35,6 +35,7 @@ import Music.Views.MeasureView as MeasureView
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Editor as Editor exposing (Editor)
+import TouchTunes.Models.Overlay exposing (Selection(..))
 import TouchTunes.Views.DialView as Dial
 import TouchTunes.Views.EditorStyles exposing (css)
 import TouchTunes.Views.OverlayView as OverlayView
@@ -65,11 +66,14 @@ viewControls editor =
          <|
             List.append
                 (case overlay.selection of
-                    Just selection ->
+                    HarmonySelection _ _ ->
+                        [ Dial.view controls.rootDial Actions.RootMsg ]
+
+                    NoteSelection _ _ _ ->
                         [ Dial.view controls.alterationDial Actions.AlterationMsg
                         ]
 
-                    Nothing ->
+                    NoSelection ->
                         [ Dial.view controls.timeDial Actions.TimeMsg
                         , Dial.view controls.keyDial Actions.KeyMsg
                         ]

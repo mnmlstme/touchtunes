@@ -8,9 +8,22 @@ module Music.Models.Key exposing
     , keyName
     , keyOf
     , sharps
+    , stepAlteredIn
+    , stepNumberToPitch
+    , tonic
     )
 
 import Array as Array
+import Music.Models.Pitch as Pitch
+    exposing
+        ( Chromatic(..)
+        , Pitch
+        , Root
+        , Semitones
+        , Step
+        , StepNumber
+        , root
+        )
 
 
 type alias Key =
@@ -56,6 +69,44 @@ type KeyName
     | Eflat
     | Bflat
     | F
+
+
+flatTonics : Array.Array Root
+flatTonics =
+    Array.fromList
+        [ root Pitch.C Natural
+        , root Pitch.F Natural
+        , root Pitch.B Flat
+        , root Pitch.E Flat
+        , root Pitch.A Flat
+        , root Pitch.D Flat
+        , root Pitch.G Flat
+        ]
+
+
+sharpTonics : Array.Array Root
+sharpTonics =
+    Array.fromList
+        [ root Pitch.C Natural
+        , root Pitch.G Natural
+        , root Pitch.D Natural
+        , root Pitch.A Natural
+        , root Pitch.E Natural
+        , root Pitch.B Natural
+        , root Pitch.F Sharp
+        ]
+
+
+tonic : Key -> Root
+tonic key =
+    -- TODO: handle modes other than Major
+    if key.fifths > 0 then
+        Maybe.withDefault (root Pitch.C Natural) <|
+            Array.get key.fifths sharpTonics
+
+    else
+        Maybe.withDefault (root Pitch.C Natural) <|
+            Array.get (abs key.fifths) flatTonics
 
 
 modeShift : Mode -> Int
@@ -193,3 +244,50 @@ equal akey bkey =
         == bkey.fifths
         && akey.mode
         == bkey.mode
+
+
+sharpSteps : List Step
+sharpSteps =
+    [ Pitch.F, Pitch.C, Pitch.G, Pitch.D, Pitch.A, Pitch.E ]
+
+
+flatSteps : List Step
+flatSteps =
+    [ Pitch.B, Pitch.E, Pitch.A, Pitch.D, Pitch.G, Pitch.C ]
+
+
+stepAlteredIn : Key -> Step -> Semitones
+stepAlteredIn key step =
+    if key.fifths > 0 then
+        if
+            List.member step <|
+                List.take key.fifths sharpSteps
+        then
+            1
+
+        else
+            0
+
+    else if
+        List.member step <|
+            List.take (0 - key.fifths) flatSteps
+    then
+        -1
+
+    else
+        0
+
+
+stepNumberToPitch : Key -> StepNumber -> Pitch
+stepNumberToPitch key number =
+    let
+        octave =
+            number // 7
+
+        step =
+            Pitch.stepFromNumber number
+
+        alt =
+            stepAlteredIn key step
+    in
+    Pitch step alt octave

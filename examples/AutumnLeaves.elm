@@ -83,7 +83,7 @@ score =
                     |> playFor half
                     |> harmonize (root F Sharp |> minor Seventh |> lowered 5)
                 , restFor eighth
-                    |> harmonize (root B Natural |> dominant Seventh)
+                    |> harmonize (root B Natural |> dominant Ninth)
                 , b 3 |> playFor eighth
                 , sharp c 4 |> playFor eighth
                 , sharp d 4 |> playFor eighth

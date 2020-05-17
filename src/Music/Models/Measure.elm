@@ -4,6 +4,7 @@ module Music.Models.Measure exposing
     , Sequence
     , aggregateRests
     , essentialAttributes
+    , findNote
     , fromNotes
     , fromSequence
     , initial

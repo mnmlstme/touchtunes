@@ -27,24 +27,38 @@ viewBand : Layout -> Float -> Float -> Svg msg
 viewBand layout x_ w =
     let
         h =
-            Layout.height layout
+            Layout.height layout |> .px
+
+        hh =
+            Layout.harmonyHeight layout |> .px
 
         sp =
-            Layout.spacing layout
+            Layout.spacing layout |> .px
+
+        pad =
+            sp / 8.0
     in
     g []
         [ rect
-            [ class (css .underlay)
+            [ class (css .underharmony)
             , x <| fromFloat x_
             , y "0"
-            , height <| fromFloat h.px
+            , height <| fromFloat (hh - pad)
+            , width <| fromFloat w
+            ]
+            []
+        , rect
+            [ class (css .understaff)
+            , x <| fromFloat x_
+            , y <| fromFloat (hh + pad)
+            , height <| fromFloat (h - hh - pad)
             , width <| fromFloat w
             ]
             []
         , rect
             [ x <| fromFloat x_
-            , y <| fromFloat <| h.px - sp.px / 4.0
-            , height <| fromFloat <| sp.px / 4.0
+            , y <| fromFloat <| h - sp / 4.0
+            , height <| fromFloat <| sp / 4.0
             , width <| fromFloat w
             ]
             []

@@ -1,43 +1,54 @@
 module TouchTunes.Models.Overlay exposing
     ( Overlay
-    , Selection
+    , Selection(..)
     , deselect
     , drag
+    , editHarmony
+    , editNote
+    , findNote
     , finish
     , fromLayout
-    , start
+    , positionToLocation
+    , startHarmony
+    , startNote
     , subdivide
     )
 
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Harmony as Harmony exposing (Chord(..), Harmony, Kind(..), chord)
+import Music.Models.Key as Key exposing (tonic)
 import Music.Models.Layout as Layout
     exposing
         ( Layout
         , Location
         , positionToLocation
         )
+import Music.Models.Measure as Measure exposing (Measure)
 import Music.Models.Note exposing (Note, What(..))
 import Music.Models.Pitch as Pitch
 import Music.Models.Time as Time
 
 
-type alias Selection =
-    { note : Note
-    , location : Location
-    , dragging : Bool
-    }
+type Selection
+    = NoteSelection Note Location Bool
+    | HarmonySelection Harmony Beat
+    | NoSelection
 
 
 type alias Overlay =
     { layout : Layout
-    , selection : Maybe Selection
+    , selection : Selection
     }
+
+
+type alias Position =
+    ( Int, Int )
 
 
 fromLayout : Layout -> Overlay
 fromLayout layout =
-    Overlay layout Nothing
+    Overlay layout NoSelection
 
 
 subdivide : Duration -> Overlay -> Overlay
@@ -56,47 +67,94 @@ subdivide duration overlay =
 
 deselect : Overlay -> Overlay
 deselect overlay =
-    { overlay | selection = Nothing }
+    { overlay | selection = NoSelection }
 
 
-start : Duration -> ( Int, Int ) -> Overlay -> Overlay
-start duration pos overlay =
+positionToLocation : Position -> Overlay -> Location
+positionToLocation pos overlay =
+    Layout.positionToLocation overlay.layout pos
+
+
+findNote : Position -> Measure -> Overlay -> Maybe Note
+findNote pos measure overlay =
     let
         time =
             Layout.time overlay.layout
 
+        loc =
+            positionToLocation pos overlay
+
+        offset =
+            Beat.toDuration time loc.beat
+    in
+    Measure.findNote offset measure
+
+
+startNote : Position -> Overlay -> Overlay
+startNote pos overlay =
+    let
         key =
             Layout.key overlay.layout
 
         loc =
-            Layout.positionToLocation
-                (Layout.subdivide
-                    (duration.divisor // Time.divisor time)
-                    overlay.layout
-                )
-                pos
+            positionToLocation pos overlay
 
         pitch =
-            Pitch.fromStepNumber key loc.step
+            Key.stepNumberToPitch key loc.step
+
+        duration =
+            Layout.locationDuration overlay.layout loc
 
         note =
             Note (Play pitch) duration [] Nothing
     in
+    editNote pos note overlay
+
+
+editNote : Position -> Note -> Overlay -> Overlay
+editNote pos note overlay =
+    let
+        loc =
+            positionToLocation pos overlay
+    in
     { overlay
         | selection =
-            Just
-                { note = note
-                , location = loc
-                , dragging = True
-                }
+            NoteSelection note loc True
     }
 
 
-drag : Duration -> ( Int, Int ) -> Overlay -> Overlay
-drag duration pos overlay =
+startHarmony : Position -> Overlay -> Overlay
+startHarmony pos overlay =
+    let
+        key =
+            Layout.key overlay.layout
+
+        harmony =
+            chord (Major Triad) (tonic key)
+    in
+    editHarmony pos harmony overlay
+
+
+editHarmony : Position -> Harmony -> Overlay -> Overlay
+editHarmony pos harmony overlay =
+    let
+        loc =
+            positionToLocation pos overlay
+    in
+    { overlay
+        | selection =
+            HarmonySelection harmony loc.beat
+    }
+
+
+drag : Position -> Overlay -> Overlay
+drag pos overlay =
     case overlay.selection of
-        Just selection ->
-            if selection.dragging then
+        HarmonySelection harm beat ->
+            { overlay | selection = HarmonySelection harm beat }
+
+        NoteSelection note location dragging ->
+            if dragging then
                 let
                     layout =
                         overlay.layout
@@ -108,42 +166,34 @@ drag duration pos overlay =
                         Layout.key layout
 
                     loc =
-                        positionToLocation
-                            (Layout.subdivide
-                                (duration.divisor // Time.divisor time)
-                                layout
-                            )
-                            pos
+                        positionToLocation pos overlay
 
                     nextLoc =
                         Layout.locationAfter layout loc
 
                     beat =
-                        selection.location.beat
+                        location.beat
 
-                    modifier note =
+                    modifier n =
                         let
                             dur =
                                 Beat.durationFrom (Layout.time layout) beat nextLoc.beat
                         in
                         if Beat.equal beat loc.beat then
-                            { note
-                                | do = Play <| Pitch.fromStepNumber key loc.step
+                            { n
+                                | do = Play <| Key.stepNumberToPitch key loc.step
                                 , duration = dur
                             }
 
                         else
-                            { note | duration = dur }
-
-                    sel =
-                        { selection | note = modifier selection.note }
+                            { n | duration = dur }
                 in
-                { overlay | selection = Just sel }
+                { overlay | selection = NoteSelection (modifier note) location dragging }
 
             else
                 overlay
 
-        Nothing ->
+        NoSelection ->
             overlay
 
 
@@ -151,7 +201,13 @@ finish : Overlay -> Overlay
 finish overlay =
     { overlay
         | selection =
-            Maybe.map
-                (\sel -> { sel | dragging = False })
-                overlay.selection
+            case overlay.selection of
+                NoteSelection note location bool ->
+                    NoteSelection note location False
+
+                HarmonySelection harm beat ->
+                    HarmonySelection harm beat
+
+                NoSelection ->
+                    NoSelection
     }

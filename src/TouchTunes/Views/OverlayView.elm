@@ -42,7 +42,7 @@ import Svg.Attributes
         , y
         )
 import TouchTunes.Actions.Top as Action exposing (Msg(..))
-import TouchTunes.Models.Overlay exposing (Overlay)
+import TouchTunes.Models.Overlay exposing (Overlay, Selection(..))
 import TouchTunes.Views.EditorStyles exposing (css)
 import Tuple exposing (pair)
 
@@ -66,6 +66,12 @@ view measure overlay =
         t =
             Layout.time layout
 
+        h =
+            Layout.height layout |> .px
+
+        hh =
+            Layout.harmonyHeight layout |> .px
+
         m =
             Layout.margins layout
 
@@ -78,10 +84,13 @@ view measure overlay =
 
         sameBeat ( b, _ ) =
             case overlay.selection of
-                Just selection ->
-                    Beat.equal selection.location.beat b
+                NoteSelection _ location _ ->
+                    Beat.equal location.beat b
 
-                Nothing ->
+                HarmonySelection _ beat ->
+                    Beat.equal beat b
+
+                NoSelection ->
                     False
 
         duration =
@@ -93,9 +102,9 @@ view measure overlay =
                     quarter
 
         adjustCoordinates ( x, y ) =
-            ( x + m.left.px, y )
+            ( x + m.left.px, y + hh )
 
-        downHandler =
+        downNoteHandler =
             Pointer.onWithOptions "pointerdown"
                 { stopPropagation = True, preventDefault = True }
             <|
@@ -104,63 +113,106 @@ view measure overlay =
                     >> Tuple.mapBoth floor floor
                     >> Action.NoteEdit
 
-        upHandler =
+        downHarmonyHandler =
+            Pointer.onDown <|
+                pointerCoordinates
+                    >> adjustCoordinates
+                    >> Tuple.mapBoth floor floor
+                    >> Action.HarmonyEdit
+
+        upNoteHandler =
             Pointer.onUp (\_ -> Action.FinishEdit)
 
-        moveHandler =
+        moveNoteHandler =
             Pointer.onMove <|
                 pointerCoordinates
                     >> adjustCoordinates
                     >> Tuple.mapBoth floor floor
                     >> Action.DragEdit
 
-        activeHandlers =
+        activeNoteHandlers =
             case overlay.selection of
-                Just selection ->
-                    if selection.dragging then
-                        [ moveHandler
-                        , upHandler
+                NoteSelection _ _ dragging ->
+                    if dragging then
+                        [ moveNoteHandler
+                        , upNoteHandler
                         ]
 
                     else
-                        [ downHandler ]
+                        [ downNoteHandler ]
 
-                Nothing ->
-                    [ downHandler ]
+                HarmonySelection _ _ ->
+                    [ downNoteHandler ]
+
+                NoSelection ->
+                    [ downNoteHandler ]
+
+        activeHarmonyHandlers =
+            case overlay.selection of
+                NoteSelection _ _ active ->
+                    [ downHarmonyHandler ]
+
+                HarmonySelection _ _ ->
+                    [ downHarmonyHandler ]
+
+                NoSelection ->
+                    [ downHarmonyHandler ]
     in
     svg
         [ class (css .overlay)
-        , height <| fromPixels <| Layout.height layout
+        , height <| fromFloat h
         , width <| fromPixels <| Layout.width layout
         ]
         (List.append
             [ rect
                 (List.append
-                    [ class (css .area)
-                    , x <| fromPixels <| m.left
-                    , y "0"
-                    , height <| fromPixels <| Layout.height layout
+                    [ class (css .notearea)
+                    , x <| fromPixels m.left
+                    , y <| fromFloat hh
+                    , height <| fromFloat (h - hh)
                     , width <| fromPixels <| durationSpacing layout <| Measure.length measure
                     ]
-                    activeHandlers
+                    activeNoteHandlers
+                )
+                []
+            , rect
+                (List.append
+                    [ class (css .harmonyarea)
+                    , x <| fromPixels m.left
+                    , y "0"
+                    , height <| fromFloat hh
+                    , width <| fromPixels <| durationSpacing layout <| Measure.length measure
+                    ]
+                    activeHarmonyHandlers
                 )
                 []
             ]
             (case overlay.selection of
-                Just selection ->
+                HarmonySelection _ beat ->
+                    [ rect
+                        [ class (css .selection)
+                        , x <| fromPixels <| scaleBeat overlay.layout beat
+                        , y "0"
+                        , height <| fromFloat hh
+                        , width <| fromPixels <| durationSpacing layout duration
+                        ]
+                        []
+                    ]
+
+                NoteSelection note location dragging ->
                     List.append
                         [ rect
                             [ class (css .selection)
-                            , x <| fromPixels <| scaleBeat overlay.layout selection.location.beat
-                            , y "0"
-                            , height <| fromPixels <| Layout.height layout
+                            , x <| fromPixels <| scaleBeat overlay.layout location.beat
+                            , y <| fromFloat hh
+                            , height <| fromFloat (h - hh)
                             , width <| fromPixels <| durationSpacing layout duration
                             ]
                             []
                         ]
-                        (case selection.note.do of
+                        (case note.do of
                             Play pitch ->
-                                if selection.dragging then
+                                if dragging then
                                     [ rect
                                         [ class (css .pitchLevel)
                                         , x "0"
@@ -182,7 +234,7 @@ view measure overlay =
                                 []
                         )
 
-                Nothing ->
+                NoSelection ->
                     []
             )
         )

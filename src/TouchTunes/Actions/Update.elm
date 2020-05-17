@@ -2,17 +2,19 @@ module TouchTunes.Actions.Update exposing (update)
 
 import Array as Array
 import Debug exposing (log)
-import Music.Models.Beat as Beat exposing (Beat, durationFrom)
+import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
-import Music.Models.Key exposing (Key, Mode(..), keyName, keyOf)
-import Music.Models.Layout as Layout
+import Music.Models.Key
     exposing
-        ( locationAfter
-        , positionToLocation
+        ( Key
+        , Mode(..)
+        , keyName
+        , keyOf
+        , stepNumberToPitch
         )
 import Music.Models.Measure as Measure exposing (Measure)
 import Music.Models.Note exposing (Note, What(..))
-import Music.Models.Pitch exposing (Pitch, Semitones, fromStepNumber, stepNumber)
+import Music.Models.Pitch exposing (Pitch, Semitones, stepNumber)
 import Music.Models.Score as Score
 import Music.Models.Staff as Staff
 import Music.Models.Time as Time
@@ -36,6 +38,9 @@ update msg editor =
 
         subdivisions =
             Dial.value controls.subdivisionDial
+
+        overlay =
+            Overlay.subdivide subdivisions editor.overlay
     in
     case log "Editor got msg" msg of
         StartEdit _ _ attributes measure ->
@@ -43,17 +48,43 @@ update msg editor =
 
         NoteEdit pos ->
             let
-                overlay =
-                    Overlay.start subdivisions pos editor.overlay
+                mNote =
+                    Overlay.findNote pos editor.measure editor.overlay
+
+                overnote =
+                    case mNote of
+                        Just note ->
+                            Overlay.editNote pos note editor.overlay
+
+                        Nothing ->
+                            Overlay.startNote pos editor.overlay
             in
-            Editor.withOverlay overlay editor
+            Editor.withOverlay overnote editor
+
+        HarmonyEdit pos ->
+            let
+                mNote =
+                    Overlay.findNote pos editor.measure editor.overlay
+
+                mHarmony =
+                    Maybe.andThen .harmony mNote
+
+                overharm =
+                    case mHarmony of
+                        Just harmony ->
+                            Overlay.editHarmony pos harmony editor.overlay
+
+                        Nothing ->
+                            Overlay.startHarmony pos editor.overlay
+            in
+            Editor.withOverlay overharm editor
 
         DragEdit pos ->
             let
-                overlay =
-                    Overlay.drag subdivisions pos editor.overlay
+                overnote =
+                    Overlay.drag pos editor.overlay
             in
-            Editor.withOverlay overlay editor
+            Editor.withOverlay overnote editor
 
         FinishEdit ->
             Editor.finish editor
@@ -109,5 +140,15 @@ update msg editor =
                         { controls
                             | keyDial =
                                 Dial.update dialAction controls.keyDial
+                        }
+                }
+
+        RootMsg dialAction ->
+            commit
+                { editor
+                    | controls =
+                        { controls
+                            | rootDial =
+                                Dial.update dialAction controls.rootDial
                         }
                 }
