@@ -236,7 +236,7 @@ harmonyHeight layout =
 keyOffset : Layout -> Pixels
 keyOffset layout =
     -- distance from left edge where we start the Key
-    spacing layout
+    Pixels 0
 
 
 timeOffset : Layout -> Pixels

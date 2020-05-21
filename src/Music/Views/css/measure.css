@@ -11,12 +11,22 @@ svg.staff {
     pointer-events: none;
 }
 
-.time {
+svg.time {
+    overflow: visible;
     font-weight: 800;
     font-size: 20px;
     text-anchor: middle;
 }
 
-.key {
+.measure > .time,
+.measure > .key {
+    position: absolute;
+    left: 0;
+    top: 0;
+
+}
+
+svg.key {
     fill: #333;
+    overflow:visible;
 }

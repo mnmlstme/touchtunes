@@ -1,4 +1,14 @@
-module Music.Views.HarmonyView exposing (chromaticSymbol, view)
+module Music.Views.HarmonyView exposing
+    ( chromaticSymbol
+    , degreeNumber
+    , kindString
+    , view
+    , viewAlterationList
+    , viewDegree
+    , viewKind
+    , viewKindString
+    , viewRoot
+    )
 
 import Html exposing (Html, div, span, text)
 import Html.Attributes exposing (class, style)
@@ -20,6 +30,7 @@ import Music.Models.Pitch as Pitch
     exposing
         ( Chromatic(..)
         , Pitch
+        , Root
         , Semitones
         , chromatic
         )
@@ -74,48 +85,91 @@ degreeNumber chord =
             Just "13"
 
 
+viewDegree : String -> Html msg
+viewDegree s =
+    span [ class (css .degree) ] [ text s ]
+
+
+kindString : Kind -> Maybe String
+kindString kind =
+    case kind of
+        Major c ->
+            if c == Triad then
+                Nothing
+
+            else
+                Just "Maj"
+
+        Minor c ->
+            Just "m"
+
+        Diminished c ->
+            Just "o"
+
+        Augmented c ->
+            Just "+"
+
+        Dominant c ->
+            Nothing
+
+        HalfDiminished ->
+            Just "ø"
+
+        MajorMinor ->
+            -- maj 7 added later
+            Just "m"
+
+        Power ->
+            Nothing
+
+
+viewKindString : String -> Html msg
+viewKindString s =
+    span [] [ text s ]
+
+
 viewKind : Kind -> Html msg
 viewKind kind =
-    let
-        ( k, d ) =
-            case kind of
-                Major c ->
-                    ( if c == Triad then
+    span [ class (css .kind) ]
+        [ Maybe.withDefault (text "") <|
+            Maybe.map viewKindString <|
+                kindString kind
+        , Maybe.withDefault (text "") <|
+            Maybe.map viewDegree <|
+                case kind of
+                    Major c ->
+                        degreeNumber c
+
+                    Minor c ->
+                        degreeNumber c
+
+                    Diminished c ->
+                        degreeNumber c
+
+                    Augmented c ->
+                        degreeNumber c
+
+                    Dominant c ->
+                        degreeNumber c
+
+                    HalfDiminished ->
+                        Just "7"
+
+                    MajorMinor ->
+                        -- maj 7 added later
                         Nothing
 
-                      else
-                        Just "Maj"
-                    , degreeNumber c
-                    )
-
-                Minor c ->
-                    ( Just "m", degreeNumber c )
-
-                Diminished c ->
-                    ( Just "o", degreeNumber c )
-
-                Augmented c ->
-                    ( Just "+", degreeNumber c )
-
-                Dominant c ->
-                    ( Nothing, degreeNumber c )
-
-                HalfDiminished ->
-                    ( Just "ø", degreeNumber Seventh )
-
-                MajorMinor ->
-                    -- maj 7 added later
-                    ( Just "m", Nothing )
-
-                Power ->
-                    ( Nothing, Just "5" )
-    in
-    span []
-        [ Maybe.withDefault (text "") <|
-            Maybe.map (\s -> span [ class (css .kind) ] [ text s ]) k
-        , Maybe.withDefault (text "") <|
-            Maybe.map (\s -> span [ class (css .degree) ] [ text s ]) d
+                    Power ->
+                        Just "5"
         ]
+
+
+viewAlterationList : List Alteration -> Html msg
+viewAlterationList alterationList =
+    span [ class (css .altList) ] <|
+        List.map
+            viewAlteration
+            alterationList
 
 
 viewAlteration : Alteration -> Html msg
@@ -150,6 +204,19 @@ viewAlteration alteration =
             span [ class (css .alt) ] [ text <| "(" ++ s ++ fromInt n ++ ")" ]
 
 
+viewRoot : Root -> Html msg
+viewRoot root =
+    let
+        chsym =
+            chromaticSymbol root.alter
+    in
+    span [ class (css .root) ]
+        [ text <| Pitch.stepToString root.step
+        , Maybe.withDefault (text "") <|
+            Maybe.map (\s -> span [ class (css .chromatic) ] [ glyph s ]) chsym
+        ]
+
+
 view : Layout -> Harmony -> Html msg
 view layout harmony =
     let
@@ -163,19 +230,12 @@ view layout harmony =
             harmony.alter
     in
     div
-        [ class (css .harmony)
-        ]
-        [ span [ class (css .root) ]
-            [ text <| Pitch.stepToString root.step ]
-        , Maybe.withDefault (text "") <|
-            Maybe.map (\s -> span [ class (css .chromatic) ] [ glyph s ]) chsym
+        [ class (css .harmony) ]
+        [ viewRoot root
         , viewKind harmony.kind
         , if List.isEmpty alterations then
             text ""
 
           else
-            span [ class (css .altList) ] <|
-                List.map
-                    viewAlteration
-                    alterations
+            viewAlterationList alterations
         ]

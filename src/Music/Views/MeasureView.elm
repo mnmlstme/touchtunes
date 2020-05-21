@@ -1,5 +1,6 @@
 module Music.Views.MeasureView exposing
     ( view
+    , viewKey
     , viewTime
     )
 
@@ -30,6 +31,7 @@ import Svg.Attributes
         , fontSize
         , height
         , transform
+        , viewBox
         , width
         , x
         , y
@@ -47,9 +49,15 @@ viewTime layout time =
     in
     case time of
         Just t ->
-            g
+            svg
                 [ class (css .time)
-                , transform ("translate(" ++ fromFloat offset.px ++ ",0)")
+                , width <| fromFloat <| 4.0 * sp.px
+                , height <| fromFloat <| 4.0 * sp.px
+                , viewBox <|
+                    "0 0 "
+                        ++ (fromFloat <| 4.0 * sp.px)
+                        ++ " "
+                        ++ (fromFloat <| 4.0 * sp.px)
                 ]
                 [ text_
                     [ fontSize <| fromFloat <| 3.0 * sp.px
@@ -103,6 +111,9 @@ drawKeySymbol layout n p =
         sp =
             Layout.spacing layout
 
+        margins =
+            Layout.margins layout
+
         symbol =
             if p.alter > 0 then
                 sharpSymbol
@@ -118,7 +129,12 @@ drawKeySymbol layout n p =
     in
     g
         [ transform
-            ("translate(" ++ fromFloat xpos.px ++ "," ++ fromFloat ypos.px ++ ")")
+            ("translate("
+                ++ fromFloat (xpos.px + sp.px)
+                ++ ","
+                ++ fromFloat (ypos.px - margins.top.px)
+                ++ ")"
+            )
         ]
         [ Symbols.view symbol ]
 
@@ -145,12 +161,18 @@ viewKey layout key =
                     else
                         []
 
-                offset =
-                    Layout.keyOffset layout
+                h =
+                    Layout.height layout
             in
-            g
+            svg
                 [ class (css .key)
-                , transform ("translate(" ++ fromFloat offset.px ++ ",0)")
+                , width <| fromFloat <| 4.0 * sp.px
+                , height <| fromFloat <| 4.0 * sp.px
+                , viewBox <|
+                    "0 0 "
+                        ++ (fromFloat <| 4.0 * sp.px)
+                        ++ " "
+                        ++ (fromFloat <| 4.0 * sp.px)
                 ]
             <|
                 List.indexedMap (drawKeySymbol layout) <|
@@ -175,6 +197,18 @@ view layout measure =
         h =
             Layout.height layout
 
+        sp =
+            Layout.spacing layout
+
+        margins =
+            Layout.margins layout
+
+        keyOffset =
+            Layout.keyOffset layout
+
+        timeOffset =
+            Layout.timeOffset layout
+
         drawNote =
             \( beat, note ) ->
                 NoteView.view layout beat note
@@ -192,13 +226,22 @@ view layout measure =
                 ]
                 [ g
                     [ transform
-                        ("translate(0," ++ fromFloat (Layout.margins layout).top.px ++ ")")
+                        ("translate(0," ++ fromFloat margins.top.px ++ ")")
                     ]
-                    [ StaffView.draw layout
-                    , viewTime layout layout.direct.time
-                    ]
-                , viewKey layout layout.direct.key
+                    [ StaffView.draw layout ]
                 ]
+            , div
+                [ class (css .key)
+                , style "top" <| fromFloat margins.top.px ++ "px"
+                , style "left" <| fromFloat keyOffset.px ++ "px"
+                ]
+                [ viewKey layout layout.direct.key ]
+            , div
+                [ class (css .time)
+                , style "top" <| fromFloat margins.top.px ++ "px"
+                , style "left" <| fromFloat timeOffset.px ++ "px"
+                ]
+                [ viewTime layout layout.direct.time ]
             ]
         <|
             List.map drawNote noteSequence

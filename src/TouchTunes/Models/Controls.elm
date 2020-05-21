@@ -6,6 +6,7 @@ module TouchTunes.Models.Controls exposing
     )
 
 import Array as Array
+import Html as Html exposing (Html)
 import Music.Models.Duration
     exposing
         ( Duration
@@ -234,7 +235,7 @@ initRootDial r =
                 , root Pitch.F Sharp
                 ]
         , segments = 15
-        , viewValue = viewRoot
+        , viewValue = HarmonyView.viewRoot
         }
 
 
@@ -285,7 +286,10 @@ initKindDial k =
                 , Power
                 ]
         , segments = 12
-        , viewValue = viewKind
+        , viewValue =
+            HarmonyView.kindString
+                >> Maybe.withDefault "Maj"
+                >> HarmonyView.viewKindString
         }
 
 
@@ -303,7 +307,10 @@ initChordDial ch =
                 , Thirteenth
                 ]
         , segments = 9
-        , viewValue = viewChord
+        , viewValue =
+            HarmonyView.degreeNumber
+                >> Maybe.withDefault "Triad"
+                >> HarmonyView.viewDegree
         }
 
 
@@ -325,7 +332,7 @@ initAltHarmonyDial ls =
                 , [ Lowered 9 ]
                 ]
         , segments = 12
-        , viewValue = viewAltHarmony
+        , viewValue = HarmonyView.viewAlterationList
         }
 
 
@@ -353,13 +360,13 @@ viewSubdivision d =
         [ viewNote fakeLayout d pitch ]
 
 
-viewAlteration : Chromatic -> Svg msg
+viewAlteration : Chromatic -> Html msg
 viewAlteration chr =
     let
         symbol =
             alteration chr
     in
-    g [ transform "scale(2,2) translate(0,0)" ] [ Symbols.view symbol ]
+    Symbols.glyph symbol
 
 
 viewTime : Time -> Svg msg
@@ -374,16 +381,7 @@ viewTime time =
         sp =
             Layout.spacing fakeLayout
     in
-    g
-        [ transform
-            ("translate("
-                ++ fromFloat (-1.0 * sp.px)
-                ++ ","
-                ++ fromFloat (m.top.px - 0.5 * staffHeight.px)
-                ++ ")"
-            )
-        ]
-        [ MeasureView.viewTime fakeLayout <| Just time ]
+    MeasureView.viewTime fakeLayout <| Just time
 
 
 viewKey : KeyName -> Svg msg
@@ -396,176 +394,4 @@ viewKey kn =
             -- TODO: handle other modes
             keyOf kn Key.Major
     in
-    g []
-        [ text_
-            [ textAnchor "middle"
-            , fontSize <| fromFloat (4.0 * sp.px)
-            , fontWeight "800"
-            , x <| "0"
-            , y <| fromFloat (1.5 * sp.px)
-            ]
-            [ text <| Key.displayName key ]
-        ]
-
-
-viewRoot : Root -> Svg msg
-viewRoot r =
-    let
-        sp =
-            Layout.spacing fakeLayout
-
-        symbol =
-            HarmonyView.chromaticSymbol r.alter
-    in
-    g []
-        [ text_
-            [ textAnchor <|
-                case symbol of
-                    Just _ ->
-                        "end"
-
-                    Nothing ->
-                        "middle"
-            , fontSize <| fromFloat <| 4.0 * sp.px
-            , fontWeight "800"
-            , x <| "0"
-            , y <| fromFloat <| 1.5 * sp.px
-            ]
-            [ text <| Pitch.stepToString r.step ]
-        , Maybe.withDefault (text "") <|
-            Maybe.map
-                (Symbols.view << Symbols.leftAlign 0.0)
-                symbol
-        ]
-
-
-viewKind : Kind -> Svg msg
-viewKind k =
-    let
-        sp =
-            Layout.spacing fakeLayout
-
-        s =
-            case k of
-                Major _ ->
-                    "Maj"
-
-                Minor _ ->
-                    "min"
-
-                Diminished _ ->
-                    "o"
-
-                Augmented _ ->
-                    "+"
-
-                Dominant _ ->
-                    "Dom"
-
-                HalfDiminished ->
-                    "ø"
-
-                MajorMinor ->
-                    "m/Maj"
-
-                Power ->
-                    "Pow"
-    in
-    g []
-        [ text_
-            [ textAnchor "middle"
-            , fontSize <| fromFloat (2.0 * sp.px)
-            , fontWeight "800"
-            , x <| "0"
-            , y <| fromFloat (2.0 * sp.px)
-            ]
-            [ text s ]
-        ]
-
-
-viewChord : Chord -> Svg msg
-viewChord ch =
-    let
-        sp =
-            Layout.spacing fakeLayout
-
-        s =
-            case ch of
-                Triad ->
-                    "Triad"
-
-                Sixth ->
-                    "6"
-
-                Seventh ->
-                    "7"
-
-                Ninth ->
-                    "9"
-
-                Eleventh ->
-                    "11"
-
-                Thirteenth ->
-                    "13"
-    in
-    g []
-        [ text_
-            [ textAnchor "middle"
-            , fontSize <| fromFloat (2.0 * sp.px)
-            , fontWeight "800"
-            , x <| "0"
-            , y <| fromFloat (2.0 * sp.px)
-            ]
-            [ text s ]
-        ]
-
-
-viewAltHarmony : List Alteration -> Svg msg
-viewAltHarmony ls =
-    -- TODO: allow for >1 alt at a time
-    let
-        sp =
-            Layout.spacing fakeLayout
-
-        ( s, sym ) =
-            case List.head ls of
-                Just alt ->
-                    case alt of
-                        Sus n ->
-                            ( "Sus" ++ fromInt n, Nothing )
-
-                        Add n ->
-                            ( "Add" ++ fromInt n, Nothing )
-
-                        No n ->
-                            ( "No" ++ fromInt n, Nothing )
-
-                        Raised n ->
-                            ( fromInt n, Just Symbols.sharp )
-
-                        Lowered n ->
-                            ( fromInt n, Just Symbols.flat )
-
-                        Altered str n ->
-                            ( str ++ fromInt n, Nothing )
-
-                Nothing ->
-                    ( "()", Nothing )
-    in
-    g []
-        [ case sym of
-            Just symbol ->
-                Symbols.view symbol
-
-            Nothing ->
-                text s
-        , text_
-            [ textAnchor "middle"
-            , fontSize <| fromFloat (2.0 * sp.px)
-            , fontWeight "800"
-            , x <| "0"
-            , y <| fromFloat (2.0 * sp.px)
-            ]
-            [ text s ]
-        ]
+    MeasureView.viewKey fakeLayout <| Just key
