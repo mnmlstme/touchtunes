@@ -6,7 +6,7 @@ module TouchTunes.Models.Controls exposing
     )
 
 import Array as Array
-import Html as Html exposing (Html)
+import Html as Html exposing (Html, span)
 import Music.Models.Duration
     exposing
         ( Duration
@@ -193,8 +193,7 @@ initKeyDial k =
         (Maybe.withDefault C k)
         { options =
             Array.fromList
-                [ Gflat
-                , Dflat
+                [ Dflat
                 , Aflat
                 , Eflat
                 , Bflat
@@ -394,4 +393,13 @@ viewKey kn =
             -- TODO: handle other modes
             keyOf kn Key.Major
     in
-    MeasureView.viewKey fakeLayout <| Just key
+    if key.fifths == 0 then
+        span []
+            [ text "0"
+            , Symbols.glyph Symbols.sharp
+            , text " , 0"
+            , Symbols.glyph Symbols.flat
+            ]
+
+    else
+        MeasureView.viewKey fakeLayout <| Just key

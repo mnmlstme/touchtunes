@@ -80,8 +80,8 @@ view dial toMsg =
             in
             li
                 [ class <| css .option
-                , style "left" <| fromFloat (cx + r * (sin <| degrees ri)) ++ "px"
-                , style "top" <| fromFloat (cy + r * (cos <| degrees ri)) ++ "px"
+                , style "left" <| fromFloat (cx + r * (cos <| degrees ri)) ++ "px"
+                , style "top" <| fromFloat (cy - r * (sin <| degrees ri)) ++ "px"
                 ]
                 [ span
                     [ class <| css .viewValue

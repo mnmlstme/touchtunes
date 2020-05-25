@@ -38,7 +38,6 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    font-size: 50%
     /* fill: #484244; */
 
 }
@@ -90,6 +89,7 @@
 .viewValue > svg {
     display: inline-block;
     height: 100%;
+    width: 100%;
 }
 
 .viewValue > svg text{

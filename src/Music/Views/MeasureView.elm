@@ -161,18 +161,23 @@ viewKey layout key =
                     else
                         []
 
+                marks =
+                    abs k.fifths
+
                 h =
                     Layout.height layout
             in
             svg
                 [ class (css .key)
-                , width <| fromFloat <| 4.0 * sp.px
-                , height <| fromFloat <| 4.0 * sp.px
+                , width <| fromFloat <| (1.0 + toFloat marks) * sp.px
+                , height <| fromFloat <| 5.0 * sp.px
                 , viewBox <|
-                    "0 0 "
-                        ++ (fromFloat <| 4.0 * sp.px)
+                    "0 "
+                        ++ (fromFloat <| -1.0 * sp.px)
                         ++ " "
-                        ++ (fromFloat <| 4.0 * sp.px)
+                        ++ (fromFloat <| (1.0 + toFloat marks) * sp.px)
+                        ++ " "
+                        ++ (fromFloat <| 5.0 * sp.px)
                 ]
             <|
                 List.indexedMap (drawKeySymbol layout) <|
@@ -232,7 +237,7 @@ view layout measure =
                 ]
             , div
                 [ class (css .key)
-                , style "top" <| fromFloat margins.top.px ++ "px"
+                , style "top" <| fromFloat (margins.top.px - sp.px) ++ "px"
                 , style "left" <| fromFloat keyOffset.px ++ "px"
                 ]
                 [ viewKey layout layout.direct.key ]
