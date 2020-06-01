@@ -87,7 +87,7 @@ view measure overlay =
                 NoteSelection _ location _ ->
                     Beat.equal location.beat b
 
-                HarmonySelection _ beat ->
+                HarmonySelection _ _ beat ->
                     Beat.equal beat b
 
                 NoSelection ->
@@ -141,7 +141,7 @@ view measure overlay =
                     else
                         [ downNoteHandler ]
 
-                HarmonySelection _ _ ->
+                HarmonySelection _ _ _ ->
                     [ downNoteHandler ]
 
                 NoSelection ->
@@ -152,7 +152,7 @@ view measure overlay =
                 NoteSelection _ _ active ->
                     [ downHarmonyHandler ]
 
-                HarmonySelection _ _ ->
+                HarmonySelection _ _ _ ->
                     [ downHarmonyHandler ]
 
                 NoSelection ->
@@ -188,7 +188,7 @@ view measure overlay =
                 []
             ]
             (case overlay.selection of
-                HarmonySelection _ beat ->
+                HarmonySelection _ _ beat ->
                     [ rect
                         [ class (css .selection)
                         , x <| fromPixels <| scaleBeat overlay.layout beat

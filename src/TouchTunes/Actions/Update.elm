@@ -143,42 +143,121 @@ update msg editor =
                         }
                 }
 
-        RootMsg dialAction ->
-            commit
-                { editor
-                    | controls =
-                        { controls
-                            | rootDial =
-                                Dial.update dialAction controls.rootDial
-                        }
-                }
+        HarmonyMsg dialAction ->
+            let
+                hd =
+                    Dial.update dialAction controls.harmonyDial
+
+                ed =
+                    { editor
+                        | controls =
+                            { controls
+                                | harmonyDial = hd
+                            }
+                    }
+            in
+            case dialAction of
+                Dial.Finish ->
+                    Editor.withOverlay
+                        (Overlay.changeHarmony hd.value ed.overlay)
+                    <|
+                        commit ed
+
+                _ ->
+                    ed
 
         KindMsg dialAction ->
-            commit
-                { editor
-                    | controls =
-                        { controls
-                            | kindDial =
-                                Dial.update dialAction controls.kindDial
-                        }
-                }
+            let
+                kd =
+                    Dial.update dialAction controls.kindDial
 
-        ChordMsg dialAction ->
-            commit
-                { editor
-                    | controls =
-                        { controls
-                            | chordDial =
-                                Dial.update dialAction controls.chordDial
-                        }
-                }
+                ed =
+                    { editor
+                        | controls =
+                            { controls
+                                | kindDial = kd
+                            }
+                    }
+
+                m =
+                    Editor.latent ed
+            in
+            case dialAction of
+                Dial.Finish ->
+                    Editor.withOverlay (Overlay.reselect m overlay) <|
+                        commit ed
+
+                _ ->
+                    ed
+
+        DegreeMsg dialAction ->
+            let
+                cd =
+                    Dial.update dialAction controls.chordDial
+
+                ed =
+                    { editor
+                        | controls =
+                            { controls
+                                | chordDial = cd
+                            }
+                    }
+
+                m =
+                    Editor.latent ed
+            in
+            case dialAction of
+                Dial.Finish ->
+                    Editor.withOverlay (Overlay.reselect m overlay) <|
+                        commit ed
+
+                _ ->
+                    ed
 
         AltHarmonyMsg dialAction ->
-            commit
-                { editor
-                    | controls =
-                        { controls
-                            | altHarmonyDial =
-                                Dial.update dialAction controls.altHarmonyDial
-                        }
-                }
+            let
+                ad =
+                    Dial.update dialAction controls.altHarmonyDial
+
+                ed =
+                    { editor
+                        | controls =
+                            { controls
+                                | altHarmonyDial = ad
+                            }
+                    }
+
+                m =
+                    Editor.latent ed
+            in
+            case dialAction of
+                Dial.Finish ->
+                    Editor.withOverlay (Overlay.reselect m overlay) <|
+                        commit ed
+
+                _ ->
+                    ed
+
+        BassMsg dialAction ->
+            let
+                bd =
+                    Dial.update dialAction controls.bassDial
+
+                ed =
+                    { editor
+                        | controls =
+                            { controls
+                                | bassDial = bd
+                            }
+                    }
+
+                m =
+                    Editor.latent ed
+            in
+            case dialAction of
+                Dial.Finish ->
+                    Editor.withOverlay (Overlay.reselect m overlay) <|
+                        commit ed
+
+                _ ->
+                    ed

@@ -108,33 +108,44 @@ latent editor =
     in
     -- log "Editor.latent editor" <|
     case log "selection" editor.overlay.selection of
-        HarmonySelection harmony beat ->
+        HarmonySelection _ _ beat ->
             let
                 t =
                     Layout.time layout
 
-                ch =
+                deg =
                     editor.controls.chordDial.value
+
+                harmony =
+                    editor.controls.harmonyDial.value
+
+                bass =
+                    editor.controls.bassDial.value
 
                 h =
                     { harmony
-                        | root = editor.controls.rootDial.value
+                        | bass =
+                            if bass == harmony.root then
+                                Nothing
+
+                            else
+                                Just bass
                         , kind =
                             case editor.controls.kindDial.value of
                                 Major _ ->
-                                    Major ch
+                                    Major deg
 
                                 Minor _ ->
-                                    Minor ch
+                                    Minor deg
 
                                 Diminished _ ->
-                                    Diminished ch
+                                    Diminished deg
 
                                 Augmented _ ->
-                                    Augmented ch
+                                    Augmented deg
 
                                 Dominant _ ->
-                                    Dominant ch
+                                    Dominant deg
 
                                 HalfDiminished ->
                                     HalfDiminished

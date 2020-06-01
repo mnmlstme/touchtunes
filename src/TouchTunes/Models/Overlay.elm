@@ -1,6 +1,7 @@
 module TouchTunes.Models.Overlay exposing
     ( Overlay
     , Selection(..)
+    , changeHarmony
     , deselect
     , drag
     , editHarmony
@@ -9,6 +10,7 @@ module TouchTunes.Models.Overlay exposing
     , finish
     , fromLayout
     , positionToLocation
+    , reselect
     , startHarmony
     , startNote
     , subdivide
@@ -17,7 +19,7 @@ module TouchTunes.Models.Overlay exposing
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Harmony as Harmony exposing (Chord(..), Harmony, Kind(..), chord)
-import Music.Models.Key as Key exposing (tonic)
+import Music.Models.Key as Key exposing (Key, tonic)
 import Music.Models.Layout as Layout
     exposing
         ( Layout
@@ -32,7 +34,7 @@ import Music.Models.Time as Time
 
 type Selection
     = NoteSelection Note Location Bool
-    | HarmonySelection Harmony Beat
+    | HarmonySelection Harmony Key Beat
     | NoSelection
 
 
@@ -140,18 +142,71 @@ editHarmony pos harmony overlay =
     let
         loc =
             positionToLocation pos overlay
+
+        key =
+            Layout.key overlay.layout
     in
     { overlay
         | selection =
-            HarmonySelection harmony loc.beat
+            HarmonySelection harmony key loc.beat
     }
+
+
+changeHarmony : Harmony -> Overlay -> Overlay
+changeHarmony harmony overlay =
+    case overlay.selection of
+        HarmonySelection _ key beat ->
+            { overlay
+                | selection =
+                    HarmonySelection harmony key beat
+            }
+
+        _ ->
+            overlay
+
+
+reselect : Measure -> Overlay -> Overlay
+reselect measure overlay =
+    let
+        time =
+            Layout.time overlay.layout
+
+        key =
+            Layout.key overlay.layout
+    in
+    case overlay.selection of
+        HarmonySelection _ _ beat ->
+            let
+                offset =
+                    Beat.toDuration time beat
+
+                mNote =
+                    Measure.findNote offset measure
+
+                mHarm =
+                    Maybe.andThen .harmony mNote
+            in
+            case mHarm of
+                Just h ->
+                    { overlay
+                        | selection =
+                            HarmonySelection h key beat
+                    }
+
+                Nothing ->
+                    overlay
+
+        _ ->
+            overlay
 
 
 drag : Position -> Overlay -> Overlay
 drag pos overlay =
     case overlay.selection of
-        HarmonySelection harm beat ->
-            { overlay | selection = HarmonySelection harm beat }
+        HarmonySelection harm key beat ->
+            { overlay
+                | selection = HarmonySelection harm key beat
+            }
 
         NoteSelection note location dragging ->
             if dragging then
@@ -205,8 +260,8 @@ finish overlay =
                 NoteSelection note location bool ->
                     NoteSelection note location False
 
-                HarmonySelection harm beat ->
-                    HarmonySelection harm beat
+                HarmonySelection harm key beat ->
+                    HarmonySelection harm key beat
 
                 NoSelection ->
                     NoSelection

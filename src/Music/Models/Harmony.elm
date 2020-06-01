@@ -1,14 +1,16 @@
 module Music.Models.Harmony exposing
     ( Alteration(..)
     , Chord(..)
-    , Degree
+    , Function(..)
     , Harmony
     , Kind(..)
     , add
     , augmented
     , chord
+    , chordDegree
     , diminished
     , dominant
+    , function
     , halfDiminished
     , lowered
     , major
@@ -21,7 +23,9 @@ module Music.Models.Harmony exposing
     , sus
     )
 
+import Music.Models.Key as Key exposing (Degree, Key)
 import Music.Models.Pitch exposing (Root, Semitones, Step)
+import Music.Models.Scale as Scale
 
 
 type alias Harmony =
@@ -52,10 +56,6 @@ type Kind
     | Power -- no 3, no 7
 
 
-type alias Degree =
-    Int
-
-
 type Alteration
     = Sus Degree -- sus2, sus4
     | Add Degree -- add 9
@@ -65,6 +65,44 @@ type Alteration
     | Altered String Degree -- Maj 7
 
 
+type Function
+    = I
+    | II
+    | III
+    | IV
+    | V
+    | VI
+    | VII
+
+
+chordDegree : Harmony -> Chord
+chordDegree harmony =
+    case harmony.kind of
+        Major ch ->
+            ch
+
+        Minor ch ->
+            ch
+
+        Diminished ch ->
+            ch
+
+        Augmented ch ->
+            ch
+
+        Dominant ch ->
+            ch
+
+        HalfDiminished ->
+            Seventh
+
+        MajorMinor ->
+            Seventh
+
+        Power ->
+            Triad
+
+
 chord : Kind -> Root -> Harmony
 chord kind root =
     { root = root
@@ -72,6 +110,44 @@ chord kind root =
     , alter = []
     , bass = Nothing
     }
+
+
+function : Key -> Chord -> Function -> Harmony
+function k degree f =
+    let
+        tonic =
+            Key.tonic k
+
+        scale =
+            Scale.major tonic
+
+        ( step, kind ) =
+            case f of
+                I ->
+                    ( 1, Major degree )
+
+                II ->
+                    ( 2, Minor degree )
+
+                III ->
+                    ( 3, Minor degree )
+
+                IV ->
+                    ( 4, Major degree )
+
+                V ->
+                    ( 5, Dominant degree )
+
+                VI ->
+                    ( 6, Minor degree )
+
+                VII ->
+                    ( 7, HalfDiminished )
+    in
+    chord kind <|
+        Maybe.withDefault tonic <|
+            Scale.note step <|
+                Scale.major tonic
 
 
 major : Chord -> Root -> Harmony

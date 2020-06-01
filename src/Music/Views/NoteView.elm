@@ -298,7 +298,7 @@ view layout beat note =
             ]
         , div [ style "top" "0" ]
             [ Maybe.withDefault (text "") <|
-                Maybe.map (HarmonyView.view layout) note.harmony
+                Maybe.map HarmonyView.view note.harmony
             ]
         ]
 

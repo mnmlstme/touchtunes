@@ -6,7 +6,9 @@ module TouchTunes.Models.Controls exposing
     )
 
 import Array as Array
+import Debug exposing (log)
 import Html as Html exposing (Html, span)
+import Maybe.Extra
 import Music.Models.Duration
     exposing
         ( Duration
@@ -18,10 +20,19 @@ import Music.Models.Harmony as Harmony
     exposing
         ( Alteration(..)
         , Chord(..)
-        , Degree
+        , Function(..)
+        , Harmony
         , Kind(..)
+        , chord
+        , function
         )
-import Music.Models.Key as Key exposing (KeyName(..), keyOf)
+import Music.Models.Key as Key
+    exposing
+        ( Degree
+        , Key
+        , KeyName(..)
+        , keyOf
+        )
 import Music.Models.Layout as Layout exposing (Layout)
 import Music.Models.Measure as Measure exposing (Measure)
 import Music.Models.Note as Note exposing (Note)
@@ -64,13 +75,20 @@ import TouchTunes.Models.Overlay as Overlay exposing (Selection(..))
 
 type alias Controls msg =
     { subdivisionDial : Dial Duration msg
+
+    -- for Note:
     , alterationDial : Dial Chromatic msg
+
+    -- for Measure:
     , timeDial : Dial Time msg
     , keyDial : Dial KeyName msg
-    , rootDial : Dial Root msg
+
+    -- for Harmony:
+    , harmonyDial : Dial Harmony msg
     , kindDial : Dial Kind msg
     , chordDial : Dial Chord msg
     , altHarmonyDial : Dial (List Alteration) msg
+    , bassDial : Dial Root msg
     }
 
 
@@ -90,13 +108,18 @@ init layout =
             , alterationDial = initAlterationDial Natural
             , timeDial = initTimeDial <| Just <| Layout.time l
             , subdivisionDial = initSubdivisionDial
-            , rootDial =
-                initRootDial <|
+            , harmonyDial =
+                initHarmonyDial (Layout.key l) Seventh <|
+                    Maybe.map (Harmony.chord (Major Seventh) << Key.tonic) <|
+                        Just <|
+                            Layout.key l
+            , bassDial =
+                initBassDial (Layout.key l) <|
                     Maybe.map Key.tonic <|
                         Just <|
                             Layout.key l
             , kindDial = initKindDial <| Just (Major Triad)
-            , chordDial = initChordDial <| Just Triad
+            , chordDial = initChordDial <| Just Seventh
             , altHarmonyDial = initAltHarmonyDial <| Just []
             }
 
@@ -105,7 +128,8 @@ init layout =
             , alterationDial = initAlterationDial Natural
             , timeDial = initTimeDial Nothing
             , keyDial = initKeyDial Nothing
-            , rootDial = initRootDial Nothing
+            , harmonyDial = initHarmonyDial (keyOf C Key.Major) Seventh Nothing
+            , bassDial = initBassDial (keyOf C Key.Major) Nothing
             , kindDial = initKindDial Nothing
             , chordDial = initChordDial Nothing
             , altHarmonyDial = initAltHarmonyDial Nothing
@@ -118,8 +142,30 @@ forSelection selection controls =
         NoSelection ->
             controls
 
-        HarmonySelection harmony _ ->
-            { controls | rootDial = initRootDial <| Just harmony.root }
+        HarmonySelection harmony key _ ->
+            let
+                deg =
+                    Harmony.chordDegree harmony
+
+                hd =
+                    initHarmonyDial key deg <| Just <| log "harmony for selection " harmony
+
+                h =
+                    hd.value
+            in
+            { controls
+                | harmonyDial = hd
+                , kindDial =
+                    initKindDial <| Just h.kind
+                , chordDial =
+                    initChordDial <| Just <| Harmony.chordDegree h
+                , altHarmonyDial =
+                    initAltHarmonyDial <| Just h.alter
+                , bassDial =
+                    initBassDial key <|
+                        Just <|
+                            Maybe.withDefault h.root h.bass
+            }
 
         NoteSelection note _ _ ->
             case Note.pitch note of
@@ -211,9 +257,27 @@ initKeyDial k =
         }
 
 
-initRootDial : Maybe Root -> Dial Root msg
-initRootDial r =
-    -- rootDial: sets Root of Chord
+initHarmonyDial : Key -> Chord -> Maybe Harmony -> Dial Harmony msg
+initHarmonyDial k degree h =
+    -- harmonyDial: chose chord based on function in Key
+    Dial.init
+        (Maybe.withDefault
+            (chord (Major Seventh) <| Key.tonic k)
+            h
+        )
+        { options =
+            Array.fromList <|
+                List.map
+                    (function k degree)
+                    [ I, II, III, IV, V, VI, VII ]
+        , segments = 12
+        , viewValue = HarmonyView.view
+        }
+
+
+initBassDial : Key -> Maybe Root -> Dial Root msg
+initBassDial k r =
+    -- bassDial: sets Bass note if not Root of Chord
     Dial.init
         (Maybe.withDefault (root Pitch.C Natural) r)
         { options =
@@ -234,7 +298,7 @@ initRootDial r =
                 , root Pitch.F Sharp
                 ]
         , segments = 15
-        , viewValue = HarmonyView.viewRoot
+        , viewValue = HarmonyView.viewBass << Just
         }
 
 
@@ -368,7 +432,7 @@ viewAlteration chr =
     Symbols.glyph symbol
 
 
-viewTime : Time -> Svg msg
+viewTime : Time -> Html msg
 viewTime time =
     let
         staffHeight =
@@ -383,7 +447,7 @@ viewTime time =
     MeasureView.viewTime fakeLayout <| Just time
 
 
-viewKey : KeyName -> Svg msg
+viewKey : KeyName -> Html msg
 viewKey kn =
     let
         sp =

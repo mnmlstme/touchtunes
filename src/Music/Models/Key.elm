@@ -1,5 +1,6 @@
 module Music.Models.Key exposing
-    ( Key
+    ( Degree
+    , Key
     , KeyName(..)
     , Mode(..)
     , displayName
@@ -43,6 +44,10 @@ type Mode
     | Aeolian
     | Locrian
     | None
+
+
+type alias Degree =
+    Int
 
 
 sharps : Int -> Key

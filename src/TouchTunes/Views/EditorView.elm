@@ -61,30 +61,28 @@ viewControls editor =
     in
     ul
         [ class (css .controls) ]
-        (List.map
+    <|
+        List.map
             (\e -> li [] [ e ])
-         <|
-            List.append
-                (case overlay.selection of
-                    HarmonySelection _ _ ->
-                        [ Dial.view controls.rootDial Actions.RootMsg
-                        , Dial.view controls.kindDial Actions.KindMsg
-                        , Dial.view controls.chordDial Actions.ChordMsg
-                        , Dial.view controls.altHarmonyDial Actions.AltHarmonyMsg
-                        ]
+        <|
+            case overlay.selection of
+                HarmonySelection _ _ _ ->
+                    [ Dial.view controls.harmonyDial Actions.HarmonyMsg
+                    , Dial.view controls.kindDial Actions.KindMsg
+                    , Dial.view controls.chordDial Actions.DegreeMsg
+                    , Dial.view controls.altHarmonyDial Actions.AltHarmonyMsg
+                    , Dial.view controls.bassDial Actions.BassMsg
+                    ]
 
-                    NoteSelection _ _ _ ->
-                        [ Dial.view controls.alterationDial Actions.AlterationMsg
-                        ]
+                NoteSelection _ _ _ ->
+                    [ Dial.view controls.alterationDial Actions.AlterationMsg
+                    , Dial.view controls.subdivisionDial Actions.SubdivisionMsg
+                    ]
 
-                    NoSelection ->
-                        [ Dial.view controls.timeDial Actions.TimeMsg
-                        , Dial.view controls.keyDial Actions.KeyMsg
-                        ]
-                )
-                [ Dial.view controls.subdivisionDial Actions.SubdivisionMsg
-                ]
-        )
+                NoSelection ->
+                    [ Dial.view controls.timeDial Actions.TimeMsg
+                    , Dial.view controls.keyDial Actions.KeyMsg
+                    ]
 
 
 viewMeasure : Editor -> Html Msg

@@ -26,10 +26,11 @@ type Msg
     | AlterationMsg Dial.Action
     | TimeMsg Dial.Action
     | KeyMsg Dial.Action
-    | RootMsg Dial.Action
+    | HarmonyMsg Dial.Action
     | KindMsg Dial.Action
-    | ChordMsg Dial.Action
+    | DegreeMsg Dial.Action
     | AltHarmonyMsg Dial.Action
+    | BassMsg Dial.Action
 
 
 

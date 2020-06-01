@@ -58,5 +58,20 @@
 }
 
 .alt > svg {
-    vertical-align: top;
+    vertical-align: middle;
+}
+
+.harmony .over {
+  font-size: 150%;
+  vertical-align: bottom;
+  bottom: -.10em;
+  position: relative;
+  left: -.20em;
+}
+
+.harmony .over .root {
+  font-size: 110%;
+  position: relative;
+  bottom: -.2em;
+  left: -.05em
 }

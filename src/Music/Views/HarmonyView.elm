@@ -4,6 +4,7 @@ module Music.Views.HarmonyView exposing
     , kindString
     , view
     , viewAlterationList
+    , viewBass
     , viewDegree
     , viewKind
     , viewKindString
@@ -217,25 +218,29 @@ viewRoot root =
         ]
 
 
-view : Layout -> Harmony -> Html msg
-view layout harmony =
-    let
-        root =
-            harmony.root
+viewBass : Maybe Root -> Html msg
+viewBass bass =
+    case bass of
+        Just r ->
+            span [ class (css .over) ]
+                [ text "/"
+                , viewRoot r
+                ]
 
-        chsym =
-            chromaticSymbol root.alter
+        Nothing ->
+            text ""
 
-        alterations =
-            harmony.alter
-    in
+
+view : Harmony -> Html msg
+view harmony =
     div
         [ class (css .harmony) ]
-        [ viewRoot root
+        [ viewRoot harmony.root
         , viewKind harmony.kind
-        , if List.isEmpty alterations then
+        , if List.isEmpty harmony.alter then
             text ""
 
           else
-            viewAlterationList alterations
+            viewAlterationList harmony.alter
+        , viewBass harmony.bass
         ]
