@@ -17,12 +17,15 @@ import TouchTunes.Views.SheetView as SheetView
 
 view : App -> Html Msg
 view app =
-    div [ class (css .body) ]
-        [ SheetView.view <| Sheet app.score
-        , case app.editing of
-            Just e ->
-                EditorView.view e.editor
+    div [ class (css .body) ] <|
+        List.append
+            [ SheetView.view <| Sheet app.score ]
+            (case app.editing of
+                Just e ->
+                    [ EditorView.viewScreen
+                    , EditorView.view e.editor
+                    ]
 
-            Nothing ->
-                text ""
-        ]
+                Nothing ->
+                    []
+            )

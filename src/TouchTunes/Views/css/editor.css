@@ -7,22 +7,29 @@
     align-items: center;
     flex-grow: 100;
     position: relative;
-    background: rgba(104, 86, 106, 0.5);
     z-index: 1;
+}
+
+.screen {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background: #c6c1ff;
+    mix-blend-mode: lighten;
 }
 
 .editor {
     position: relative;
-    padding: 20px;
     margin: 30px auto;
-    background: rgba(255,255,255,0.9);
-    border-radius: 20px;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 0 60px 60px white;
 }
 
 .overlay {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 0;
+    left: 0;
 }
 
 .understaff,
@@ -46,8 +53,8 @@
 
 .ruler {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 0;
+    left: 0;
 }
 
 .ruler rect {
@@ -65,7 +72,7 @@
 
 .selection {
     fill: none;
-    stroke: #0072d7;
+    stroke:  #5f52f9;
     pointer-events: none;
 }
 
@@ -77,16 +84,34 @@
 
 
 .controls {
-    background: rgba(255,255,255,0.9);
-    border-radius: 20px;
-    margin-left: 20px;
+    color: white;
+    width: 50px;
+    height: 100%;
+    display: flex;
+    flex: ;
+    flex-direction: column;
+    justify-content: center;
+    background: #5f52f9;
+    text-shadow: 1px 2px 3px #312a80;
+    font-size: 32px;
 }
 
 .controls > li {
-    height: 100px;
-    width: 100px;
+    height: 50px;
+    width: 50px;
     position: relative;
+    margin: 10px 0;
 }
+
+.controls > li + li::before {
+    display: block;
+    content: " ";
+    margin: -10px 10px 0;
+    height: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.41);
+    border-top: 1px solid rgba(0, 0, 0, 0.42);
+}
+
 
 .controls > li > svg {
   position: absolute;
@@ -94,11 +119,69 @@
   margin-left: -50%;
 }
 
-.navigation {
-    display: flex;
-    justify-content: center;
+.inplace {
+    color: #5f52f9;
+
+}
+.inplace > li {
+    height: 50px;
+    width: 50px;
     position: absolute;
-    top: 100%;
+}
+
+.navigation {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    margin-left: -20px;
+    height: 100%;
+    color: #5f52f9;
+    text-shadow: 1px 2px 3px rgba(0,0,0,0.5);
+    pointer-events: none;
+    font-family: Lato, Helvetica, Arial, sans-serif;
+    font-weight: 100;
+    font-size: 20px;
+}
+
+.navigation > li {
+  position: absolute;
+}
+
+.navigation button {
+    font: inherit;
+    color: inherit;
+    text-shadow: inherit;
+    background: none;
+    border: none;
+    padding: .5em;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.navigation > .previous  {
+    right: 100%;
+    top: 50%;
+}
+
+.navigation > .previous > *:first-child {
+    margin-top: -50%;
+}
+
+.navigation > .next  {
+    left: 100%;
+    top: 50%;
+}
+
+.navigation > .next > *:first-child {
+    margin-top: -50%;
+}
+
+.navigation > .cancel  {
+    right: 100%;
+    top: 0;
+}
+
+.navigation > .done  {
+    left: 100%;
+    bottom: 0;
 }

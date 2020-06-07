@@ -6,12 +6,13 @@
 
 svg.staff {
     overflow: visible;
-    stroke: #333;
-    fill: #333;
+    stroke: currentColor;
+    fill: currenColor;
     pointer-events: none;
 }
 
 svg.time {
+    fill: currentColor;
     overflow: visible;
     font-weight: 800;
     font-size: 20px;
@@ -27,6 +28,6 @@ svg.time {
 }
 
 svg.key {
-    fill: #333;
+    fill: currentColor;
     overflow:visible;
 }

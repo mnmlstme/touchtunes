@@ -1,4 +1,4 @@
-module TouchTunes.Views.EditorView exposing (view)
+module TouchTunes.Views.EditorView exposing (view, viewScreen)
 
 import Array exposing (Array)
 import Array.Extra
@@ -21,7 +21,7 @@ import Html
         , text
         , ul
         )
-import Html.Attributes exposing (class, classList)
+import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick)
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Nonempty as Nonempty exposing (Nonempty)
@@ -49,6 +49,9 @@ view editor =
         , viewMeasure editor
         ]
 
+viewScreen : Html Msg
+viewScreen =
+    div [ class (css .screen) ] []
 
 viewControls : Editor -> Html Msg
 viewControls editor =
@@ -67,8 +70,7 @@ viewControls editor =
         <|
             case overlay.selection of
                 HarmonySelection _ _ _ ->
-                    [ Dial.view controls.harmonyDial Actions.HarmonyMsg
-                    , Dial.view controls.kindDial Actions.KindMsg
+                    [ Dial.view controls.kindDial Actions.KindMsg
                     , Dial.view controls.chordDial Actions.DegreeMsg
                     , Dial.view controls.altHarmonyDial Actions.AltHarmonyMsg
                     , Dial.view controls.bassDial Actions.BassMsg
@@ -91,6 +93,9 @@ viewMeasure editor =
         m =
             Editor.latent editor
 
+        c =
+            editor.controls
+
         l =
             editor.overlay.layout
     in
@@ -99,26 +104,56 @@ viewMeasure editor =
         [ RulerView.view l
         , MeasureView.view l m
         , OverlayView.view m editor.overlay
+        , viewInPlaceControls editor
         , viewNavigation editor
+        ]
+
+
+viewInPlaceControls : Editor -> Html Msg
+viewInPlaceControls editor =
+    let
+        c =
+            editor.controls
+
+        s =
+            editor.overlay.selection
+
+        l =
+            editor.overlay.layout
+    in
+    ul
+        [ class (css .inplace) ]
+        [ case s of
+            NoteSelection _ _ _ ->
+                text ""
+
+            HarmonySelection _ _ beat ->
+                li [style "left" "0"
+                   , style "top" "0" ]
+                    [ Dial.view c.harmonyDial Actions.HarmonyMsg
+                    ]
+
+            NoSelection ->
+                text ""
         ]
 
 
 viewNavigation : Editor -> Html Msg
 viewNavigation editor =
     ul [ class (css .navigation) ]
-        [ li []
+        [ li [class (css .previous)]
             [ button [ onClick PreviousEdit ]
                 [ text "<Previous" ]
             ]
-        , li []
+        , li [class (css .cancel)]
             [ button [ onClick CancelEdit ]
                 [ text "Cancel" ]
             ]
-        , li []
+        , li [class (css .done)]
             [ button [ onClick DoneEdit ]
                 [ text "Done" ]
             ]
-        , li []
+        , li [class (css .next)]
             [ button [ onClick NextEdit ]
                 [ text "Next>" ]
             ]

@@ -7,6 +7,7 @@ css =
     .toString <|
         CssModules.css "./TouchTunes/Views/css/editor.css"
             { editor = "editor"
+            , screen = "screen"
             , frame = "frame"
             , ruler = "ruler"
             , overlay = "overlay"
@@ -19,5 +20,10 @@ css =
             , margins = "margins"
             , overflow = "overflow"
             , controls = "controls"
+            , inplace = "inplace"
             , navigation = "navigation"
+            , previous = "previous"
+            , next = "next"
+            , done = "done"
+            , cancel = "cancel"
             }

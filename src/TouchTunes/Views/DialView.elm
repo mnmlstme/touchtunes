@@ -64,12 +64,6 @@ view dial toMsg =
         n =
             Array.length config.options
 
-        cx =
-            collarRadius
-
-        cy =
-            collarRadius
-
         r =
             dialRadius / 2.0 + collarRadius / 2.0
 
@@ -80,8 +74,8 @@ view dial toMsg =
             in
             li
                 [ class <| css .option
-                , style "left" <| fromFloat (cx + r * (cos <| degrees ri)) ++ "px"
-                , style "top" <| fromFloat (cy - r * (sin <| degrees ri)) ++ "px"
+                , style "left" <| fromFloat (50.0 + 50.0 * (cos <| degrees ri)) ++ "%"
+                , style "top" <| fromFloat (50.0 - 50.0 * (sin <| degrees ri)) ++ "%"
                 ]
                 [ span
                     [ class <| css .viewValue

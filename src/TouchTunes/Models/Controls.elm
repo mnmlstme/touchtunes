@@ -297,7 +297,7 @@ initBassDial k r =
                 , root Pitch.B Natural
                 , root Pitch.F Sharp
                 ]
-        , segments = 15
+        , segments = 25
         , viewValue = HarmonyView.viewBass << Just
         }
 
@@ -348,12 +348,37 @@ initKindDial k =
                 , MajorMinor
                 , Power
                 ]
-        , segments = 12
-        , viewValue =
-            HarmonyView.kindString
-                >> Maybe.withDefault "Maj"
-                >> HarmonyView.viewKindString
+        , segments = 18
+        , viewValue = kindString >> HarmonyView.viewKindString
         }
+
+
+kindString : Kind -> String
+kindString kind =
+    case kind of
+        Major _ ->
+            "Maj"
+
+        Minor _ ->
+            "m"
+
+        Diminished _ ->
+            "o"
+
+        Augmented _ ->
+            "+"
+
+        Dominant c ->
+            "Dom"
+
+        HalfDiminished ->
+            "ø"
+
+        MajorMinor ->
+            "M/m"
+
+        Power ->
+            "Pow"
 
 
 initChordDial : Maybe Chord -> Dial Chord msg
@@ -369,7 +394,7 @@ initChordDial ch =
                 , Eleventh
                 , Thirteenth
                 ]
-        , segments = 9
+        , segments = 15
         , viewValue =
             HarmonyView.degreeNumber
                 >> Maybe.withDefault "Triad"
@@ -394,8 +419,14 @@ initAltHarmonyDial ls =
                 , [ Lowered 5 ]
                 , [ Lowered 9 ]
                 ]
-        , segments = 12
-        , viewValue = HarmonyView.viewAlterationList
+        , segments = 18
+        , viewValue =
+            \alts ->
+                if List.isEmpty alts then
+                    span [] [ text "( )" ]
+
+                else
+                    HarmonyView.viewAlterationList alts
         }
 
 
@@ -457,13 +488,4 @@ viewKey kn =
             -- TODO: handle other modes
             keyOf kn Key.Major
     in
-    if key.fifths == 0 then
-        span []
-            [ text "0"
-            , Symbols.glyph Symbols.sharp
-            , text " , 0"
-            , Symbols.glyph Symbols.flat
-            ]
-
-    else
-        MeasureView.viewKey fakeLayout <| Just key
+    HarmonyView.viewRoot (Key.tonic key)
