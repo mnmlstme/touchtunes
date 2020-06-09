@@ -3,6 +3,8 @@ module TouchTunes.Models.App exposing (App, init, update)
 import Debug exposing (log)
 import Music.Models.Part as Part
 import Music.Models.Score as Score exposing (Score)
+import Music.Json.Encode as MusicJson
+import Json.Encode as Json
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Actions.Update as EditorUpdate
 import TouchTunes.Models.Editor as Editor exposing (Editor)
@@ -13,11 +15,11 @@ type alias App =
     , editing : Maybe { partId : Part.Id, measureNum : Int, editor : Editor }
     }
 
-
 init : Score -> App
 init score =
-    App score Nothing
-
+    App
+        (MusicJson.log "Score JSON" MusicJson.score score)
+        Nothing
 
 open : Part.Id -> Int -> App -> App
 open pid mnum app =
@@ -28,7 +30,8 @@ open pid mnum app =
         editMeasure ( measure, attrs ) =
             { partId = pid
             , measureNum = mnum
-            , editor = Editor.open attrs measure
+            , editor = Editor.open attrs <|
+                       MusicJson.log "Measure JSON" MusicJson.measure measure
             }
     in
     { app | editing = Maybe.map editMeasure maybeMeasureAttrs }

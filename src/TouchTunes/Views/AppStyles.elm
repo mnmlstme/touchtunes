@@ -10,4 +10,7 @@ css =
             , fullscreen = "fullscreen"
             , body = "body"
             , footer = "footer"
+            , message = "message"
+            , catalog = "catalog"
+            , active = "active"
             }

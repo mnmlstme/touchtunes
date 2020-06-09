@@ -96,7 +96,7 @@ key layout =
 
 staff : Layout -> Staff
 staff layout =
-    Maybe.withDefault Staff.treble <| getAttribute .staff layout
+    Maybe.withDefault Staff.Treble <| getAttribute .staff layout
 
 
 basePitch : Layout -> Pitch
@@ -105,7 +105,7 @@ basePitch layout =
         s =
             staff layout
     in
-    s.basePitch
+    Staff.basePitch s
 
 
 subdivide : Int -> Layout -> Layout

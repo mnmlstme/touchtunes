@@ -1,23 +1,33 @@
 module Music.Models.Staff exposing
-    ( Staff
-    , bass
-    , treble
+    ( Staff(..)
+    , basePitch
+    , toString
     )
 
 import Music.Models.Pitch as Pitch exposing (Pitch)
 
 
-type alias Staff =
-    { -- basePitch is the pitch of the top space on staff
-      basePitch : Pitch
-    }
+type Staff
+    = Treble
+    | Bass
 
 
-treble : Staff
-treble =
-    Staff (Pitch.e_ 5)
+basePitch : Staff -> Pitch
+basePitch staff =
+    -- basePitch is the pitch of the top space on staff
+    case staff of
+        Treble ->
+            Pitch.e_ 5
+
+        Bass ->
+            Pitch.g 3
 
 
-bass : Staff
-bass =
-    Staff (Pitch.g 3)
+toString : Staff -> String
+toString staff =
+    case staff of
+        Treble ->
+            "Treble"
+
+        Bass ->
+            "Bass"

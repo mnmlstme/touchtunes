@@ -27,3 +27,25 @@
     left: 0;
     width: 100%;
 }
+
+.message {
+    font-style: oblique;
+    color: red;
+}
+
+.catalog {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    display: none;
+    opacity: 0;
+}
+
+.catalog.active {
+    display: block;
+    opacity: 1;
+}
+
+.catalog a {
+    cursor: pointer;
+}

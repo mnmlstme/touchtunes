@@ -43,6 +43,7 @@ equal atime btime =
 
 divisor : Time -> Int
 divisor time =
+
     case time.beatType of
         Two ->
             2

@@ -23,7 +23,7 @@ import Music.Models.Time as Time
 
 type alias Score =
     -- in MusicXML parlance, this is a score-timewise
-    -- each measure will contain notes for all parts
+    -- each measure will contain notes for all parts that are loaded
     { title : String
     , parts : List Part
     , measures : Array Measure
@@ -34,7 +34,7 @@ empty : Score
 empty =
     score "New Score"
         [ Part.default ]
-        [ Measure.initial Staff.treble Time.common (keyOf C Major)
+        [ Measure.initial Staff.Treble Time.common (keyOf C Major)
         , Measure.new
         , Measure.new
         , Measure.new

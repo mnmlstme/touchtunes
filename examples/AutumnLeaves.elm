@@ -45,7 +45,7 @@ score =
         Array.fromList
             [ Measure.fromNotes
                 (Measure.Attributes
-                    (Just Staff.treble)
+                    (Just Staff.Treble)
                     (Just Time.cut)
                     (Just (keyOf Key.E Key.Minor))
                 )

@@ -8,6 +8,7 @@ module Music.Models.Key exposing
     , flats
     , keyName
     , keyOf
+    , modeToString
     , sharps
     , stepAlteredIn
     , stepNumberToPitch
@@ -146,6 +147,40 @@ modeShift mode =
 
         None ->
             0
+
+
+modeToString : Mode -> Maybe String
+modeToString mode =
+    case mode of
+        Major ->
+            Just "Major"
+
+        Minor ->
+            Just "Minor"
+
+        Ionian ->
+            Just "Ionian"
+
+        Dorian ->
+            Just "Dorian"
+
+        Phrygian ->
+            Just "Phrygian"
+
+        Lydian ->
+            Just "Lydian"
+
+        Mixolydian ->
+            Just "Mixolydian"
+
+        Aeolian ->
+            Just "Aeolian"
+
+        Locrian ->
+            Just "Locrian"
+
+        None ->
+            Nothing
 
 
 keyOf : KeyName -> Mode -> Key
