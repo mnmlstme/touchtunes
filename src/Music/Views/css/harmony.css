@@ -54,7 +54,7 @@
 }
 
 .alt {
-    font-variant: small-caps;
+ /* font-variant: small-caps; */
 }
 
 .alt > svg {

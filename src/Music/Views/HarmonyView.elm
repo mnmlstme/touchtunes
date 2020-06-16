@@ -177,10 +177,10 @@ viewAlteration : Alteration -> Html msg
 viewAlteration alteration =
     case alteration of
         Sus n ->
-            span [ class (css .alt) ] [ text <| "sus" ++ fromInt n ]
+            span [ class (css .alt) ] [ text <| "Sus" ++ fromInt n ]
 
         Add n ->
-            span [ class (css .alt) ] [ text <| "add" ++ fromInt n ]
+            span [ class (css .alt) ] [ text <| "Add" ++ fromInt n ]
 
         No n ->
             span [ class (css .alt) ] [ text <| "no" ++ fromInt n ]

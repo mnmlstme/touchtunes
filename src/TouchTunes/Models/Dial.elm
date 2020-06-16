@@ -20,7 +20,7 @@ import Tuple exposing (pair)
 
 type Action
     = Start
-    | Set Int
+    | Drag (Maybe Int)
     | Finish
     | Cancel
 
@@ -94,14 +94,19 @@ update dialAction dial =
                         }
             }
 
-        Set i ->
-            { dial
-                | tracking =
-                    Just
-                        { originalIndex = i0
-                        , index = i
-                        }
-            }
+        Drag mi ->
+            case mi of
+                Just i ->
+                    { dial
+                        | tracking =
+                            Just
+                                { originalIndex = i0
+                                , index = i
+                                }
+                    }
+
+                Nothing ->
+                    dial
 
         Cancel ->
             { dial | tracking = Nothing }

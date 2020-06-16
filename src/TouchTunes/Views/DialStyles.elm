@@ -13,4 +13,7 @@ css =
             , viewValue = "viewValue"
             , collar = "collar"
             , active = "active"
+            , inner = "inner"
+            , outer = "outer"
+            , sector = "sector"
             }

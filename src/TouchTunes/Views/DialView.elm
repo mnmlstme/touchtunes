@@ -8,11 +8,12 @@ import Html.Events.Extra.Pointer as Pointer
 import List.Extra exposing (findIndex)
 import Maybe.Extra
 import String exposing (fromFloat)
-import Svg exposing (Svg, circle, g, line, rect, svg)
-import Svg.Attributes
+import Svg exposing (Svg, circle, g, line, path, rect, svg)
+import Svg.Attributes as SvgAttr
     exposing
         ( cx
         , cy
+        , d
         , height
         , r
         , rx
@@ -64,45 +65,139 @@ view dial toMsg =
         n =
             Array.length config.options
 
-        r =
-            dialRadius / 2.0 + collarRadius / 2.0
+        rmid =
+            40.0
 
         viewOption i v =
             let
-                ri =
-                    toFloat ((2 * i - n + 1) * sect) / 2
+                theta =
+                    degrees <| toFloat ((2 * i - n + 1) * sect) / 2
             in
             li
                 [ class <| css .option
-                , style "left" <| fromFloat (50.0 + 50.0 * (cos <| degrees ri)) ++ "%"
-                , style "top" <| fromFloat (50.0 - 50.0 * (sin <| degrees ri)) ++ "%"
+                , style "left" <| fromFloat (50.0 + rmid * cos theta) ++ "%"
+                , style "top" <| fromFloat (50.0 - rmid * sin theta) ++ "%"
                 ]
                 [ span
                     [ class <| css .viewValue
-                    , Pointer.onEnter <| \_ -> toMsg (Set i)
                     ]
                     [ config.viewValue v ]
                 ]
+
+        viewSector i =
+            let
+                theta0 =
+                    degrees <| toFloat ((2 * i - n) * sect) / 2
+
+                theta1 =
+                    degrees <| toFloat ((2 * i - n + 2) * sect) / 2
+            in
+            path
+                [ SvgAttr.class (css .sector)
+                , d <|
+                    String.join " "
+                        [ "M"
+                        , fromFloat <| 40.0 * cos theta0
+                        , fromFloat <| -40.0 * sin theta0
+                        , "L"
+                        , fromFloat <| 100.0 * cos theta0
+                        , fromFloat <| -100.0 * sin theta0
+                        , "A 100 100 0 0 0"
+                        , fromFloat <| 100.0 * cos theta1
+                        , fromFloat <| -100.0 * sin theta1
+                        , "L"
+                        , fromFloat <| 40.0 * cos theta1
+                        , fromFloat <| -40.0 * sin theta1
+                        , "A 50 50 0 0 1"
+                        , fromFloat <| 40.0 * cos theta0
+                        , fromFloat <| -40.0 * sin theta0
+                        , "Z"
+                        ]
+                ]
+                []
+
+        mapEvent : Pointer.Event -> Maybe Int
+        mapEvent pointerEvent =
+            let
+                pointer =
+                    pointerEvent.pointer
+
+                ( r, theta ) =
+                    Tuple.mapSecond
+                        (\rad -> rad * 180.0 / pi)
+                    <|
+                        toPolar <|
+                            Tuple.mapBoth
+                                (\x -> x - 40.0)
+                                (\y -> 40.0 - y)
+                                pointer.offsetPos
+
+                i =
+                    round <| theta / toFloat sect + toFloat n / 2.0 - 0.5
+            in
+            if r > 20 && i >= 0 && i < n then
+                Just i
+
+            else
+                Nothing
     in
     div
-        [ class
-            (case dial.tracking of
-                Just _ ->
-                    css .dial ++ " " ++ css .active
+        (case dial.tracking of
+            Just _ ->
+                [ class <| css .dial ++ " " ++ css .active
+                , Pointer.onMove (mapEvent >> Drag >> toMsg)
+                , Pointer.onUp (\_ -> Finish |> toMsg)
+                , Pointer.onCancel (\_ -> Cancel |> toMsg)
+                ]
 
-                Nothing ->
-                    css .dial
-            )
-        , Pointer.onUp <| \_ -> toMsg Finish
-        ]
-        [ ul
-            [ class (css .collar)
+            Nothing ->
+                [ class (css .dial)
+                ]
+        )
+        [ svg
+            [ height <| fromFloat (2.0 * collarRadius) ++ "px"
+            , width <| fromFloat (2.0 * collarRadius) ++ "px"
+            , viewBox "-100 -100 200 200"
             ]
+            [ rect
+                [ x "-25"
+                , y "-100"
+                , width "50"
+                , height "200"
+                ]
+                []
+            , g
+                [ SvgAttr.class (css .collar)
+                ]
+              <|
+                List.append
+                    [ circle
+                        [ SvgAttr.class (css .outer)
+                        , cx "0"
+                        , cy "0"
+                        , r "99"
+                        ]
+                        []
+                    ]
+                <|
+                    indexedMapToList
+                        (\i _ -> viewSector i)
+                        config.options
+            , circle
+                [ SvgAttr.class (css .inner)
+                , cx "0"
+                , cy "0"
+                , r "40"
+                , Pointer.onDown (\_ -> Start |> toMsg)
+                ]
+                []
+            ]
+        , ul
+            [ class (css .collar) ]
           <|
             indexedMapToList viewOption config.options
         , div
             [ class (css .value)
-            , Pointer.onDown <| \_ -> toMsg Start
             ]
             [ span [ class <| css .viewValue ]
                 [ config.viewValue theValue ]
