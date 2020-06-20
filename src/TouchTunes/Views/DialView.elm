@@ -2,9 +2,13 @@ module TouchTunes.Views.DialView exposing (view)
 
 import Array as Array exposing (Array)
 import Array.Extra exposing (indexedMapToList)
+import Debug exposing (log)
 import Html exposing (Html, div, li, span, ul)
 import Html.Attributes exposing (class, style)
+import Html.Events
+import Html.Events.Extra.Mouse as Mouse
 import Html.Events.Extra.Pointer as Pointer
+import Json.Decode as Json exposing (Decoder, at, field, float, int, succeed)
 import List.Extra exposing (findIndex)
 import Maybe.Extra
 import String exposing (fromFloat)
@@ -42,6 +46,44 @@ dialRadius =
 
 faceRadius =
     32.0
+
+
+type alias Vector =
+    { r : Float, theta : Float }
+
+
+toVector : Float -> Float -> Int -> Int -> Vector
+toVector xOffset yOffset w h =
+    let
+        cx =
+            w // 2
+
+        cy =
+            h // 2
+
+        fromCenter =
+            ( xOffset - toFloat cx, toFloat cy - yOffset )
+
+        ( radius, radians ) =
+            toPolar fromCenter
+    in
+    { r = radius, theta = radians * 180.0 / pi }
+
+
+decodeVector : Decoder Vector
+decodeVector =
+    Json.map4
+        toVector
+        (field "offsetX" float)
+        (field "offsetY" float)
+        (at [ "currentTarget", "clientWidth" ] int)
+        (at [ "currentTarget", "clientHeight" ] int)
+
+
+onVectorMove : (Vector -> msg) -> Html.Attribute msg
+onVectorMove message =
+    Html.Events.on "pointermove" <|
+        Json.map message decodeVector
 
 
 view :
@@ -116,38 +158,33 @@ view dial toMsg =
                 ]
                 []
 
-        mapEvent : Pointer.Event -> Maybe Int
-        mapEvent pointerEvent =
+        mapVector : Vector -> Maybe Int
+        mapVector vec =
             let
-                pointer =
-                    pointerEvent.pointer
-
-                ( r, theta ) =
-                    Tuple.mapSecond
-                        (\rad -> rad * 180.0 / pi)
-                    <|
-                        toPolar <|
-                            Tuple.mapBoth
-                                (\x -> x - 40.0)
-                                (\y -> 40.0 - y)
-                                pointer.offsetPos
-
                 i =
-                    round <| theta / toFloat sect + toFloat n / 2.0 - 0.5
+                    round <| vec.theta / toFloat sect + toFloat n / 2.0 - 0.5
             in
-            if r > 20 && i >= 0 && i < n then
+            if vec.r > 20 && i >= 0 && i < n then
                 Just i
 
             else
                 Nothing
+
+        events =
+            case dial.tracking of
+                Just _ ->
+                    [ onVectorMove (mapVector >> Drag >> toMsg)
+                    , Pointer.onUp (\_ -> Finish |> toMsg)
+                    , Pointer.onCancel (\_ -> Cancel |> toMsg)
+                    ]
+
+                Nothing ->
+                    [ Pointer.onDown (\_ -> Start |> toMsg) ]
     in
     div
         (case dial.tracking of
             Just _ ->
                 [ class <| css .dial ++ " " ++ css .active
-                , Pointer.onMove (mapEvent >> Drag >> toMsg)
-                , Pointer.onUp (\_ -> Finish |> toMsg)
-                , Pointer.onCancel (\_ -> Cancel |> toMsg)
                 ]
 
             Nothing ->
@@ -155,10 +192,13 @@ view dial toMsg =
                 ]
         )
         [ svg
-            [ height <| fromFloat (2.0 * collarRadius) ++ "px"
-            , width <| fromFloat (2.0 * collarRadius) ++ "px"
-            , viewBox "-100 -100 200 200"
-            ]
+            (List.append
+                [ height <| fromFloat (2.0 * collarRadius) ++ "px"
+                , width <| fromFloat (2.0 * collarRadius) ++ "px"
+                , viewBox "-100 -100 200 200"
+                ]
+                events
+            )
             [ rect
                 [ x "-25"
                 , y "-100"
@@ -188,7 +228,6 @@ view dial toMsg =
                 , cx "0"
                 , cy "0"
                 , r "40"
-                , Pointer.onDown (\_ -> Start |> toMsg)
                 ]
                 []
             ]

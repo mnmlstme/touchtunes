@@ -4,7 +4,6 @@ module TouchTunes.Views.OverlayView exposing
     )
 
 import Html.Events.Extra.Pointer as Pointer
-import Json.Decode as Json
 import List.Extra exposing (find)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration, quarter)

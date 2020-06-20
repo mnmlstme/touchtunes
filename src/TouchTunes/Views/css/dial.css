@@ -21,7 +21,10 @@
     position: absolute;
     height: 100%;
     width: 100%;
-    pointer-events: auto;
+}
+
+.dial.active circle.outer {
+    pointer-events: all;
 }
 
 ul.collar {
