@@ -14,6 +14,7 @@ css =
             , collar = "collar"
             , active = "active"
             , inner = "inner"
+            , ring = "ring"
             , outer = "outer"
             , sector = "sector"
             }

@@ -14,7 +14,7 @@
     position: absolute;
     height: 100%;
     width: 100%;
-    background: #c6c1ff;
+    background: #a1b1ff;
     mix-blend-mode: lighten;
 }
 
@@ -90,29 +90,21 @@
     flex-direction: column;
     justify-content: center;
     background: #5f78f9;
-    text-shadow: 1px 2px 3px #312a80;
     font-size: 20px;
     user-select: none;
     fill: #5f78f9;
+    box-shadow: 1px 2px 3px rgba(49, 42, 128, 0.6);
+    text-shadow: 1px 2px 3px #312a8099;
+
 }
 
 .controls > li {
     height: 50px;
     width: 50px;
     position: relative;
-    margin: 5px 0;
+    margin: 10px;
 
 }
-
-.controls > li + li::before {
-    display: block;
-    content: " ";
-    margin: -5px 5px 0;
-    height: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.41);
-    border-top: 1px solid rgba(0, 0, 0, 0.42);
-}
-
 
 .controls > li > svg {
   position: absolute;

@@ -133,9 +133,26 @@ view dial toMsg =
 
                 theta1 =
                     degrees <| toFloat ((2 * i - n + 2) * sect) / 2
+
+                classList =
+                    List.append
+                        [ css .sector ]
+                        (Maybe.withDefault
+                            []
+                         <|
+                            Maybe.map
+                                (\t ->
+                                    if t.index == i then
+                                        [ css .active ]
+
+                                    else
+                                        []
+                                )
+                                tracking
+                        )
             in
             path
-                [ SvgAttr.class (css .sector)
+                [ SvgAttr.class <| String.join " " classList
                 , d <|
                     String.join " "
                         [ "M"
@@ -171,7 +188,7 @@ view dial toMsg =
                 Nothing
 
         events =
-            case dial.tracking of
+            case tracking of
                 Just _ ->
                     [ onVectorMove (mapVector >> Drag >> toMsg)
                     , Pointer.onUp (\_ -> Finish |> toMsg)
@@ -182,7 +199,7 @@ view dial toMsg =
                     [ Pointer.onDown (\_ -> Start |> toMsg) ]
     in
     div
-        (case dial.tracking of
+        (case tracking of
             Just _ ->
                 [ class <| css .dial ++ " " ++ css .active
                 ]
@@ -199,14 +216,7 @@ view dial toMsg =
                 ]
                 events
             )
-            [ rect
-                [ x "-25"
-                , y "-100"
-                , width "50"
-                , height "200"
-                ]
-                []
-            , g
+            [ g
                 [ SvgAttr.class (css .collar)
                 ]
               <|
@@ -224,10 +234,17 @@ view dial toMsg =
                         (\i _ -> viewSector i)
                         config.options
             , circle
+                [ SvgAttr.class (css .ring)
+                , cx "0"
+                , cy "0"
+                , r "36"
+                ]
+                []
+            , circle
                 [ SvgAttr.class (css .inner)
                 , cx "0"
                 , cy "0"
-                , r "40"
+                , r "28"
                 ]
                 []
             ]
