@@ -106,9 +106,9 @@ path.sector.active {
     text-align: center;
     line-height: 56px;
     border-radius: 50%;
-    box-shadow: 0 0 2px rgba(0,0,0,0.5) inset;
+    box-shadow: 0 0 4px rgba(0,0,0,0.5) inset;
     color: #3e3e3e;
-
+    background: linear-gradient(328deg, #fff9ff, #fff2e7 30%, #a1b1ff);
 }
 
 .viewValue {
@@ -136,6 +136,8 @@ path.sector.active {
     height: 80%;
     width: auto;
     margin-right: -10px;
-    fill: currentcolor
 }
 
+.viewValue svg {
+    fill: currentcolor;
+}

@@ -157,7 +157,8 @@
     font: inherit;
     color: inherit;
     text-shadow: inherit;
-    background: linear-gradient(328deg, #ebefff, #fff2e7 30.67%, #a1b1ff);
+    box-shadow: 0 0 4px rgba(0,0,0,0.5) inset;
+    background: linear-gradient(328deg, #fff9ff, #fff2e7 30%, #a1b1ff);
     border: 8px solid;
     padding: .5em;
     cursor: pointer;

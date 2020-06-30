@@ -205,6 +205,13 @@ margins layout =
 
         lmargin =
             sp
+                + (case layout.direct.staff of
+                    Just _ ->
+                        3.5 * sp
+
+                    Nothing ->
+                        0.0
+                  )
                 + (case layout.direct.time of
                     Just _ ->
                         2.0 * sp
@@ -214,7 +221,7 @@ margins layout =
                   )
                 + (case layout.direct.key of
                     Just k ->
-                        toFloat (abs k.fifths) * sp
+                        0.75 * toFloat (abs k.fifths) * sp
 
                     Nothing ->
                         0.0
@@ -233,10 +240,28 @@ harmonyHeight layout =
     Pixels <| 2.0 * sp
 
 
+clefOffset : Layout -> Pixels
+clefOffset layout =
+    -- distance from left edge where we start the Clef
+    Pixels 0
+
+
 keyOffset : Layout -> Pixels
 keyOffset layout =
     -- distance from left edge where we start the Key
-    Pixels 0
+    let
+        sp =
+            spacing layout
+
+        co =
+            clefOffset layout
+    in
+    case layout.direct.staff of
+        Just _ ->
+            Pixels <| co.px + 3.0 * sp.px
+
+        Nothing ->
+            co
 
 
 timeOffset : Layout -> Pixels
@@ -244,15 +269,17 @@ timeOffset layout =
     -- distance from left edge where we start the Time
     let
         sp =
-            spacing layout |> .px
-    in
-    Pixels <|
-        case layout.direct.key of
-            Just k ->
-                sp + toFloat (abs k.fifths) * sp
+            spacing layout
 
-            Nothing ->
-                0.0
+        ko =
+            keyOffset layout
+    in
+    case layout.direct.key of
+        Just k ->
+            Pixels <| ko.px + sp.px + 0.75 * toFloat (abs k.fifths) * sp.px
+
+        Nothing ->
+            ko
 
 
 beatSpacing : Layout -> Pixels

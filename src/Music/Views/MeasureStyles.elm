@@ -10,4 +10,5 @@ css =
             , staff = "staff"
             , time = "time"
             , key = "key"
+            , clef = "clef"
             }

@@ -17,14 +17,18 @@ svg.time {
     text-anchor: middle;
 }
 
+svg.key {
+    overflow: visible;
+}
+
+svg.clef {
+    overflow: visible;
+}
+
 .measure > .time,
-.measure > .key {
+.measure > .key,
+.measure > .clef {
     position: absolute;
     left: 0;
     top: 0;
-
-}
-
-svg.key {
-    overflow:visible;
 }

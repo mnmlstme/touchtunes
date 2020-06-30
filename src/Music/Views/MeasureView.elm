@@ -17,7 +17,7 @@ import Music.Models.Layout as Layout
         )
 import Music.Models.Measure as Measure exposing (..)
 import Music.Models.Pitch as Pitch exposing (Pitch, flat, sharp)
-import Music.Models.Staff as Staff
+import Music.Models.Staff as Staff exposing (Staff)
 import Music.Models.Time as Time exposing (Time)
 import Music.Views.MeasureStyles exposing (css)
 import Music.Views.NoteView as NoteView
@@ -125,7 +125,7 @@ drawKeySymbol layout n p =
             scalePitch layout p
 
         xpos =
-            Pixels <| sp.px * toFloat n
+            Pixels <| 0.75 * sp.px * toFloat n
     in
     g
         [ transform
@@ -169,7 +169,7 @@ viewKey layout key =
             in
             svg
                 [ class (css .key)
-                , width <| fromFloat <| (1.0 + toFloat marks) * sp.px
+                , width <| fromFloat <| (0.75 + toFloat marks) * sp.px
                 , height <| fromFloat <| 5.0 * sp.px
                 , viewBox <|
                     "0 "
@@ -182,6 +182,36 @@ viewKey layout key =
             <|
                 List.indexedMap (drawKeySymbol layout) <|
                     List.append sharps flats
+
+        Nothing ->
+            text ""
+
+
+viewClef : Layout -> Maybe Staff -> Svg msg
+viewClef layout clef =
+    case clef of
+        Just c ->
+            let
+                sp =
+                    Layout.spacing layout
+
+                symbol =
+                    Symbols.trebleClef
+            in
+            svg
+                [ class (css .clef)
+                , width <| fromFloat <| 3.0 * sp.px
+                , height <| fromFloat <| 5.0 * sp.px
+                , viewBox <|
+                    (fromFloat <| -1.5 * sp.px)
+                        ++ " "
+                        ++ (fromFloat <| -1.0 * sp.px)
+                        ++ " "
+                        ++ (fromFloat <| 3.0 * sp.px)
+                        ++ " "
+                        ++ (fromFloat <| 5.0 * sp.px)
+                ]
+                [ Symbols.view symbol ]
 
         Nothing ->
             text ""
@@ -235,6 +265,12 @@ view layout measure =
                     ]
                     [ StaffView.draw layout ]
                 ]
+            , div
+                [ class (css .clef)
+                , style "top" <| fromFloat (margins.top.px + sp.px) ++ "px"
+                , style "left" "0"
+                ]
+                [ viewClef layout layout.direct.staff ]
             , div
                 [ class (css .key)
                 , style "top" <| fromFloat (margins.top.px - sp.px) ++ "px"
