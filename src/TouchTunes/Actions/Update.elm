@@ -4,6 +4,7 @@ import Array as Array
 import Debug exposing (log)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
+import Music.Models.Harmony as Harmony
 import Music.Models.Key
     exposing
         ( Key
@@ -63,19 +64,11 @@ update msg editor =
 
         HarmonyEdit pos ->
             let
-                mNote =
-                    Overlay.findNote pos editor.measure editor.overlay
-
-                mHarmony =
-                    Maybe.andThen .harmony mNote
+                ( offset, note ) =
+                    Overlay.findContinuedNote pos editor.measure editor.overlay
 
                 overharm =
-                    case mHarmony of
-                        Just harmony ->
-                            Overlay.editHarmony pos harmony editor.overlay
-
-                        Nothing ->
-                            Overlay.startHarmony pos editor.overlay
+                    Overlay.editHarmony offset note.harmony editor.overlay
             in
             Editor.withOverlay overharm editor
 
@@ -146,7 +139,8 @@ update msg editor =
         HarmonyMsg dialAction ->
             let
                 hd =
-                    Dial.update dialAction controls.harmonyDial
+                    log "updated harmonyDial" <|
+                        Dial.update dialAction controls.harmonyDial
 
                 ed =
                     { editor
@@ -155,13 +149,21 @@ update msg editor =
                                 | harmonyDial = hd
                             }
                     }
+
+                dd =
+                    Dial.update dialAction controls.chordDial
+
+                mHarm =
+                    Maybe.map
+                        (\h -> Harmony.setDegree dd.value h)
+                        hd.value
             in
             case dialAction of
                 Dial.Finish ->
-                    Editor.withOverlay
-                        (Overlay.changeHarmony hd.value ed.overlay)
-                    <|
-                        commit ed
+                    commit <|
+                        Editor.withOverlay
+                            (Overlay.changeHarmony mHarm overlay)
+                            ed
 
                 _ ->
                     ed
@@ -184,8 +186,7 @@ update msg editor =
             in
             case dialAction of
                 Dial.Finish ->
-                    Editor.withOverlay (Overlay.reselect m overlay) <|
-                        commit ed
+                    commit ed
 
                 _ ->
                     ed
@@ -208,8 +209,7 @@ update msg editor =
             in
             case dialAction of
                 Dial.Finish ->
-                    Editor.withOverlay (Overlay.reselect m overlay) <|
-                        commit ed
+                    commit ed
 
                 _ ->
                     ed
@@ -232,8 +232,7 @@ update msg editor =
             in
             case dialAction of
                 Dial.Finish ->
-                    Editor.withOverlay (Overlay.reselect m overlay) <|
-                        commit ed
+                    commit ed
 
                 _ ->
                     ed
@@ -256,8 +255,7 @@ update msg editor =
             in
             case dialAction of
                 Dial.Finish ->
-                    Editor.withOverlay (Overlay.reselect m overlay) <|
-                        commit ed
+                    commit ed
 
                 _ ->
                     ed

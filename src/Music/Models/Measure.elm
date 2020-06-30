@@ -1,9 +1,11 @@
 module Music.Models.Measure exposing
     ( Attributes
     , Measure
+    , Offset
     , Sequence
     , aggregateRests
     , essentialAttributes
+    , findContinuedNote
     , findNote
     , fromNotes
     , fromSequence
@@ -23,7 +25,7 @@ import List.Extra exposing (find, scanl)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Key as Key exposing (Key)
-import Music.Models.Note as Note exposing (Note, restFor)
+import Music.Models.Note as Note exposing (Note, restFor, justTheNote)
 import Music.Models.Staff as Staff exposing (Staff)
 import Music.Models.Time as Time exposing (Time)
 
@@ -188,6 +190,14 @@ findNote offset measure =
             toSequence measure
 
 
+findContinuedNote : Offset -> Measure -> ( Offset, Note )
+findContinuedNote offset measure =
+    Maybe.withDefault ( Duration.zero, Nonempty.head measure.notes ) <|
+        find (\( d, _ ) -> Duration.shorterThan offset d || Duration.equal offset d) <|
+            List.reverse <|
+                toSequence measure
+
+
 modifyNote : (Note -> Note) -> Offset -> Measure -> Measure
 modifyNote f offset measure =
     let
@@ -243,7 +253,7 @@ spliceNote ( b0, n0 ) ( b1, n1 ) =
             -- split n1 into two and insert n0 in the middle
             [ ( b1, clipFromTo b1 b0 n1 )
             , ( b0, n0 )
-            , ( e0, clipFromTo e0 e1 n1 )
+            , ( e0, clipFromTo e0 e1 <| justTheNote n1 )
             ]
 
         else

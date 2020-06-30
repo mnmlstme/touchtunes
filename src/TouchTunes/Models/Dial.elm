@@ -95,18 +95,22 @@ update dialAction dial =
             }
 
         Drag mi ->
-            case mi of
-                Just i ->
-                    { dial
-                        | tracking =
-                            Just
-                                { originalIndex = i0
-                                , index = i
-                                }
-                    }
+            let
+                newIndex =
+                    case mi of
+                        Just i ->
+                            i
 
-                Nothing ->
-                    dial
+                        Nothing ->
+                            i0
+            in
+            { dial
+                | tracking =
+                    Just
+                        { originalIndex = i0
+                        , index = newIndex
+                        }
+            }
 
         Cancel ->
             { dial | tracking = Nothing }

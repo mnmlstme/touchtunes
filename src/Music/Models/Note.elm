@@ -1,6 +1,6 @@
 module Music.Models.Note exposing
     ( Note
-    , What(..)
+    , What(..), justTheNote
     , harmonize
     , isPlayed
     , modPitch
@@ -88,3 +88,7 @@ pitch note =
 harmonize : Harmony -> Note -> Note
 harmonize harmony note =
     { note | harmony = Just harmony }
+
+justTheNote : Note -> Note
+justTheNote note =
+    { note | harmony = Nothing }

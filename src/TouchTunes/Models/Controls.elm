@@ -84,7 +84,7 @@ type alias Controls msg =
     , keyDial : Dial KeyName msg
 
     -- for Harmony:
-    , harmonyDial : Dial Harmony msg
+    , harmonyDial : Dial (Maybe Harmony) msg
     , kindDial : Dial Kind msg
     , chordDial : Dial Chord msg
     , altHarmonyDial : Dial (List Alteration) msg
@@ -109,10 +109,7 @@ init layout =
             , timeDial = initTimeDial <| Just <| Layout.time l
             , subdivisionDial = initSubdivisionDial
             , harmonyDial =
-                initHarmonyDial (Layout.key l) Seventh <|
-                    Maybe.map (Harmony.chord (Major Seventh) << Key.tonic) <|
-                        Just <|
-                            Layout.key l
+                initHarmonyDial (Layout.key l)  Nothing
             , bassDial =
                 initBassDial (Layout.key l) <|
                     Maybe.map Key.tonic <|
@@ -128,7 +125,7 @@ init layout =
             , alterationDial = initAlterationDial Natural
             , timeDial = initTimeDial Nothing
             , keyDial = initKeyDial Nothing
-            , harmonyDial = initHarmonyDial (keyOf C Key.Major) Seventh Nothing
+            , harmonyDial = initHarmonyDial (keyOf C Key.Major)  Nothing
             , bassDial = initBassDial (keyOf C Key.Major) Nothing
             , kindDial = initKindDial Nothing
             , chordDial = initChordDial Nothing
@@ -142,29 +139,23 @@ forSelection selection controls =
         NoSelection ->
             controls
 
-        HarmonySelection harmony key _ ->
-            let
-                deg =
-                    Harmony.chordDegree harmony
-
-                hd =
-                    initHarmonyDial key deg <| Just <| log "harmony for selection " harmony
-
-                h =
-                    hd.value
-            in
+        HarmonySelection mHarmony key _ ->
             { controls
-                | harmonyDial = hd
+                | harmonyDial =
+                    initHarmonyDial key
+                        <| log "harmony for selection " mHarmony
                 , kindDial =
-                    initKindDial <| Just h.kind
+                    initKindDial <| Maybe.map .kind mHarmony
                 , chordDial =
-                    initChordDial <| Just <| Harmony.chordDegree h
+                    initChordDial <| Maybe.map Harmony.chordDegree mHarmony
                 , altHarmonyDial =
-                    initAltHarmonyDial <| Just h.alter
+                    initAltHarmonyDial <| Maybe.map .alter mHarmony
                 , bassDial =
                     initBassDial key <|
-                        Just <|
-                            Maybe.withDefault h.root h.bass
+                        Maybe.map
+                            (\harmony ->
+                                Maybe.withDefault harmony.root harmony.bass)
+                            mHarmony
             }
 
         NoteSelection note _ _ ->
@@ -178,6 +169,15 @@ forSelection selection controls =
                 Nothing ->
                     controls
 
+forHarmony : Harmony -> Key -> Controls msg -> Controls msg
+forHarmony harmony key controls =
+    { controls
+          | harmonyDial = initHarmonyDial key  <| Just harmony
+          , kindDial = initKindDial <| Just harmony.kind
+          , chordDial = initChordDial <| Just <|  Harmony.chordDegree harmony
+          , altHarmonyDial = initAltHarmonyDial <| Just harmony.alter
+          , bassDial = initBassDial key <| Just <| Maybe.withDefault harmony.root harmony.bass
+    }
 
 initSubdivisionDial : Dial Duration msg
 initSubdivisionDial =
@@ -205,7 +205,7 @@ initAlterationDial chr =
         chr
         { options =
             Array.fromList [ DoubleFlat, Flat, Natural, Sharp, DoubleSharp ]
-        , segments = 6
+        , segments = 12
         , viewValue = viewAlteration
         }
 
@@ -257,21 +257,38 @@ initKeyDial k =
         }
 
 
-initHarmonyDial : Key -> Chord -> Maybe Harmony -> Dial Harmony msg
-initHarmonyDial k degree h =
+initHarmonyDial : Key -> Maybe Harmony -> Dial (Maybe Harmony) msg
+initHarmonyDial k h =
     -- harmonyDial: chose chord based on function in Key
+    let
+        simple =
+            Maybe.map
+                (\harm ->
+                     Harmony.setDegree
+                         Triad
+                         {harm
+                             | alter = []
+                             , bass = Nothing
+                         })
+                h
+    in
     Dial.init
-        (Maybe.withDefault
-            (chord (Major Seventh) <| Key.tonic k)
-            h
-        )
+        (Maybe.map (Harmony.setDegree Triad) h)
         { options =
             Array.fromList <|
-                List.map
-                    (function k degree)
+                List.append [Nothing]
+              <| 
+                List.map2
+                    (\f degree -> Just <| function k degree f )
                     [ I, II, III, IV, V, VI, VII ]
+                    [ Triad, Triad, Triad, Triad, Seventh, Triad, Seventh]
         , segments = 12
-        , viewValue = HarmonyView.view
+        , viewValue = \mh ->
+                      case mh of
+                          Just harmony ->
+                              HarmonyView.view harmony
+                          Nothing ->
+                              text "N.C."
         }
 
 
@@ -297,7 +314,7 @@ initBassDial k r =
                 , root Pitch.B Natural
                 , root Pitch.F Sharp
                 ]
-        , segments = 25
+        , segments = 24
         , viewValue = HarmonyView.viewBass << Just
         }
 

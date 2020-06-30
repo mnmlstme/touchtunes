@@ -3,7 +3,7 @@ module Music.Models.Harmony exposing
     , Chord(..)
     , Function(..)
     , Harmony
-    , Kind(..)
+    , Kind(..), setDegree
     , add
     , augmented
     , chord
@@ -101,6 +101,43 @@ chordDegree harmony =
 
         Power ->
             Triad
+
+setDegree : Chord -> Harmony -> Harmony
+setDegree ch harmony =
+    let
+        chAtLeastSeventh =
+            if ch == Triad || ch == Sixth then
+                Seventh
+            else
+                ch
+
+        kind =
+            case harmony.kind of
+                Major _ ->
+                    Major ch
+
+                Minor _ ->
+                    Minor ch
+
+                Diminished _ ->
+                    Diminished ch
+
+                Augmented _ ->
+                    Augmented ch
+
+                Dominant _ ->
+                    Dominant chAtLeastSeventh
+
+                HalfDiminished ->
+                    HalfDiminished
+
+                MajorMinor ->
+                    MajorMinor
+
+                Power ->
+                    Power
+    in
+        {harmony | kind = kind }
 
 
 chord : Kind -> Root -> Harmony

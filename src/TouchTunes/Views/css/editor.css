@@ -83,12 +83,13 @@
 }
 
 .controls {
-    color: white;
+    position: absolute;
     width: 50px;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    color: white;
     background: #5f78f9;
     font-size: 20px;
     user-select: none;
@@ -113,13 +114,14 @@
 }
 
 .inplace {
-    color: #5f78f9;
-
+    fill: #5f78f9;
+    color: white;
 }
 .inplace > li {
     height: 50px;
     width: 50px;
     position: absolute;
+    top: -60px;
 }
 
 .navigation {
@@ -136,6 +138,17 @@
     font-size: 20px;
 }
 
+.navigation::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 0 0 40px;
+    border-radius: 5px;
+}
+
 .navigation > li {
   position: absolute;
 }
@@ -144,11 +157,14 @@
     font: inherit;
     color: inherit;
     text-shadow: inherit;
-    background: none;
-    border: none;
+    background: linear-gradient(328deg, #ebefff, #fff2e7 30.67%, #a1b1ff);
+    border: 8px solid;
     padding: .5em;
     cursor: pointer;
     pointer-events: auto;
+    border-radius: 50%;
+    height: 3em;
+    width: 3em;
 }
 
 .navigation > .previous  {

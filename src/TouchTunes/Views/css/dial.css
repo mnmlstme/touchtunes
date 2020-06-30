@@ -17,7 +17,6 @@
 
 .dial > svg {
     fill: inherit;
-    visibility: hidden;
     position: absolute;
     height: 100%;
     width: 100%;
@@ -36,20 +35,30 @@ ul.collar {
     box-shadow: 0 0 3px rgba(0,0,0,0.5);
     text-shadow: 1px 2px 3px #312a80;
     z-index: 1;
+    transform: scale(0.35);
+    transition: transform 200ms;
 }
 
-.dial.active > svg,
-.dial.active .collar {
-    visibility: visible;
+g.collar {
+    transform: scale(0.35);
+    transition: transform 200ms;
 }
 
 circle.outer {
-    stroke: #000;
-    stroke-width: 2;
-    fill: #2c2623a8;
-    fill-opacity: 1;
+    fill: inherit;
+    fill-opacity: 0.5;
+    visibility: hidden;
 }
 
+.dial.active circle.outer,
+.dial.active ul.collar {
+    visibility: visible;
+}
+
+.dial.active ul.collar,
+.dial.active g.collar {
+    transform: none;
+}
 
 circle.inner {
     fill:  rgba(255,255,255,0.8);
@@ -76,17 +85,8 @@ path.sector.active {
     position: absolute;
     top: 50%;
     left: 50%;
-}
-
-.option .viewValue {
     display: inline-block;
-    position: absolute;
-    top: -1em;
-    height: 2em;
-    width: 4em;
-    line-height: 2em;
-    left: -2em;
-    text-align: center;
+    white-space: nowrap;
 }
 
 .face {
@@ -107,18 +107,35 @@ path.sector.active {
     line-height: 56px;
     border-radius: 50%;
     box-shadow: 0 0 2px rgba(0,0,0,0.5) inset;
-    color: #333;
+    color: #3e3e3e;
 
 }
 
 .viewValue {
+    display: inline-block;
+    position: absolute;
+    line-height: 2em;
+    height: 2em;
+    width: 2em;
+    text-align: center;
+    top: 0;
+    left: 0;
+    margin-top: .5em;
     user-select: none;
 }
+
+.option .viewValue {
+    font-size: 75%;
+    top: -1.5em;
+    left: -1em;
+}
+
 
 .viewValue > svg {
     display: inline-block;
     height: 80%;
     width: auto;
     margin-right: -10px;
+    fill: currentcolor
 }
 

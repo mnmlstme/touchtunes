@@ -26,12 +26,13 @@ import Html.Events exposing (onClick)
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Key exposing (keyName)
-import Music.Models.Layout as Layout exposing (Layout)
+import Music.Models.Layout as Layout exposing (Layout, scaleBeat)
 import Music.Models.Measure as Measure exposing (Measure)
 import Music.Models.Part as Part exposing (Part)
 import Music.Models.Score as Score exposing (Score)
 import Music.Models.Time as Time
 import Music.Views.MeasureView as MeasureView
+import String exposing (fromFloat)
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Editor as Editor exposing (Editor)
@@ -49,9 +50,11 @@ view editor =
         , viewMeasure editor
         ]
 
+
 viewScreen : Html Msg
 viewScreen =
     div [ class (css .screen) ] []
+
 
 viewControls : Editor -> Html Msg
 viewControls editor =
@@ -128,8 +131,13 @@ viewInPlaceControls editor =
                 text ""
 
             HarmonySelection _ _ beat ->
-                li [style "left" "0"
-                   , style "top" "0" ]
+                let
+                    left =
+                        .px <| scaleBeat l beat
+                in
+                li
+                    [ style "left" <| fromFloat left ++ "px"
+                    ]
                     [ Dial.view c.harmonyDial Actions.HarmonyMsg
                     ]
 
@@ -141,19 +149,19 @@ viewInPlaceControls editor =
 viewNavigation : Editor -> Html Msg
 viewNavigation editor =
     ul [ class (css .navigation) ]
-        [ li [class (css .previous)]
+        [ li [ class (css .previous) ]
             [ button [ onClick PreviousEdit ]
                 [ text "<Previous" ]
             ]
-        , li [class (css .cancel)]
+        , li [ class (css .cancel) ]
             [ button [ onClick CancelEdit ]
                 [ text "Cancel" ]
             ]
-        , li [class (css .done)]
+        , li [ class (css .done) ]
             [ button [ onClick DoneEdit ]
                 [ text "Done" ]
             ]
-        , li [class (css .next)]
+        , li [ class (css .next) ]
             [ button [ onClick NextEdit ]
                 [ text "Next>" ]
             ]

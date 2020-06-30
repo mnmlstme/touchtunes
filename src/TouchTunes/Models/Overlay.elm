@@ -6,12 +6,11 @@ module TouchTunes.Models.Overlay exposing
     , drag
     , editHarmony
     , editNote
+    , findContinuedNote
     , findNote
     , finish
     , fromLayout
     , positionToLocation
-    , reselect
-    , startHarmony
     , startNote
     , subdivide
     )
@@ -34,7 +33,7 @@ import Music.Models.Time as Time
 
 type Selection
     = NoteSelection Note Location Bool
-    | HarmonySelection Harmony Key Beat
+    | HarmonySelection (Maybe Harmony) Key Beat
     | NoSelection
 
 
@@ -92,6 +91,22 @@ findNote pos measure overlay =
     Measure.findNote offset measure
 
 
+findContinuedNote : Position -> Measure -> Overlay -> (Measure.Offset, Note)
+findContinuedNote pos measure overlay =
+    let
+        time =
+            Layout.time overlay.layout
+
+        loc =
+            positionToLocation pos overlay
+
+        offset =
+            Beat.toDuration time loc.beat
+    in
+        Measure.findContinuedNote offset measure
+
+
+
 startNote : Position -> Overlay -> Overlay
 startNote pos overlay =
     let
@@ -125,76 +140,33 @@ editNote pos note overlay =
     }
 
 
-startHarmony : Position -> Overlay -> Overlay
-startHarmony pos overlay =
+
+editHarmony : Measure.Offset -> Maybe Harmony -> Overlay -> Overlay
+editHarmony dur harmony overlay =
     let
-        key =
-            Layout.key overlay.layout
+        time =
+            Layout.time overlay.layout
 
-        harmony =
-            chord (Major Triad) (tonic key)
-    in
-    editHarmony pos harmony overlay
-
-
-editHarmony : Position -> Harmony -> Overlay -> Overlay
-editHarmony pos harmony overlay =
-    let
-        loc =
-            positionToLocation pos overlay
+        beat =
+            Beat.fromDuration time dur
 
         key =
             Layout.key overlay.layout
     in
     { overlay
         | selection =
-            HarmonySelection harmony key loc.beat
+            HarmonySelection harmony key beat
     }
 
 
-changeHarmony : Harmony -> Overlay -> Overlay
-changeHarmony harmony overlay =
+changeHarmony : Maybe Harmony  -> Overlay -> Overlay
+changeHarmony mHarmony overlay =
     case overlay.selection of
         HarmonySelection _ key beat ->
             { overlay
                 | selection =
-                    HarmonySelection harmony key beat
+                    HarmonySelection mHarmony key beat
             }
-
-        _ ->
-            overlay
-
-
-reselect : Measure -> Overlay -> Overlay
-reselect measure overlay =
-    let
-        time =
-            Layout.time overlay.layout
-
-        key =
-            Layout.key overlay.layout
-    in
-    case overlay.selection of
-        HarmonySelection _ _ beat ->
-            let
-                offset =
-                    Beat.toDuration time beat
-
-                mNote =
-                    Measure.findNote offset measure
-
-                mHarm =
-                    Maybe.andThen .harmony mNote
-            in
-            case mHarm of
-                Just h ->
-                    { overlay
-                        | selection =
-                            HarmonySelection h key beat
-                    }
-
-                Nothing ->
-                    overlay
 
         _ ->
             overlay

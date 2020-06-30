@@ -106,85 +106,92 @@ latent editor =
         controlled =
             override editor.measure
     in
-    -- log "Editor.latent editor" <|
-    case log "selection" editor.overlay.selection of
-        HarmonySelection _ _ beat ->
-            let
-                t =
-                    Layout.time layout
+    log "Editor.latent editor" <|
+        case log "selection" editor.overlay.selection of
+            HarmonySelection _ _ beat ->
+                let
+                    t =
+                        Layout.time layout
 
-                deg =
-                    editor.controls.chordDial.value
+                    deg =
+                        editor.controls.chordDial.value
 
-                harmony =
-                    editor.controls.harmonyDial.value
+                    mHarmony =
+                        log "latent harmonyDial" <|
+                            editor.controls.harmonyDial.value
 
-                bass =
-                    editor.controls.bassDial.value
+                    bass =
+                        editor.controls.bassDial.value
+                in
+                case mHarmony of
+                    Just harmony ->
+                        let
+                            h =
+                                { harmony
+                                    | bass =
+                                        if bass == harmony.root then
+                                            Nothing
 
-                h =
-                    { harmony
-                        | bass =
-                            if bass == harmony.root then
-                                Nothing
+                                        else
+                                            Just bass
+                                    , kind =
+                                        case editor.controls.kindDial.value of
+                                            Major _ ->
+                                                Major deg
 
-                            else
-                                Just bass
-                        , kind =
-                            case editor.controls.kindDial.value of
-                                Major _ ->
-                                    Major deg
+                                            Minor _ ->
+                                                Minor deg
 
-                                Minor _ ->
-                                    Minor deg
+                                            Diminished _ ->
+                                                Diminished deg
 
-                                Diminished _ ->
-                                    Diminished deg
+                                            Augmented _ ->
+                                                Augmented deg
 
-                                Augmented _ ->
-                                    Augmented deg
+                                            Dominant _ ->
+                                                Dominant deg
 
-                                Dominant _ ->
-                                    Dominant deg
+                                            HalfDiminished ->
+                                                HalfDiminished
 
-                                HalfDiminished ->
-                                    HalfDiminished
+                                            MajorMinor ->
+                                                MajorMinor
 
-                                MajorMinor ->
-                                    MajorMinor
+                                            Power ->
+                                                Power
+                                    , alter = editor.controls.altHarmonyDial.value
+                                }
 
-                                Power ->
-                                    Power
-                        , alter = editor.controls.altHarmonyDial.value
-                    }
+                            fn =
+                                modifyNote
+                                    (\original -> { original | harmony = Just h })
+                                    (Beat.toDuration t beat)
+                        in
+                        fn controlled
 
-                fn =
-                    modifyNote
-                        (\original -> { original | harmony = Just h })
-                        (Beat.toDuration t beat)
-            in
-            fn controlled
+                    Nothing ->
+                        controlled
 
-        NoteSelection note location _ ->
-            let
-                t =
-                    Layout.time layout
+            NoteSelection note location _ ->
+                let
+                    t =
+                        Layout.time layout
 
-                alteration =
-                    Dial.value editor.controls.alterationDial
+                    alteration =
+                        Dial.value editor.controls.alterationDial
 
-                changed =
-                    Note.modPitch (Pitch.setAlter alteration) note
+                    changed =
+                        Note.modPitch (Pitch.setAlter alteration) note
 
-                replace n orig =
-                    { n | harmony = orig.harmony }
+                    replace n orig =
+                        { n | harmony = orig.harmony }
 
-                fn =
-                    modifyNote
-                        (\original -> replace changed original)
-                        (Beat.toDuration t location.beat)
-            in
-            fn controlled
+                    fn =
+                        modifyNote
+                            (\original -> replace changed original)
+                            (Beat.toDuration t location.beat)
+                in
+                fn controlled
 
-        NoSelection ->
-            controlled
+            NoSelection ->
+                controlled
