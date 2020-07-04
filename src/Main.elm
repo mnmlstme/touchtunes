@@ -23,6 +23,7 @@ import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Json exposing (field)
 import Music.Json.Decode as Decode
+import Music.Json.Encode as MusicJson
 import Music.Models.Score as Score exposing (Score)
 import TouchTunes.Actions.Top as Actions
 import TouchTunes.Models.App as App exposing (App)
@@ -37,19 +38,22 @@ import TouchTunes.Views.AppView as AppView
 main : Program () Model Msg
 main =
     Browser.element
-        { init = \flags -> ( initialModel, Cmd.none )
+        { init = \_ -> ( initialModel, Cmd.none )
         , view = view
         , update = update
-        , subscriptions = \model -> Sub.none
+        , subscriptions = \_ -> Sub.none
         }
 
 
 type Msg
-    = Open Score
+    = Clear
+    | Save
+    | Saved (Result Http.Error String)
+    | SaveAs String
     | GetCatalog
     | GotCatalog (Result Http.Error String)
     | GetScore String
-    | GotScore (Result Http.Error String)
+    | GotScore String (Result Http.Error String)
     | AppMessage Actions.Msg
 
 
@@ -61,12 +65,13 @@ type alias Model =
     { app : App
     , catalog : Array CatalogEntry
     , message : Maybe String
+    , scoreId : Maybe String
     }
 
 
 initialModel : Model
 initialModel =
-    Model (App.init Score.empty) Array.empty Nothing
+    Model (App.init Score.empty) Array.empty Nothing Nothing
 
 
 
@@ -76,10 +81,45 @@ initialModel =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Open score ->
-            ( { model | app = App.init score }
+        Clear ->
+            ( { model
+                | app = App.init Score.empty
+                , scoreId = Nothing
+              }
             , Cmd.none
             )
+
+        Save ->
+            let
+                body =
+                    Http.jsonBody <| MusicJson.score model.app.score
+            in
+            ( model
+            , case model.scoreId of
+                Just id ->
+                    Http.request
+                        { method = "PUT"
+                        , url = "../api/scores/" ++ id
+                        , headers = []
+                        , body = body
+                        , expect = Http.expectString Saved
+                        , timeout = Nothing
+                        , tracker = Nothing
+                        }
+
+                Nothing ->
+                    Http.post
+                        { url = "../api/scores"
+                        , body = body
+                        , expect = Http.expectString Saved
+                        }
+            )
+
+        Saved res ->
+            ( model, Cmd.none )
+
+        SaveAs _ ->
+            ( model, Cmd.none )
 
         GetCatalog ->
             ( { model
@@ -124,11 +164,11 @@ update msg model =
               }
             , Http.get
                 { url = "../api/scores/" ++ id
-                , expect = Http.expectString GotScore
+                , expect = Http.expectString (GotScore id)
                 }
             )
 
-        GotScore res ->
+        GotScore id res ->
             case res of
                 Ok str ->
                     let
@@ -137,7 +177,12 @@ update msg model =
                     in
                     case decoded of
                         Ok score ->
-                            ( { model | app = App.init score }, Cmd.none )
+                            ( { model
+                                | app = App.init score
+                                , scoreId = Just id
+                              }
+                            , Cmd.none
+                            )
 
                         Err err ->
                             ( { model
@@ -150,7 +195,7 @@ update msg model =
                             )
 
                 Err _ ->
-                    ( { model | message = Just "Failed to load Catalog" }
+                    ( { model | message = Just "Failed to load Score" }
                     , Cmd.none
                     )
 
@@ -190,9 +235,9 @@ view model =
             ]
         , footer
             [ class (css .footer) ]
-            [ button [ onClick <| Open Score.empty ] [ text "Clear" ]
-            , button [ onClick <| Open AutumnLeaves.score ] [ text "Autumn Leaves" ]
-            , button [ onClick <| GetCatalog ] [ text "Catalog" ]
+            [ button [ onClick <| GetCatalog ] [ text "Catalog" ]
+            , button [ onClick <| Save ] [ text "Save" ]
+            , button [ onClick <| Clear ] [ text "Clear" ]
             , span [ class (css .message) ] <|
                 Maybe.withDefault [] <|
                     Maybe.map (\m -> [ text m ]) model.message

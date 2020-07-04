@@ -1,8 +1,8 @@
-const Airtable = require('airtable');
+const Airtable = require('airtable')
 const base = new Airtable({
   apiKey: process.env.AIRTABLE_API_KEY,
-}).base(process.env.AIRTABLE_BASE_ID);
-const view = 'Grid view';
+}).base(process.env.AIRTABLE_BASE_ID)
+const view = 'Grid view'
 
 exports.list = (req, res) => {
     let json = []
@@ -17,26 +17,6 @@ exports.list = (req, res) => {
                     return {
                         id: r.id,
                         title: r.get('Title'),
-                        // key: {
-                        //     Key: {
-                        //         fifths: r.get('Key.fifths'),
-                        //         mode: r.get('Key.mode')
-                        //     }
-                        // },
-                        // time: {
-                        //     Time: {
-                        //         beats: r.get('Time.beats'),
-                        //         beatType: r.get('Time.beatType'),
-                        //     }
-                        // },
-                        // parts: (r.get('Parts') || []).map(
-                        //     (id, i) => {
-                        //         return {
-                        //             id: id,
-                        //             abbrev: partNames[i]
-                        //         }
-                        //     }
-                        //)
                     }
                 }
             )
@@ -56,11 +36,68 @@ exports.getById = (req, res) => {
     base('Scores').find(id,
         function found(err, record) {
             if (err) {
-                res.status(500).send(err);
+                res.status(500).send(err)
             } else {
-                let json = JSON.parse(record.get("Score JSON") || "{Score: {}}")
-                json["id"] = id
-                res.json(json)
+                res.json( parseRecord(record) )
             }
         })
+}
+
+const parseRecord = (rec) => {
+    let json = JSON.parse(rec.get("Score JSON") || "{Score: {}}")
+    json["title"] = rec.get("Title")
+    return json
+}
+
+exports.create = (req, res) => {
+    let body = req.body
+    let score = body["Score"]
+    let title = score ? score["title"] : ""
+
+    base('Scores').create([
+        {
+            "fields": {
+                "Title": title,
+                "Score JSON": JSON.stringify(body)
+            }
+        }
+    ], function(err, records) {
+        if (err) {
+            res.status(500).send(err)
+            return
+        }
+
+        let json = records.map(
+            rec => [rec.getId(), parseRecord(rec)]
+        )
+        res.json(json)
+    });
+}
+
+exports.update = (req, res) => {
+    // TODO; separate endpoint to update just the metadata or parts
+    let id = req.params.id
+    let body = req.body
+    let score = body["Score"]
+    let title = score ? score["title"] : ""
+
+    base('Scores').update([
+        {
+            "id": id,
+            "fields": {
+                "Title": title,
+                "Score JSON": JSON.stringify(body)
+            }
+        }
+    ], function(err, records) {
+        if (err) {
+            res.status(500).send(err)
+            return
+        }
+
+        let json = records.map(
+            rec => [rec.getId(), parseRecord(rec)]
+        )
+        res.json(json)
+    });
 }
