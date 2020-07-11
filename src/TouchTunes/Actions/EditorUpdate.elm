@@ -1,4 +1,4 @@
-module TouchTunes.Actions.Update exposing (update)
+module TouchTunes.Actions.EditorUpdate exposing (update)
 
 import Array as Array
 import Debug exposing (log)
@@ -20,7 +20,7 @@ import Music.Models.Score as Score
 import Music.Models.Staff as Staff
 import Music.Models.Time as Time
 import Music.Views.MeasureView as MeasureView
-import TouchTunes.Actions.AppActions exposing (Msg(..))
+import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Dial as Dial
 import TouchTunes.Models.Editor as Editor
@@ -259,3 +259,6 @@ update msg editor =
 
                 _ ->
                     ed
+
+        _ ->
+            editor

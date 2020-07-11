@@ -53,23 +53,20 @@ view viewer =
     article
         [ class (css .frame) ]
         [ header [ class (css .header) ]
-            [ h1 [ class (ScoreStyles.css .title) ]
-                [ text s.title ]
-            , dl [ class (ScoreStyles.css .stats) ]
-                [ dt []
-                    [ text "Parts" ]
-                , dd []
-                    [ text (String.fromInt nParts) ]
-                , dt []
-                    [ text "Measures" ]
-                , dd []
-                    [ text (String.fromInt nMeasures) ]
+            [ h3 [ class (ScoreStyles.css .parts) ]
+                [ text <|
+                    String.join " / " <|
+                        List.map .name s.parts
                 ]
+            , h1 [ class (ScoreStyles.css .title) ]
+                [ text s.title ]
+            , h3 [ class (ScoreStyles.css .attribution) ]
+                []
             ]
         , div
             [ classList
                 [ ( css .pane, True )
-                , ( ScoreStyles.css .parts, True )
+                , ( ScoreStyles.css .measures, True )
                 ]
             ]
           <|

@@ -12,5 +12,6 @@ css =
             , footer = "footer"
             , message = "message"
             , catalog = "catalog"
+            , index = "index"
             , active = "active"
             }

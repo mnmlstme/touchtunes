@@ -1,90 +1,61 @@
-module TouchTunes.Models.App exposing (App, init, update)
+module TouchTunes.Models.App exposing (App, Screen(..), close, init, open)
 
 import Debug exposing (log)
+import Json.Encode as Json
+import Music.Json.Encode as MusicJson
 import Music.Models.Part as Part
 import Music.Models.Score as Score exposing (Score)
-import Music.Json.Encode as MusicJson
-import Json.Encode as Json
+import TouchTunes.Actions.EditorUpdate as EditorUpdate
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
-import TouchTunes.Actions.Update as EditorUpdate
+import TouchTunes.Models.Catalog as Catalog exposing (Catalog)
 import TouchTunes.Models.Editor as Editor exposing (Editor)
 
 
 type alias App =
     { score : Score
-    , editing : Maybe { partId : Part.Id, measureNum : Int, editor : Editor }
+    , screen : Screen
+    , scoreId : Maybe String
+    , message : Maybe String
     }
+
+
+type Screen
+    = Viewing
+    | Editing { partId : Part.Id, measureNum : Int, editor : Editor }
+    | Browsing Catalog
+
 
 init : Score -> App
 init score =
     App
         (MusicJson.log "Score JSON" MusicJson.score score)
+        Viewing
         Nothing
-
-open : Part.Id -> Int -> App -> App
-open pid mnum app =
-    let
-        maybeMeasureAttrs =
-            Score.measureWithContext mnum app.score
-
-        editMeasure ( measure, attrs ) =
-            { partId = pid
-            , measureNum = mnum
-            , editor = Editor.open attrs <|
-                       MusicJson.log "Measure JSON" MusicJson.measure measure
-            }
-    in
-    { app | editing = Maybe.map editMeasure maybeMeasureAttrs }
+        Nothing
 
 
 close : App -> App
 close app =
-    { app | editing = Nothing }
+    { app | screen = Viewing }
 
 
-update : Actions.Msg -> App -> App
-update msg app =
-    case app.editing of
-        Just e ->
-            -- route the message to the editor
-            let
-                updatedApp =
-                    { app
-                        | editing = Just { e | editor = EditorUpdate.update msg e.editor }
-                    }
-
-                save a =
-                    { a
-                        | score = Score.setMeasure e.measureNum e.editor.measure app.score
-                    }
-            in
-            case log "App got msg" msg of
-                CancelEdit ->
-                    close updatedApp
-
-                SaveEdit ->
-                    save updatedApp
-
-                NextEdit ->
-                    open e.partId (e.measureNum + 1) <|
-                        save updatedApp
-
-                PreviousEdit ->
-                    open e.partId (e.measureNum - 1) <|
-                        save updatedApp
-
-                DoneEdit ->
-                    close <|
-                        save updatedApp
-
-                _ ->
-                    updatedApp
-
-        Nothing ->
-            -- these are the only messages we can accept without an editor
-            case log "App got msg" msg of
-                StartEdit id mnum _ _ ->
-                    open id mnum app
-
-                _ ->
-                    app
+open : Part.Id -> Int -> App -> App
+open pid mnum app =
+    let
+        editMeasure ( measure, attrs ) =
+            Editing
+                { partId = pid
+                , measureNum = mnum
+                , editor =
+                    Editor.open attrs <|
+                        MusicJson.log "Measure JSON" MusicJson.measure measure
+                }
+    in
+    { app
+        | screen =
+            Maybe.withDefault Viewing <|
+                Maybe.map
+                    editMeasure
+                <|
+                    Score.measureWithContext mnum app.score
+    }

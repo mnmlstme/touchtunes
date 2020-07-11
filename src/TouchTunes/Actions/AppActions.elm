@@ -1,5 +1,6 @@
-module TouchTunes.Actions.Top exposing (Msg(..))
+module TouchTunes.Actions.AppActions exposing (Msg(..))
 
+import Http
 import Music.Models.Beat exposing (Beat)
 import Music.Models.Duration exposing (Duration)
 import Music.Models.Key exposing (KeyName)
@@ -10,7 +11,6 @@ import Music.Models.Pitch exposing (Pitch, Semitones)
 import Music.Models.Time exposing (Time)
 import TouchTunes.Models.Dial as Dial
 
-import Http
 
 type Msg
     = Clear

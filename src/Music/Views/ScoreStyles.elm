@@ -8,5 +8,6 @@ css =
         CssModules.css "./Music/Views/css/score.css"
             { title = "title"
             , parts = "parts"
-            , stats = "stats"
+            , attribution = "attribution"
+            , measures = "measures"
             }

@@ -8,22 +8,18 @@
     font-variant-caps: small-caps;
 }
 
-.parts {
-    justify-content: center;
-}
-
-dl.stats > * {
-    display: inline-block;
-}
-
-dl.stats > dd {
+.parts,
+.attribution {
+    padding: .5em;
     font-weight: bold;
+    font-size: 125%;
+    font-variant-caps: small-caps;
 }
 
-dl.stats > * + dd {
-    margin-left: .25em;
+.attribution {
+    text-align: right;
 }
 
-dl.stats > * + dt {
-    margin-left: 1em;
+.measures {
+    justify-content: center;
 }

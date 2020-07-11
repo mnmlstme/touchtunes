@@ -44,7 +44,7 @@ exports.getById = (req, res) => {
 }
 
 const parseRecord = (rec) => {
-    let json = JSON.parse(rec.get("Score JSON") || "{Score: {}}")
+    let json = JSON.parse(rec.get("Score JSON") || "{\"Score\": {}}")
     json["title"] = rec.get("Title")
     return json
 }
