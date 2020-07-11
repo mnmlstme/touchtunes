@@ -11,7 +11,6 @@ import Html as Html
         , ul
         )
 import Html.Attributes exposing (class, classList)
-import Html.Events exposing (onClick)
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.App exposing (App, Screen(..))
 import TouchTunes.Models.Sheet as Sheet exposing (Sheet)
@@ -32,9 +31,12 @@ view app =
                     , EditorView.view e.editor
                     ]
 
-                Viewing ->
-                    []
-
                 Browsing cat ->
                     [ CatalogView.view cat ]
+
+                Attributing ->
+                    [ SheetView.formHeader app.score ]
+
+                Viewing ->
+                    []
             )

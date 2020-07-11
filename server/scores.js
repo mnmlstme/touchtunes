@@ -8,7 +8,8 @@ exports.list = (req, res) => {
     let json = []
     base('Scores').select({
         view: "Table",
-        fields: ["Title"]
+        fields: ["Title", "Last Modified"],
+        sort: [{field: "Last Modified", direction: "desc"}]
     }).eachPage( (records, fetchNextPage) => {
         json = json.concat(
             records.map(

@@ -14,6 +14,7 @@ import Http
 
 type Msg
     = Clear
+      -- Server messages
     | Save
     | Saved (Result Http.Error String)
     | SaveAs String
@@ -21,6 +22,7 @@ type Msg
     | GotCatalog (Result Http.Error String)
     | GetScore String
     | GotScore String (Result Http.Error String)
+      -- Editing measures
     | StartEdit Part.Id Int Attributes Measure
     | NoteEdit ( Int, Int )
     | HarmonyEdit ( Int, Int )
@@ -31,6 +33,11 @@ type Msg
     | PreviousEdit
     | NextEdit
     | DoneEdit
+      -- Attributing metadata to score
+    | StartAttributing
+    | ChangeTitle String
+    | DoneAttributing
+      -- Controls
     | SubdivisionMsg Dial.Action
     | AlterationMsg Dial.Action
     | TimeMsg Dial.Action

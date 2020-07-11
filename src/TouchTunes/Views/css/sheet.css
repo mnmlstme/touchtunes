@@ -22,6 +22,25 @@
     display: flex;
     justify-content: space-between;
     margin-bottom: 2em;
+    padding: 5px;
+}
+
+.header.form {
+    background: #5f78f9;
+    color: white;
+    position: absolute;
+    width: 100%;
+}
+
+.form input {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    text-align: inherit;
+    text-decoration: underline;
+    text-decoration-style: dashed;
+    padding: 0 .5em;
 }
 
 .body {

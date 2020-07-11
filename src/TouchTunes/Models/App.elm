@@ -1,4 +1,4 @@
-module TouchTunes.Models.App exposing (App, Screen(..), close, init, open)
+module TouchTunes.Models.App exposing (App, Screen(..), attribute, close, init, open)
 
 import Debug exposing (log)
 import Json.Encode as Json
@@ -21,6 +21,7 @@ type alias App =
 
 type Screen
     = Viewing
+    | Attributing
     | Editing { partId : Part.Id, measureNum : Int, editor : Editor }
     | Browsing Catalog
 
@@ -28,7 +29,7 @@ type Screen
 init : Score -> App
 init score =
     App
-        (MusicJson.log "Score JSON" MusicJson.score score)
+        score
         Viewing
         Nothing
         Nothing
@@ -39,6 +40,10 @@ close app =
     { app | screen = Viewing }
 
 
+attribute : App -> App
+attribute app =
+    { app | screen = Attributing }
+
 open : Part.Id -> Int -> App -> App
 open pid mnum app =
     let
@@ -46,9 +51,7 @@ open pid mnum app =
             Editing
                 { partId = pid
                 , measureNum = mnum
-                , editor =
-                    Editor.open attrs <|
-                        MusicJson.log "Measure JSON" MusicJson.measure measure
+                , editor =  Editor.open attrs measure
                 }
     in
     { app

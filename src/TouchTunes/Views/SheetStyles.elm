@@ -11,4 +11,5 @@ css =
             , pane = "pane"
             , body = "body"
             , header = "header"
+            , form = "form"
             }

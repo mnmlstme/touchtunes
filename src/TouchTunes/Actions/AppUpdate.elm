@@ -5,10 +5,10 @@ import Json.Decode as Json exposing (field)
 import Music.Json.Decode as Decode
 import Music.Json.Encode as MusicJson
 import Music.Models.Score as Score
+import TouchTunes.Actions.EditorUpdate as EditorUpdate
 import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.App as App exposing (App, Screen(..))
 import TouchTunes.Models.Catalog as Catalog exposing (Catalog)
-import TouchTunes.Actions.EditorUpdate as EditorUpdate
 
 
 
@@ -52,8 +52,24 @@ update msg app =
         Saved res ->
             ( app, Cmd.none )
 
-        SaveAs _ ->
-            ( app, Cmd.none )
+        SaveAs s ->
+            let
+                renamed =
+                    Score.changeTitle s app.score
+
+                body =
+                    Http.jsonBody <| MusicJson.score renamed
+            in
+            ( { app
+                | score = renamed
+                , scoreId = Nothing
+              }
+            , Http.post
+                { url = "../api/scores"
+                , body = body
+                , expect = Http.expectString Saved
+                }
+            )
 
         GetCatalog ->
             ( { app
@@ -144,6 +160,21 @@ update msg app =
             , Cmd.none
             )
 
+        StartAttributing ->
+            ( App.attribute app
+            , Cmd.none
+            )
+
+        ChangeTitle s ->
+            ( { app | score = Score.changeTitle s app.score }
+            , Cmd.none
+            )
+
+        DoneAttributing ->
+            ( App.close app
+            , Cmd.none
+            )
+
         _ ->
             case app.screen of
                 Editing e ->
@@ -181,4 +212,4 @@ update msg app =
                             ( edit, Cmd.none )
 
                 _ ->
-                    (app, Cmd.none)
+                    ( app, Cmd.none )

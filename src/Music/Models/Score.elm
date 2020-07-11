@@ -1,6 +1,7 @@
 module Music.Models.Score exposing
     ( Score
     , attributes
+    , changeTitle
     , countParts
     , empty
     , length
@@ -44,6 +45,11 @@ empty =
 score : String -> List Part -> List Measure -> Score
 score t pList mList =
     Score t pList (Array.fromList mList)
+
+
+changeTitle : String -> Score -> Score
+changeTitle s scr =
+    { scr | title = s }
 
 
 length : Score -> Int

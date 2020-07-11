@@ -66,6 +66,7 @@ view model =
             [ class (css .footer) ]
             [ button [ onClick <| GetCatalog ] [ text "Catalog" ]
             , button [ onClick <| Save ] [ text "Save" ]
+            , button [ onClick <| SaveAs ("Copy of " ++ model.score.title) ] [ text "Save a Copy" ]
             , button [ onClick <| Clear ] [ text "Clear" ]
             , span [ class (css .message) ] <|
                 Maybe.withDefault [] <|

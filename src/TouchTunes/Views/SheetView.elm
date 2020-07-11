@@ -1,4 +1,4 @@
-module TouchTunes.Views.SheetView exposing (view)
+module TouchTunes.Views.SheetView exposing (formHeader, view)
 
 import Array exposing (Array)
 import Array.Extra
@@ -12,15 +12,19 @@ import Html
         , dl
         , dt
         , footer
+        , form
         , h1
         , h3
         , header
+        , input
         , li
         , section
         , text
         , ul
         )
-import Html.Attributes exposing (class, classList)
+import Html.Attributes exposing (class, classList, value)
+import Html.Events exposing (onClick, onSubmit)
+import Html.Events.Extra exposing (onChange)
 import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
 import List.Nonempty as Nonempty exposing (Nonempty)
@@ -52,17 +56,7 @@ view viewer =
     in
     article
         [ class (css .frame) ]
-        [ header [ class (css .header) ]
-            [ h3 [ class (ScoreStyles.css .parts) ]
-                [ text <|
-                    String.join " / " <|
-                        List.map .name s.parts
-                ]
-            , h1 [ class (ScoreStyles.css .title) ]
-                [ text s.title ]
-            , h3 [ class (ScoreStyles.css .attribution) ]
-                []
-            ]
+        [ viewHeader s
         , div
             [ classList
                 [ ( css .pane, True )
@@ -71,6 +65,50 @@ view viewer =
             ]
           <|
             List.map (viewPart viewer s) s.parts
+        ]
+
+
+viewHeader : Score -> Html Msg
+viewHeader s =
+    header
+        [ class (css .header)
+        , onClick Actions.StartAttributing
+        ]
+        [ h3 [ class (ScoreStyles.css .parts) ]
+            [ text <|
+                String.join " / " <|
+                    List.map .name s.parts
+            ]
+        , h1 [ class (ScoreStyles.css .title) ]
+            [ text s.title ]
+        , h3 [ class (ScoreStyles.css .attribution) ]
+            []
+        ]
+
+
+formHeader : Score -> Html Msg
+formHeader s =
+    form
+        [ classList
+            [ ( css .header, True )
+            , ( css .form, True )
+            ]
+        , onSubmit Actions.DoneAttributing
+        ]
+        [ h3 [ class (ScoreStyles.css .parts) ]
+            [ text <|
+                String.join " / " <|
+                    List.map .name s.parts
+            ]
+        , h1 [ class (ScoreStyles.css .title) ]
+            [ input
+                [ onChange Actions.ChangeTitle
+                , value s.title
+                ]
+                []
+            ]
+        , h3 [ class (ScoreStyles.css .attribution) ]
+            []
         ]
 
 
