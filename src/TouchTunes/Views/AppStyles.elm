@@ -14,4 +14,8 @@ css =
             , catalog = "catalog"
             , index = "index"
             , active = "active"
+            , title = "title"
+            , key = "key"
+            , time = "time"
+            , parts = "parts"
             }

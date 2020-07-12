@@ -8,16 +8,18 @@ exports.list = (req, res) => {
     let json = []
     base('Scores').select({
         view: "Table",
-        fields: ["Title", "Last Modified"],
+        fields: ["Title", "Part JSON", "Key JSON", "Time JSON", "Last Modified"],
         sort: [{field: "Last Modified", direction: "desc"}]
     }).eachPage( (records, fetchNextPage) => {
         json = json.concat(
             records.map(
                 r => {
-                    let partNames = (r.get('PartNames') || '').split(',')
                     return {
                         id: r.id,
                         title: r.get('Title'),
+                        part: JSON.parse(r.get('Part JSON') || '{"ScorePart": {}}'),
+                        key: JSON.parse(r.get('Key JSON') || '{"Key": {}}'),
+                        time: JSON.parse(r.get('Time JSON') || '{"Time": {}}')
                     }
                 }
             )
@@ -39,28 +41,28 @@ exports.getById = (req, res) => {
             if (err) {
                 res.status(500).send(err)
             } else {
-                res.json( parseRecord(record) )
+                res.json( transformDown(record) )
             }
         })
 }
 
-const parseRecord = (rec) => {
-    let json = JSON.parse(rec.get("Score JSON") || "{\"Score\": {}}")
-    json["title"] = rec.get("Title")
-    return json
+function transformDown (rec) {
+    let part = JSON.parse(rec.get("Part JSON") || '{"ScorePart": {}}')
+    let measures = JSON.parse(rec.get("Measures JSON") || '[]')
+
+    return {Score: {
+        title: rec.get('Title'),
+        "part-list" : [part],
+        "measure-list": measures
+    }}
 }
 
 exports.create = (req, res) => {
     let body = req.body
-    let score = body["Score"]
-    let title = score ? score["title"] : ""
 
     base('Scores').create([
         {
-            "fields": {
-                "Title": title,
-                "Score JSON": JSON.stringify(body)
-            }
+            "fields": transformUp(body)
         }
     ], function(err, records) {
         if (err) {
@@ -75,20 +77,36 @@ exports.create = (req, res) => {
     });
 }
 
+function transformUp (body) {
+    let score = body["Score"]
+    let title = score ? score["title"] : ""
+    let partList = score ? score["part-list"] : [{ScorePart: {}}]
+    let measureList = score ? score["measure-list"] : []
+    let firstMeasure = measureList.length > 0 && measureList[0] && measureList[0]["Measure"]
+    let attributes = firstMeasure ? firstMeasure["attributes"]["Attributes"] : {
+       key: { Key: {} },
+       time: { Time: {} }
+    }
+
+    return {
+                "Title": title,
+                "Part JSON": JSON.stringify(partList[0]),
+                "Key JSON": JSON.stringify(attributes["key"]),
+                "Time JSON": JSON.stringify(attributes["time"]),
+                "Measures JSON": JSON.stringify(measureList),
+                "Score JSON": JSON.stringify(body)
+            }
+}
+
 exports.update = (req, res) => {
     // TODO; separate endpoint to update just the metadata or parts
     let id = req.params.id
     let body = req.body
-    let score = body["Score"]
-    let title = score ? score["title"] : ""
 
     base('Scores').update([
         {
             "id": id,
-            "fields": {
-                "Title": title,
-                "Score JSON": JSON.stringify(body)
-            }
+            "fields": transformUp(body)
         }
     ], function(err, records) {
         if (err) {

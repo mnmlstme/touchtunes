@@ -1,4 +1,4 @@
-module Music.Json.Decode exposing (score)
+module Music.Json.Decode exposing (score, part, key, time)
 
 import Json.Decode as Json exposing (Decoder, field, maybe, oneOf, succeed)
 import List.Nonempty as Nonempty exposing (Nonempty)
