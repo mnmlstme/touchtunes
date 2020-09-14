@@ -5,6 +5,7 @@ module Music.Views.NoteView exposing
     , isWhole
     , view
     , viewNote
+    , viewRest
     )
 
 import Debug exposing (log)

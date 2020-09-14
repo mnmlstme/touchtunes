@@ -1,7 +1,7 @@
 // import SVG sprite symbols
 
 import ttMusicSvg from "../Music/Views/svg";
-// import ttMusicCss from "../Music/Views/css";
+import ttAppSvg from "../TouchTunes/Views/svg";
 
 // inject bundled Elm app into div#main
 var app = require("../Main");

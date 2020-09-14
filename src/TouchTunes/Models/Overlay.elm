@@ -52,16 +52,11 @@ fromLayout layout =
     Overlay layout NoSelection
 
 
-subdivide : Duration -> Overlay -> Overlay
-subdivide duration overlay =
+subdivide : Int -> Overlay -> Overlay
+subdivide sub overlay =
     let
-        time =
-            Layout.time overlay.layout
-
         l =
-            Layout.subdivide
-                (duration.divisor // Time.divisor time)
-                overlay.layout
+            Layout.subdivide  sub overlay.layout
     in
     { overlay | layout = l }
 

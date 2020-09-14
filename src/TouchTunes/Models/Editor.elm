@@ -69,13 +69,15 @@ commit editor =
         newLayout =
             Layout.forMeasure overlay.layout.indirect theMeasure
 
-        dur =
+        
+
+        sub =
             Dial.value editor.controls.subdivisionDial
     in
     { editor
         | measure =
             log "commit" theMeasure
-        , overlay = Overlay.subdivide dur { overlay | layout = newLayout }
+        , overlay = Overlay.subdivide sub { overlay | layout = newLayout }
     }
 
 

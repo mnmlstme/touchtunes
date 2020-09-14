@@ -7,15 +7,9 @@ module TouchTunes.Models.Controls exposing
 
 import Array as Array
 import Debug exposing (log)
-import Html as Html exposing (Html, span)
-import Maybe.Extra
-import Music.Models.Duration
-    exposing
-        ( Duration
-        , eighth
-        , half
-        , quarter
-        )
+import Html exposing (Html, span)
+import Music.Models.Beat as Beat
+import Music.Models.Duration exposing (quarter)
 import Music.Models.Harmony as Harmony
     exposing
         ( Alteration(..)
@@ -23,29 +17,24 @@ import Music.Models.Harmony as Harmony
         , Function(..)
         , Harmony
         , Kind(..)
-        , chord
         , function
         )
 import Music.Models.Key as Key
     exposing
-        ( Degree
-        , Key
+        ( Key
         , KeyName(..)
         , keyOf
         )
 import Music.Models.Layout as Layout exposing (Layout)
-import Music.Models.Measure as Measure exposing (Measure)
+import Music.Models.Measure as Measure
 import Music.Models.Note as Note exposing (Note)
 import Music.Models.Pitch as Pitch
     exposing
         ( Chromatic(..)
         , Root
-        , Semitones
-        , alter
         , chromatic
         , root
         )
-import Music.Models.Staff as Staff
 import Music.Models.Time as Time exposing (BeatType(..), Time)
 import Music.Views.HarmonyView as HarmonyView
 import Music.Views.MeasureView as MeasureView
@@ -53,28 +42,22 @@ import Music.Views.NoteView as NoteView
     exposing
         ( StemOrientation(..)
         , alteration
-        , isWhole
-        , viewNote
         )
 import Music.Views.Symbols as Symbols
-import String exposing (fromFloat, fromInt)
-import Svg exposing (Svg, g, text, text_)
-import Svg.Attributes
-    exposing
-        ( fontSize
-        , fontWeight
-        , textAnchor
-        , transform
-        , x
-        , y
-        )
+import Svg exposing (Svg, text)
 import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.Dial as Dial exposing (Dial)
-import TouchTunes.Models.Overlay as Overlay exposing (Selection(..))
+import TouchTunes.Models.Overlay exposing (Selection(..))
+import TouchTunes.Views.Symbols
+    exposing
+        ( subdivideFour
+        , subdivideOne
+        , subdivideTwo
+        )
 
 
 type alias Controls msg =
-    { subdivisionDial : Dial Duration msg
+    { subdivisionDial : Dial Int msg
 
     -- for Note:
     , alterationDial : Dial Chromatic msg
@@ -109,7 +92,7 @@ init layout =
             , timeDial = initTimeDial <| Just <| Layout.time l
             , subdivisionDial = initSubdivisionDial
             , harmonyDial =
-                initHarmonyDial (Layout.key l)  Nothing
+                initHarmonyDial (Layout.key l) Nothing
             , bassDial =
                 initBassDial (Layout.key l) <|
                     Maybe.map Key.tonic <|
@@ -125,7 +108,7 @@ init layout =
             , alterationDial = initAlterationDial Natural
             , timeDial = initTimeDial Nothing
             , keyDial = initKeyDial Nothing
-            , harmonyDial = initHarmonyDial (keyOf C Key.Major)  Nothing
+            , harmonyDial = initHarmonyDial (keyOf C Key.Major) Nothing
             , bassDial = initBassDial (keyOf C Key.Major) Nothing
             , kindDial = initKindDial Nothing
             , chordDial = initChordDial Nothing
@@ -142,8 +125,8 @@ forSelection selection controls =
         HarmonySelection mHarmony key _ ->
             { controls
                 | harmonyDial =
-                    initHarmonyDial key
-                        <| log "harmony for selection " mHarmony
+                    initHarmonyDial key <|
+                        log "harmony for selection " mHarmony
                 , kindDial =
                     initKindDial <| Maybe.map .kind mHarmony
                 , chordDial =
@@ -154,7 +137,8 @@ forSelection selection controls =
                     initBassDial key <|
                         Maybe.map
                             (\harmony ->
-                                Maybe.withDefault harmony.root harmony.bass)
+                                Maybe.withDefault harmony.root harmony.bass
+                            )
                             mHarmony
             }
 
@@ -163,38 +147,45 @@ forSelection selection controls =
                 Just p ->
                     Maybe.withDefault controls <|
                         Maybe.map
-                            (\chr -> { controls | alterationDial = initAlterationDial chr })
+                            (\chr ->
+                                { controls
+                                    | alterationDial = initAlterationDial chr
+                                }
+                            )
                             (chromatic p.alter)
 
                 Nothing ->
                     controls
 
+
 forHarmony : Harmony -> Key -> Controls msg -> Controls msg
 forHarmony harmony key controls =
     { controls
-          | harmonyDial = initHarmonyDial key  <| Just harmony
-          , kindDial = initKindDial <| Just harmony.kind
-          , chordDial = initChordDial <| Just <|  Harmony.chordDegree harmony
-          , altHarmonyDial = initAltHarmonyDial <| Just harmony.alter
-          , bassDial = initBassDial key <| Just <| Maybe.withDefault harmony.root harmony.bass
+        | harmonyDial = initHarmonyDial key <| Just harmony
+        , kindDial = initKindDial <| Just harmony.kind
+        , chordDial = initChordDial <| Just <| Harmony.chordDegree harmony
+        , altHarmonyDial = initAltHarmonyDial <| Just harmony.alter
+        , bassDial = initBassDial key <| Just <| Maybe.withDefault harmony.root harmony.bass
     }
 
-initSubdivisionDial : Dial Duration msg
+
+initSubdivisionDial : Dial Int msg
 initSubdivisionDial =
     -- sets subdivision of current measure(quarter/eighth...)
     -- TODO: options depend on time signature
     -- TODO: initial depends on notes in measure
     Dial.init
-        quarter
+        1
         { options =
             Array.fromList
-                [ eighth
-                , quarter
-                , half
+                [ 4
+                , 2
+                , 1
                 ]
-        , segments = 10
+        , segments = 8
         , viewValue = viewSubdivision
         }
+
 
 
 initAlterationDial : Chromatic -> Dial Chromatic msg
@@ -264,31 +255,33 @@ initHarmonyDial k h =
         simple =
             Maybe.map
                 (\harm ->
-                     Harmony.setDegree
-                         Triad
-                         {harm
-                             | alter = []
-                             , bass = Nothing
-                         })
+                    Harmony.setDegree
+                        Triad
+                        { harm
+                            | alter = []
+                            , bass = Nothing
+                        }
+                )
                 h
     in
     Dial.init
         (Maybe.map (Harmony.setDegree Triad) h)
         { options =
             Array.fromList <|
-                List.append [Nothing]
-              <| 
-                List.map2
-                    (\f degree -> Just <| function k degree f )
-                    [ I, II, III, IV, V, VI, VII ]
-                    [ Triad, Triad, Triad, Triad, Seventh, Triad, Seventh]
+                List.append [ Nothing ] <|
+                    List.map2
+                        (\f degree -> Just <| function k degree f)
+                        [ I, II, III, IV, V, VI, VII ]
+                        [ Triad, Triad, Triad, Triad, Seventh, Triad, Seventh ]
         , segments = 12
-        , viewValue = \mh ->
-                      case mh of
-                          Just harmony ->
-                              HarmonyView.view harmony
-                          Nothing ->
-                              text "N.C."
+        , viewValue =
+            \mh ->
+                case mh of
+                    Just harmony ->
+                        HarmonyView.view harmony
+
+                    Nothing ->
+                        text "N.C."
         }
 
 
@@ -385,7 +378,7 @@ kindString kind =
         Augmented _ ->
             "+"
 
-        Dominant c ->
+        Dominant _ ->
             "Dom"
 
         HalfDiminished ->
@@ -452,23 +445,20 @@ fakeLayout =
     Layout.forMeasure Measure.noAttributes Measure.new
 
 
-viewSubdivision : Duration -> Svg msg
-viewSubdivision d =
+viewSubdivision : Int -> Svg msg
+viewSubdivision sub =
     let
-        -- choose a pitch which centers the note+stem on staff
-        pitch =
-            if isWhole d then
-                Pitch.b 4
+        symbol =
+            if sub == 4 then
+                subdivideFour
+
+            else if sub == 2 then
+                subdivideTwo
 
             else
-                Pitch.e_ 4
-
-        staffHeight =
-            Layout.height fakeLayout
+                subdivideOne
     in
-    g
-        [ transform ("translate(0," ++ fromFloat (-0.5 * staffHeight.px) ++ ")") ]
-        [ viewNote fakeLayout d pitch ]
+    Symbols.glyph symbol
 
 
 viewAlteration : Chromatic -> Html msg
@@ -480,27 +470,16 @@ viewAlteration chr =
     Symbols.glyph symbol
 
 
+
+
 viewTime : Time -> Html msg
 viewTime time =
-    let
-        staffHeight =
-            Layout.height fakeLayout
-
-        m =
-            Layout.margins fakeLayout
-
-        sp =
-            Layout.spacing fakeLayout
-    in
     MeasureView.viewTime fakeLayout <| Just time
 
 
 viewKey : KeyName -> Html msg
 viewKey kn =
     let
-        sp =
-            Layout.spacing fakeLayout
-
         key =
             -- TODO: handle other modes
             keyOf kn Key.Major

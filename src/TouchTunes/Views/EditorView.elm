@@ -23,24 +23,17 @@ import Html
         )
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick)
-import Json.Decode as Decode exposing (Decoder, field, int)
-import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Key exposing (keyName)
-import Music.Models.Layout as Layout exposing (Layout, scaleBeat)
-import Music.Models.Measure as Measure exposing (Measure)
-import Music.Models.Part as Part exposing (Part)
-import Music.Models.Score as Score exposing (Score)
-import Music.Models.Time as Time
 import Music.Views.MeasureView as MeasureView
 import String exposing (fromFloat)
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
-import TouchTunes.Models.Controls as Controls
 import TouchTunes.Models.Editor as Editor exposing (Editor)
 import TouchTunes.Models.Overlay exposing (Selection(..))
 import TouchTunes.Views.DialView as Dial
 import TouchTunes.Views.EditorStyles exposing (css)
 import TouchTunes.Views.OverlayView as OverlayView
 import TouchTunes.Views.RulerView as RulerView
+import Music.Models.Layout exposing (scaleBeat)
 
 
 view : Editor -> Html Msg
@@ -87,6 +80,7 @@ viewControls editor =
                 NoSelection ->
                     [ Dial.view controls.timeDial Actions.TimeMsg
                     , Dial.view controls.keyDial Actions.KeyMsg
+                    , Dial.view controls.subdivisionDial Actions.SubdivisionMsg
                     ]
 
 
