@@ -7,6 +7,8 @@ module Music.Models.Note exposing
     , pitch
     , playFor
     , restFor
+    , toRest
+    , toPlayed
     )
 
 import Music.Models.Duration as Duration exposing (Duration)
@@ -92,3 +94,11 @@ harmonize harmony note =
 justTheNote : Note -> Note
 justTheNote note =
     { note | harmony = Nothing }
+
+toRest : Note -> Note
+toRest note =
+    { note | do = Rest }
+
+toPlayed : Pitch -> Note -> Note
+toPlayed p note =
+    { note | do = Play p }

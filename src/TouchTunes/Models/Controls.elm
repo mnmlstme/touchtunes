@@ -251,21 +251,8 @@ initKeyDial k =
 initHarmonyDial : Key -> Maybe Harmony -> Dial (Maybe Harmony) msg
 initHarmonyDial k h =
     -- harmonyDial: chose chord based on function in Key
-    let
-        simple =
-            Maybe.map
-                (\harm ->
-                    Harmony.setDegree
-                        Triad
-                        { harm
-                            | alter = []
-                            , bass = Nothing
-                        }
-                )
-                h
-    in
     Dial.init
-        (Maybe.map (Harmony.setDegree Triad) h)
+        (Just <| Maybe.withDefault (Harmony.function k Triad I) h)
         { options =
             Array.fromList <|
                 List.append [ Nothing ] <|

@@ -172,7 +172,13 @@ latent editor =
                         fn controlled
 
                     Nothing ->
-                        controlled
+                        let
+                            fn =
+                                modifyNote
+                                    (\original -> { original | harmony = Nothing })
+                                    (Beat.toDuration t beat)
+                        in
+                        fn controlled
 
             NoteSelection note location _ ->
                 let

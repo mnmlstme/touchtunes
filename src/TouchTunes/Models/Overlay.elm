@@ -6,6 +6,7 @@ module TouchTunes.Models.Overlay exposing
     , drag
     , editHarmony
     , editNote
+    , eraseSelection
     , findContinuedNote
     , findNote
     , finish
@@ -26,7 +27,7 @@ import Music.Models.Layout as Layout
         , positionToLocation
         )
 import Music.Models.Measure as Measure exposing (Measure)
-import Music.Models.Note exposing (Note, What(..))
+import Music.Models.Note exposing (Note, What(..), toRest)
 import Music.Models.Pitch as Pitch
 import Music.Models.Time as Time
 
@@ -56,7 +57,7 @@ subdivide : Int -> Overlay -> Overlay
 subdivide sub overlay =
     let
         l =
-            Layout.subdivide  sub overlay.layout
+            Layout.subdivide sub overlay.layout
     in
     { overlay | layout = l }
 
@@ -86,7 +87,7 @@ findNote pos measure overlay =
     Measure.findNote offset measure
 
 
-findContinuedNote : Position -> Measure -> Overlay -> (Measure.Offset, Note)
+findContinuedNote : Position -> Measure -> Overlay -> ( Measure.Offset, Note )
 findContinuedNote pos measure overlay =
     let
         time =
@@ -98,8 +99,7 @@ findContinuedNote pos measure overlay =
         offset =
             Beat.toDuration time loc.beat
     in
-        Measure.findContinuedNote offset measure
-
+    Measure.findContinuedNote offset measure
 
 
 startNote : Position -> Overlay -> Overlay
@@ -135,7 +135,6 @@ editNote pos note overlay =
     }
 
 
-
 editHarmony : Measure.Offset -> Maybe Harmony -> Overlay -> Overlay
 editHarmony dur harmony overlay =
     let
@@ -154,7 +153,7 @@ editHarmony dur harmony overlay =
     }
 
 
-changeHarmony : Maybe Harmony  -> Overlay -> Overlay
+changeHarmony : Maybe Harmony -> Overlay -> Overlay
 changeHarmony mHarmony overlay =
     case overlay.selection of
         HarmonySelection _ key beat ->
@@ -219,12 +218,29 @@ drag pos overlay =
             overlay
 
 
+eraseSelection : Overlay -> Overlay
+eraseSelection overlay =
+    case overlay.selection of
+        HarmonySelection _ key beat ->
+            { overlay
+                | selection = HarmonySelection Nothing key beat
+            }
+
+        NoteSelection note location bool ->
+            { overlay
+                | selection = NoteSelection (toRest note) location bool
+            }
+
+        NoSelection ->
+            overlay
+
+
 finish : Overlay -> Overlay
 finish overlay =
     { overlay
         | selection =
             case overlay.selection of
-                NoteSelection note location bool ->
+                NoteSelection note location _ ->
                     NoteSelection note location False
 
                 HarmonySelection harm key beat ->

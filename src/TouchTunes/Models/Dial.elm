@@ -4,6 +4,7 @@ module TouchTunes.Models.Dial exposing
     , Dial
     , Tracking
     , init
+    , override
     , transientValue
     , update
     , value
@@ -59,6 +60,11 @@ value dial =
     dial.value
 
 
+override : val -> Dial val msg -> Dial val msg
+override v dial =
+    { dial | value = v }
+
+    
 transientValue : Dial val msg -> val
 transientValue dial =
     Maybe.withDefault dial.value <|

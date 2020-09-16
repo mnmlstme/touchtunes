@@ -79,6 +79,13 @@ update msg editor =
             in
             Editor.withOverlay overnote editor
 
+        EraseSelection ->
+            let
+                overrest =
+                    Overlay.eraseSelection editor.overlay
+            in
+            Editor.finish <| Editor.withOverlay overrest editor
+
         FinishEdit ->
             Editor.finish editor
 
@@ -173,16 +180,23 @@ update msg editor =
                 kd =
                     Dial.update dialAction controls.kindDial
 
+                kind = Dial.value kd
+
+                degree = Dial.value controls.chordDial
+
+                h = Maybe.map
+                    (\harm -> Harmony.setDegree degree <| Harmony.setKind kind harm)
+                    <| Dial.value controls.harmonyDial
+
                 ed =
                     { editor
                         | controls =
                             { controls
                                 | kindDial = kd
+                                , harmonyDial = Dial.override h controls.harmonyDial
                             }
                     }
 
-                m =
-                    Editor.latent ed
             in
             case dialAction of
                 Dial.Finish ->
@@ -196,16 +210,18 @@ update msg editor =
                 cd =
                     Dial.update dialAction controls.chordDial
 
+                degree = Dial.value cd
+
+                h = Maybe.map (Harmony.setDegree degree) <| Dial.value controls.harmonyDial
+
                 ed =
                     { editor
                         | controls =
                             { controls
                                 | chordDial = cd
+                                , harmonyDial = Dial.override h controls.harmonyDial
                             }
                     }
-
-                m =
-                    Editor.latent ed
             in
             case dialAction of
                 Dial.Finish ->
@@ -219,16 +235,19 @@ update msg editor =
                 ad =
                     Dial.update dialAction controls.altHarmonyDial
 
+                alt = Dial.value ad
+                      
+                h = Maybe.map (Harmony.setAlteration alt) <| Dial.value controls.harmonyDial
+
                 ed =
                     { editor
                         | controls =
                             { controls
                                 | altHarmonyDial = ad
+                                , harmonyDial = Dial.override h controls.harmonyDial
                             }
                     }
 
-                m =
-                    Editor.latent ed
             in
             case dialAction of
                 Dial.Finish ->
@@ -242,16 +261,19 @@ update msg editor =
                 bd =
                     Dial.update dialAction controls.bassDial
 
+                bass = Dial.value bd
+
+                h = Maybe.map (Harmony.over bass) <| Dial.value controls.harmonyDial
+
                 ed =
                     { editor
                         | controls =
                             { controls
                                 | bassDial = bd
+                                , harmonyDial = Dial.override h controls.harmonyDial
                             }
                     }
 
-                m =
-                    Editor.latent ed
             in
             case dialAction of
                 Dial.Finish ->

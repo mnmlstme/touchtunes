@@ -27,6 +27,7 @@ type Msg
     | NoteEdit ( Int, Int )
     | HarmonyEdit ( Int, Int )
     | DragEdit ( Int, Int )
+    | EraseSelection
     | FinishEdit
     | SaveEdit
     | CancelEdit

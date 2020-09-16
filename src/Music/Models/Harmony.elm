@@ -3,7 +3,7 @@ module Music.Models.Harmony exposing
     , Chord(..)
     , Function(..)
     , Harmony
-    , Kind(..), setDegree
+    , Kind(..)
     , add
     , augmented
     , chord
@@ -20,6 +20,9 @@ module Music.Models.Harmony exposing
     , over
     , power
     , raised
+    , setAlteration
+    , setDegree
+    , setKind
     , sus
     )
 
@@ -101,6 +104,14 @@ chordDegree harmony =
 
         Power ->
             Triad
+
+setKind : Kind -> Harmony -> Harmony
+setKind k harmony =
+    {harmony | kind = k}
+
+setAlteration : List Alteration -> Harmony -> Harmony
+setAlteration lst harmony =
+    {harmony | alter = lst}
 
 setDegree : Chord -> Harmony -> Harmony
 setDegree ch harmony =

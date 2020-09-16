@@ -23,7 +23,9 @@ import Html
         )
 import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick)
+import Music.Models.Beat exposing (Beat)
 import Music.Models.Key exposing (keyName)
+import Music.Models.Layout exposing (Layout)
 import Music.Views.MeasureView as MeasureView
 import String exposing (fromFloat)
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
@@ -106,6 +108,20 @@ viewMeasure editor =
         ]
 
 
+viewEraseButton : Beat -> Layout -> Html Msg
+viewEraseButton b l =
+    let
+        left =
+            .px <| scaleBeat l b
+    in
+    li
+        [ class (css .below)
+        , style "left" <| fromFloat left ++ "px"
+        ]
+        [ button [ onClick EraseSelection ]
+          [ text "Erase" ]
+        ]
+
 viewInPlaceControls : Editor -> Html Msg
 viewInPlaceControls editor =
     let
@@ -130,10 +146,20 @@ viewInPlaceControls editor =
                         .px <| scaleBeat l beat
                 in
                 li
-                    [ style "left" <| fromFloat left ++ "px"
+                    [ class (css .above)
+                    , style "left" <| fromFloat left ++ "px"
                     ]
                     [ Dial.view c.harmonyDial Actions.HarmonyMsg
                     ]
+
+            NoSelection ->
+                text ""
+        , case s of
+            NoteSelection _ loc _ ->
+                viewEraseButton loc.beat l
+
+            HarmonySelection _ _ beat ->
+                viewEraseButton beat l
 
             NoSelection ->
                 text ""
