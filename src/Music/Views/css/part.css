@@ -2,21 +2,25 @@
 
 .part {
     display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    margin: 0 1em;
 }
 
 .header {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    width: 0;
+}
+
+.header + .staff {
+    margin-left: 4em;
 }
 
 .abbrev {
     font-variant-caps: small-caps;
 }
 
-.body {
+.staff {
     flex-grow: 100;
     display: flex;
     flex-direction: row;

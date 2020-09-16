@@ -9,7 +9,7 @@ css =
             { sheet = "sheet"
             , frame = "frame"
             , pane = "pane"
-            , body = "body"
+            , staff = "staff"
             , header = "header"
             , form = "form"
             }

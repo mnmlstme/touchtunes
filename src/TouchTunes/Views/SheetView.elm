@@ -1,7 +1,7 @@
 module TouchTunes.Views.SheetView exposing (formHeader, view)
 
 import Array exposing (Array)
-import Array.Extra
+import Array.Extra exposing (indexedMapToList)
 import Debug exposing (log)
 import Html
     exposing
@@ -27,6 +27,7 @@ import Html.Events exposing (onClick, onSubmit)
 import Html.Events.Extra exposing (onChange)
 import Html.Events.Extra.Pointer as Pointer
 import Json.Decode as Decode exposing (Decoder, field, int)
+import List.Extra exposing (greedyGroupsOf)
 import List.Nonempty as Nonempty exposing (Nonempty)
 import Music.Models.Key exposing (keyName)
 import Music.Models.Layout as Layout exposing (Layout)
@@ -120,20 +121,26 @@ viewPart viewer score part =
                 (\a m -> ( Layout.forMeasure a m, m ))
                 (Score.attributes score)
                 score.measures
+
+        measureViews =
+            indexedMapToList (viewMeasure viewer part.id) layoutMeasures
+
+        viewStaff measures =
+            div [ class (PartStyles.css .staff) ]
+                measures
+
     in
     section
         [ class (PartStyles.css .part)
         ]
-        [ header [ class (PartStyles.css .header) ]
-            [ h3 [ class (PartStyles.css .abbrev) ]
-                [ text part.abbrev ]
+        <| List.append
+            [ header [ class (PartStyles.css .header) ]
+                  [ h3 [ class (PartStyles.css .abbrev) ]
+                        [ text part.abbrev ]
+                  ]
             ]
-        , div
-            [ class (PartStyles.css .body) ]
-          <|
-            Array.toList <|
-                Array.indexedMap (viewMeasure viewer part.id) layoutMeasures
-        ]
+            <| List.map viewStaff <| greedyGroupsOf 4 measureViews
+
 
 
 viewMeasure : Sheet -> Part.Id -> Int -> ( Layout, Measure ) -> Html Msg

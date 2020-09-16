@@ -9,5 +9,5 @@ css =
             { part = "part"
             , header = "header"
             , abbrev = "abbrev"
-            , body = "body"
+            , staff = "staff"
             }
