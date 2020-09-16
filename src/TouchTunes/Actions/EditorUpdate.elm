@@ -95,7 +95,13 @@ update msg editor =
         DoneEdit ->
             Editor.commit editor
 
+        NextNew ->
+            Editor.commit editor
+
         NextEdit ->
+            Editor.commit editor
+
+        PreviousNew ->
             Editor.commit editor
 
         PreviousEdit ->

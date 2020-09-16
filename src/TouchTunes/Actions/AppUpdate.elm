@@ -87,6 +87,7 @@ update msg app =
                 Ok str ->
                     let
                         decoded =
+
                             Json.decodeString Catalog.decode str
                     in
                     ( case decoded of
@@ -186,6 +187,11 @@ update msg app =
                             { a
                                 | score = Score.setMeasure e.measureNum e.editor.measure app.score
                             }
+
+                        new n a =
+                            { a
+                                | score = Score.insertMeasure n app.score
+                            }
                     in
                     case msg of
                         SaveEdit ->
@@ -197,9 +203,23 @@ update msg app =
                             , Cmd.none
                             )
 
+                        NextNew ->
+                            ( App.open e.partId (e.measureNum + 1) <|
+                                  new (e.measureNum + 1) <|
+                                      save edit
+                            , Cmd.none
+                            )
+
                         PreviousEdit ->
                             ( App.open e.partId (e.measureNum - 1) <|
                                 save edit
+                            , Cmd.none
+                            )
+
+                        PreviousNew ->
+                            ( App.open e.partId (e.measureNum - 1) <|
+                                  new e.measureNum <|
+                                      save edit
                             , Cmd.none
                             )
 

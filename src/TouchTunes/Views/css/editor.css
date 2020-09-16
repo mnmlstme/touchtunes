@@ -181,20 +181,22 @@
 
 .navigation > .previous  {
     right: 100%;
-    top: 50%;
+    top: 65%;
 }
 
-.navigation > .previous > *:first-child {
-    margin-top: -50%;
+.navigation > .previousNew  {
+    right: 100%;
+    top: 35%;
 }
 
 .navigation > .next  {
     left: 100%;
-    top: 50%;
+    top: 65%;
 }
 
-.navigation > .next > *:first-child {
-    margin-top: -50%;
+.navigation > .nextNew  {
+    left: 100%;
+    top: 35%;
 }
 
 .navigation > .cancel  {
@@ -204,5 +206,9 @@
 
 .navigation > .done  {
     left: 100%;
-    bottom: 0;
+    top: 100%;
+}
+
+.navigation > * > *:first-child {
+    margin-top: -50%;
 }

@@ -4,6 +4,7 @@ module Music.Models.Score exposing
     , changeTitle
     , countParts
     , empty
+    , insertMeasure
     , length
     , measure
     , measureWithContext
@@ -82,6 +83,16 @@ setMeasure : Int -> Measure -> Score -> Score
 setMeasure i m s =
     { s | measures = Array.set i m s.measures }
 
+insertMeasure : Int -> Score -> Score
+insertMeasure i s =
+    let
+        ms = s.measures
+
+        before = Array.slice 0 i ms
+
+        after = Array.slice i (Array.length ms) ms
+    in
+    { s | measures = Array.append (Array.push Measure.new before) after}
 
 attributes : Score -> Array Attributes
 attributes s =

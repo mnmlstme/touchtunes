@@ -33,6 +33,8 @@ type Msg
     | CancelEdit
     | PreviousEdit
     | NextEdit
+    | PreviousNew
+    | NextNew
     | DoneEdit
       -- Attributing metadata to score
     | StartAttributing
