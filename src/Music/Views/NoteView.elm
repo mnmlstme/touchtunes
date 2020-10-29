@@ -3,32 +3,27 @@ module Music.Views.NoteView exposing
     , accidental
     , alteration
     , isWhole
-    , view
-    , viewNote
-    , viewRest
+    , draw
+    , drawNote
+    , drawRest
     )
 
-import Debug exposing (log)
-import Dict exposing (Dict)
-import Html exposing (Html, div)
 import Html.Attributes as HtmlAttr exposing (style)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
-import Music.Models.Key as Key exposing (Key, stepAlteredIn)
+import Music.Models.Key exposing (Key, stepAlteredIn)
 import Music.Models.Layout as Layout
     exposing
         ( Layout
         , Pixels
-        , halfSpacing
         , margins
         , positionOnStaff
         , scaleBeat
         , scalePitch
         , spacing
-        , toPixels
         )
 import Music.Models.Note exposing (..)
-import Music.Models.Pitch as Pitch
+import Music.Models.Pitch
     exposing
         ( Chromatic(..)
         , Pitch
@@ -248,8 +243,8 @@ notePlacement time dur beat =
     Beat.add time half beat
 
 
-view : Layout -> Beat -> Note -> Html msg
-view layout beat note =
+draw : Layout -> Beat -> Note -> Svg msg
+draw layout beat note =
     let
         h =
             Layout.height layout
@@ -257,12 +252,8 @@ view layout beat note =
         d =
             note.duration
 
-        w =
-            Layout.durationSpacing layout d
-
-        maxWidth =
-            -- maximum width of any note's drawing area
-            80.0
+        m =
+            margins layout
 
         xpos =
             scaleBeat layout <|
@@ -271,41 +262,32 @@ view layout beat note =
         x0 =
             scaleBeat layout beat
     in
-    div
-        [ HtmlAttr.class (css .note)
-        , style "left" <| fromFloat x0.px ++ "px"
-        , style "width" <| fromFloat w.px ++ "px"
+    g
+        [ class (css .note)
+        , transform <| "translate(" ++ fromFloat x0.px ++ ",0)"
         ]
-        [ svg
-            [ height <| fromFloat h.px
-            , width <| fromFloat maxWidth
-            , viewBox <|
-                fromFloat (-0.5 * maxWidth)
-                    ++ " 0 "
-                    ++ fromFloat maxWidth
-                    ++ " "
-                    ++ fromFloat h.px
-            , transform <|
+        [ g
+          [ transform <|
                 "translate("
-                    ++ fromFloat (xpos.px - x0.px - 0.5 * maxWidth)
+                    ++ fromFloat (xpos.px - x0.px)
                     ++ ",0)"
-            ]
-            [ case note.do of
+          ]
+          [ case note.do of
                 Play p ->
-                    viewNote layout d p
+                    drawNote layout d p
 
                 Rest ->
-                    viewRest layout d
-            ]
-        , div [ style "top" "0" ]
+                    drawRest layout d
+          ]
+        , g [transform <| "translate(0," ++ fromFloat (0.5 * m.top.px) ++ ")"]
             [ Maybe.withDefault (text "") <|
-                Maybe.map HarmonyView.view note.harmony
+                Maybe.map HarmonyView.draw note.harmony
             ]
         ]
 
 
-viewRest : Layout -> Duration -> Svg msg
-viewRest layout d =
+drawRest : Layout -> Duration -> Svg msg
+drawRest layout d =
     let
         sp =
             spacing layout
@@ -324,29 +306,15 @@ viewRest layout d =
             )
         ]
         [ Symbols.view rest
-        , viewDot d
+        , drawDot d
         ]
 
 
-viewNote : Layout -> Duration -> Pitch -> Svg msg
-viewNote layout d p =
+drawNote : Layout -> Duration -> Pitch -> Svg msg
+drawNote layout d p =
     let
-        sp =
-            spacing layout
-
-        w =
-            1.5 * sp.px
-
         ypos =
             scalePitch layout p
-
-        position =
-            String.join ","
-                (List.map String.fromFloat
-                    [ 0
-                    , ypos.px
-                    ]
-                )
 
         note =
             noteHead d
@@ -360,7 +328,7 @@ viewNote layout d p =
         alt =
             accidental (Layout.key layout) p
 
-        viewLedger y =
+        drawLedger y =
             g [ transform ("translate(0," ++ fromFloat y.px ++ ")") ]
                 [ Symbols.view ledgerLine ]
     in
@@ -368,7 +336,7 @@ viewNote layout d p =
         [ transform ("translate(0," ++ fromFloat ypos.px ++ ")")
         ]
         [ Symbols.view note
-        , viewDot d
+        , drawDot d
         , case stem of
             Just theStem ->
                 Symbols.view theStem
@@ -376,7 +344,7 @@ viewNote layout d p =
             Nothing ->
                 text_ [] []
         , g []
-            (List.map viewLedger ledgers)
+            (List.map drawLedger ledgers)
         , case alt of
             Just theAlt ->
                 Symbols.view <|
@@ -387,8 +355,8 @@ viewNote layout d p =
         ]
 
 
-viewDot : Duration -> Svg msg
-viewDot d =
+drawDot : Duration -> Svg msg
+drawDot d =
     let
         sp =
             20.0

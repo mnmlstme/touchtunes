@@ -2,17 +2,15 @@ module Music.Views.HarmonyView exposing
     ( chromaticSymbol
     , degreeNumber
     , kindString
-    , view
-    , viewAlterationList
-    , viewBass
-    , viewDegree
-    , viewKind
-    , viewKindString
-    , viewRoot
+    , draw
+    , drawAlterationList
+    , drawBass
+    , drawDegree
+    , drawKind
+    , drawKindString
+    , drawRoot
     )
 
-import Html exposing (Html, div, span, text)
-import Html.Attributes exposing (class, style)
 import Music.Models.Harmony as Harmony exposing (Alteration(..), Chord(..), Harmony, Kind(..))
 import Music.Models.Key exposing (stepAlteredIn)
 import Music.Models.Layout as Layout
@@ -38,6 +36,8 @@ import Music.Models.Pitch as Pitch
 import Music.Views.HarmonyStyles exposing (css)
 import Music.Views.Symbols as Symbols exposing (Symbol, glyph)
 import String exposing (fromInt)
+import Svg exposing (Svg, g, svg, text, text_)
+import Svg.Attributes exposing (class, transform)
 
 
 chromaticSymbol : Semitones -> Maybe Symbol
@@ -86,9 +86,9 @@ degreeNumber chord =
             Just "13"
 
 
-viewDegree : String -> Html msg
-viewDegree s =
-    span [ class (css .degree) ] [ text s ]
+drawDegree : String -> Svg msg
+drawDegree s =
+    text_ [ class (css .degree) ] [ text s ]
 
 
 kindString : Kind -> Maybe String
@@ -124,19 +124,19 @@ kindString kind =
             Nothing
 
 
-viewKindString : String -> Html msg
-viewKindString s =
-    span [] [ text s ]
+drawKindString : String -> Svg msg
+drawKindString s =
+    text_ [] [ text s ]
 
 
-viewKind : Kind -> Html msg
-viewKind kind =
-    span [ class (css .kind) ]
+drawKind : Kind -> Svg msg
+drawKind kind =
+    g [ class (css .kind) ]
         [ Maybe.withDefault (text "") <|
-            Maybe.map viewKindString <|
+            Maybe.map drawKindString <|
                 kindString kind
         , Maybe.withDefault (text "") <|
-            Maybe.map viewDegree <|
+            Maybe.map drawDegree <|
                 case kind of
                     Major c ->
                         degreeNumber c
@@ -165,82 +165,80 @@ viewKind kind =
         ]
 
 
-viewAlterationList : List Alteration -> Html msg
-viewAlterationList alterationList =
-    span [ class (css .altList) ] <|
+drawAlterationList : List Alteration -> Svg msg
+drawAlterationList alterationList =
+    g [ class (css .altList) ] <|
         List.map
-            viewAlteration
+            drawAlteration
             alterationList
 
 
-viewAlteration : Alteration -> Html msg
-viewAlteration alteration =
+drawAlteration : Alteration -> Svg msg
+drawAlteration alteration =
     case alteration of
         Sus n ->
-            span [ class (css .alt) ] [ text <| "Sus" ++ fromInt n ]
+            text_ [ class (css .alt) ] [ text <| "Sus" ++ fromInt n ]
 
         Add n ->
-            span [ class (css .alt) ] [ text <| "Add" ++ fromInt n ]
+            text_ [ class (css .alt) ] [ text <| "Add" ++ fromInt n ]
 
         No n ->
-            span [ class (css .alt) ] [ text <| "no" ++ fromInt n ]
+            text_ [ class (css .alt) ] [ text <| "no" ++ fromInt n ]
 
         Raised n ->
-            span [ class (css .alt) ]
-                [ text "("
-                , glyph Symbols.sharp
-                , text <| fromInt n
-                , text ")"
+            g [ class (css .alt) ]
+                [ text_ [] [text <| "( " ++ fromInt n ++ ")"]
+                , Symbols.view Symbols.sharp
                 ]
 
         Lowered n ->
-            span [ class (css .alt) ]
-                [ text "("
-                , glyph Symbols.flat
-                , text <| fromInt n
-                , text ")"
+            g [ class (css .alt) ]
+                [ text_ [] [text <| "( " ++ fromInt n ++ ")"]
+                , Symbols.view Symbols.flat
                 ]
 
         Altered s n ->
-            span [ class (css .alt) ] [ text <| "(" ++ s ++ fromInt n ++ ")" ]
+            text_ [ class (css .alt) ] [ text <| "(" ++ s ++ fromInt n ++ ")" ]
 
 
-viewRoot : Root -> Html msg
-viewRoot root =
+drawRoot : Root -> Svg msg
+drawRoot root =
     let
         chsym =
             chromaticSymbol root.alter
     in
-    span [ class (css .root) ]
-        [ text <| Pitch.stepToString root.step
+    g [ class (css .root) ]
+        [ text_ [] [text <| Pitch.stepToString root.step]
         , Maybe.withDefault (text "") <|
-            Maybe.map (\s -> span [ class (css .chromatic) ] [ glyph s ]) chsym
+            Maybe.map
+                (\s -> g [ class (css .chromatic) ] [ Symbols.view s ])
+                chsym
         ]
 
 
-viewBass : Maybe Root -> Html msg
-viewBass bass =
+drawBass : Maybe Root -> Svg msg
+drawBass bass =
     case bass of
         Just r ->
-            span [ class (css .over) ]
-                [ text "/"
-                , viewRoot r
+            text_ [ class (css .over) ]
+                [ text_ [] [text "/"]
+                , drawRoot r
                 ]
 
         Nothing ->
             text ""
 
 
-view : Harmony -> Html msg
-view harmony =
-    div
+draw : Harmony -> Svg msg
+draw harmony =
+    g
         [ class (css .harmony) ]
-        [ viewRoot harmony.root
-        , viewKind harmony.kind
+        [ drawRoot harmony.root
+        , drawKind harmony.kind
         , if List.isEmpty harmony.alter then
             text ""
 
           else
-            viewAlterationList harmony.alter
-        , viewBass harmony.bass
+            drawAlterationList harmony.alter
+        , drawBass harmony.bass
         ]

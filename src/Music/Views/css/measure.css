@@ -4,24 +4,24 @@
     position: relative;
 }
 
-svg.staff {
+.staff {
     overflow: visible;
     stroke: currentcolor;
     pointer-events: none;
 }
 
-svg.time {
+.time {
     overflow: visible;
-    font-weight: 800;
+    font-weight: 700;
     font-size: 20px;
     text-anchor: middle;
 }
 
-svg.key {
+.key {
     overflow: visible;
 }
 
-svg.clef {
+.clef {
     overflow: visible;
 }
 

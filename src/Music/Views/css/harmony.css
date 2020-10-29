@@ -3,12 +3,6 @@
 
 
 .harmony {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    line-height: 1;
-    padding: 5px 0;
 }
 
 .harmony > * {

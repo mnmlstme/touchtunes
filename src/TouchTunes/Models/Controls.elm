@@ -7,8 +7,6 @@ module TouchTunes.Models.Controls exposing
 
 import Array as Array
 import Debug exposing (log)
-import Html exposing (Html, span)
-import Music.Models.Beat as Beat
 import Music.Models.Duration exposing (quarter)
 import Music.Models.Harmony as Harmony
     exposing
@@ -38,13 +36,10 @@ import Music.Models.Pitch as Pitch
 import Music.Models.Time as Time exposing (BeatType(..), Time)
 import Music.Views.HarmonyView as HarmonyView
 import Music.Views.MeasureView as MeasureView
-import Music.Views.NoteView as NoteView
-    exposing
-        ( StemOrientation(..)
-        , alteration
-        )
+import Music.Views.NoteView exposing (alteration)
 import Music.Views.Symbols as Symbols
-import Svg exposing (Svg, text)
+import Svg exposing (Svg, g, text, text_)
+import Svg.Attributes exposing (transform)
 import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.Dial as Dial exposing (Dial)
 import TouchTunes.Models.Overlay exposing (Selection(..))
@@ -187,7 +182,6 @@ initSubdivisionDial =
         }
 
 
-
 initAlterationDial : Chromatic -> Dial Chromatic msg
 initAlterationDial chr =
     -- alterationDial: sets alteration (sharp/flat/natural)
@@ -219,7 +213,7 @@ initTimeDial t =
                 , Time 9 Eight
                 ]
         , segments = 10
-        , viewValue = viewTime
+        , viewValue = drawTime
         }
 
 
@@ -244,7 +238,7 @@ initKeyDial k =
                 , Fsharp
                 ]
         , segments = 15
-        , viewValue = viewKey
+        , viewValue = drawKey
         }
 
 
@@ -265,7 +259,7 @@ initHarmonyDial k h =
             \mh ->
                 case mh of
                     Just harmony ->
-                        HarmonyView.view harmony
+                        HarmonyView.draw harmony
 
                     Nothing ->
                         text "N.C."
@@ -295,7 +289,7 @@ initBassDial k r =
                 , root Pitch.F Sharp
                 ]
         , segments = 24
-        , viewValue = HarmonyView.viewBass << Just
+        , viewValue = HarmonyView.drawBass << Just
         }
 
 
@@ -346,7 +340,7 @@ initKindDial k =
                 , Power
                 ]
         , segments = 18
-        , viewValue = kindString >> HarmonyView.viewKindString
+        , viewValue = kindString >> HarmonyView.drawKindString
         }
 
 
@@ -395,7 +389,7 @@ initChordDial ch =
         , viewValue =
             HarmonyView.degreeNumber
                 >> Maybe.withDefault "Triad"
-                >> HarmonyView.viewDegree
+                >> HarmonyView.drawDegree
         }
 
 
@@ -420,10 +414,10 @@ initAltHarmonyDial ls =
         , viewValue =
             \alts ->
                 if List.isEmpty alts then
-                    span [] [ text "( )" ]
+                    text_ [] [ text "( )" ]
 
                 else
-                    HarmonyView.viewAlterationList alts
+                    HarmonyView.drawAlterationList alts
         }
 
 
@@ -448,7 +442,7 @@ viewSubdivision sub =
     Symbols.glyph symbol
 
 
-viewAlteration : Chromatic -> Html msg
+viewAlteration : Chromatic -> Svg msg
 viewAlteration chr =
     let
         symbol =
@@ -457,18 +451,17 @@ viewAlteration chr =
     Symbols.glyph symbol
 
 
+drawTime : Time -> Svg msg
+drawTime time =
+    g [ transform "scale(0.5)" ]
+        [ MeasureView.drawTime fakeLayout <| Just time ]
 
 
-viewTime : Time -> Html msg
-viewTime time =
-    MeasureView.viewTime fakeLayout <| Just time
-
-
-viewKey : KeyName -> Html msg
-viewKey kn =
+drawKey : KeyName -> Svg msg
+drawKey kn =
     let
         key =
             -- TODO: handle other modes
             keyOf kn Key.Major
     in
-    HarmonyView.viewRoot (Key.tonic key)
+    HarmonyView.drawRoot (Key.tonic key)

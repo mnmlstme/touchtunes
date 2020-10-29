@@ -1,53 +1,34 @@
 /* Dial */
 
 .dial {
-    position: absolute;
-    height: 400%;
-    width: 400%;
-    top: -150%;
-    left: -150%;
-    z-index: 1;
     pointer-events: none;
     cursor: pointer;
+    margin-left: -150%;
+    margin-top: -150%;
+    position: relative; /* for z-index */
+    z-index: 0;
 }
 
 .dial.active {
-    z-index: 2;
+    z-index: 1;
 }
 
 .dial > svg {
     fill: inherit;
-    position: absolute;
-    height: 100%;
-    width: 100%;
 }
 
 .dial.active circle.outer {
-    pointer-events: all;
-}
-
-ul.collar {
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    visibility: hidden;
-    border-radius: 50%;
-    box-shadow: 0 0 3px rgba(0,0,0,0.5);
-    text-shadow: 1px 2px 3px #312a80;
-    z-index: 1;
-    transform: scale(0.35);
-    transition: transform 200ms;
+   pointer-events: all;
 }
 
 g.collar {
+    opacity: 0;
     transform: scale(0.35);
     transition: transform 200ms;
 }
 
 circle.outer {
-    fill: inherit;
-    fill-opacity: 0.5;
-    visibility: hidden;
+    fill: rgba(42, 40, 48, 0.1);
 }
 
 .dial.active circle.outer,
@@ -55,22 +36,19 @@ circle.outer {
     visibility: visible;
 }
 
-.dial.active ul.collar,
 .dial.active g.collar {
-    transform: none;
+    transform: scale(1);
+    opacity: 1;
 }
 
 circle.inner {
     fill:  rgba(255,255,255,0.8);
-    visibility: visible;
     pointer-events: all;
 }
 
 circle.ring {
     fill: inherit;
-    visibility: visible;
 }
-
 
 path.sector {
     fill: none;
@@ -78,15 +56,7 @@ path.sector {
 }
 
 path.sector.active {
-    fill: inherit;
-}
-
-.option {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    display: inline-block;
-    white-space: nowrap;
+    stroke: currentColor;
 }
 
 .face {
@@ -96,46 +66,15 @@ path.sector.active {
 }
 
 .value {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    height: 56px;
-    width: 56px;
-    margin-top: -28px;
-    margin-left: -28px;
-    text-align: center;
-    line-height: 56px;
-    border-radius: 50%;
-    box-shadow: 0 0 4px rgba(0,0,0,0.5) inset;
-    color: #3e3e3e;
-    background: linear-gradient(328deg, #fff9ff, #fff2e7 30%, #a1b1ff);
+    fill: #3e3e3e;
 }
 
 .viewValue {
-    display: inline-block;
-    position: absolute;
-    line-height: 2em;
-    height: 2em;
-    width: 2em;
-    text-align: center;
-    top: 0;
-    left: 0;
-    margin-top: .5em;
     user-select: none;
 }
 
 .option .viewValue {
     font-size: 75%;
-    top: -1.5em;
-    left: -1em;
-}
-
-
-.viewValue > svg {
-    display: inline-block;
-    height: 80%;
-    width: auto;
-    margin-right: -10px;
 }
 
 .viewValue svg {

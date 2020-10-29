@@ -107,12 +107,6 @@
 
 }
 
-.controls > li > svg {
-  position: absolute;
-  margin-top: -50%;
-  margin-left: -50%;
-}
-
 .inplace {
     fill: #5f78f9;
     color: #5f78f9;

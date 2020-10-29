@@ -13,7 +13,7 @@ module TouchTunes.Models.Dial exposing
 import Array as Array exposing (Array)
 import Array.Extra exposing (indexedMapToList)
 import Debug exposing (log)
-import Html exposing (Html)
+import Svg exposing (Svg)
 import List.Extra exposing (findIndex)
 import Maybe.Extra
 import Tuple exposing (pair)
@@ -28,7 +28,7 @@ type Action
 
 type alias Config val msg =
     { options : Array val
-    , viewValue : val -> Html msg
+    , viewValue : val -> Svg msg
     , segments : Int
     }
 

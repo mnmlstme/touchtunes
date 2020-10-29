@@ -3,8 +3,7 @@ module TouchTunes.Views.DialView exposing (view)
 import Array as Array exposing (Array)
 import Array.Extra exposing (indexedMapToList)
 import Debug exposing (log)
-import Html exposing (Html, div, li, span, ul)
-import Html.Attributes exposing (class, style)
+import Html exposing (Html)
 import Html.Events
 import Html.Events.Extra.Mouse as Mouse
 import Html.Events.Extra.Pointer as Pointer
@@ -15,7 +14,8 @@ import String exposing (fromFloat)
 import Svg exposing (Svg, circle, g, line, path, rect, svg)
 import Svg.Attributes as SvgAttr
     exposing
-        ( cx
+        ( class
+        , cx
         , cy
         , d
         , height
@@ -114,14 +114,27 @@ view dial toMsg =
             let
                 theta =
                     degrees <| toFloat ((2 * i - n + 1) * sect) / 2
+
+                rtext =
+                    collarRadius - 20.0
             in
-            li
+            g
                 [ class <| css .option
-                , style "left" <| fromFloat (50.0 + rmid * cos theta) ++ "%"
-                , style "top" <| fromFloat (50.0 - rmid * sin theta) ++ "%"
+                , transform <|
+                    "translate("
+                        ++ fromFloat (rtext * cos theta)
+                        ++ ","
+                        ++ fromFloat (-1.0 * rtext * sin theta)
+                        ++ ")"
                 ]
-                [ span
+                [ g
                     [ class <| css .viewValue
+                    , transform <|
+                        "translate("
+                            ++ fromFloat (-0.5 * faceRadius)
+                            ++ ","
+                            ++ fromFloat (-0.5 * faceRadius)
+                            ++ ")"
                     ]
                     [ config.viewValue v ]
                 ]
@@ -156,20 +169,20 @@ view dial toMsg =
                 , d <|
                     String.join " "
                         [ "M"
-                        , fromFloat <| 40.0 * cos theta0
-                        , fromFloat <| -40.0 * sin theta0
+                        , fromFloat <| rmid * cos theta0
+                        , fromFloat <| -rmid * sin theta0
                         , "L"
-                        , fromFloat <| 100.0 * cos theta0
-                        , fromFloat <| -100.0 * sin theta0
+                        , fromFloat <| collarRadius * cos theta0
+                        , fromFloat <| -collarRadius * sin theta0
                         , "A 100 100 0 0 0"
-                        , fromFloat <| 100.0 * cos theta1
-                        , fromFloat <| -100.0 * sin theta1
+                        , fromFloat <| collarRadius * cos theta1
+                        , fromFloat <| -collarRadius * sin theta1
                         , "L"
-                        , fromFloat <| 40.0 * cos theta1
-                        , fromFloat <| -40.0 * sin theta1
+                        , fromFloat <| rmid * cos theta1
+                        , fromFloat <| -rmid * sin theta1
                         , "A 50 50 0 0 1"
-                        , fromFloat <| 40.0 * cos theta0
-                        , fromFloat <| -40.0 * sin theta0
+                        , fromFloat <| rmid * cos theta0
+                        , fromFloat <| -rmid * sin theta0
                         , "Z"
                         ]
                 ]
@@ -198,28 +211,23 @@ view dial toMsg =
                 Nothing ->
                     [ Pointer.onDown (\_ -> Start |> toMsg) ]
     in
-    div
-        (case tracking of
-            Just _ ->
-                [ class <| css .dial ++ " " ++ css .active
-                ]
+    svg
+        (List.append
+            events
+            [ class <|
+                case log "dial tracking: " tracking of
+                    Just _ ->
+                        css .dial ++ " " ++ css .active
 
-            Nothing ->
-                [ class (css .dial)
-                ]
+                    Nothing ->
+                        css .dial
+            , height <| fromFloat (2.0 * collarRadius) ++ "px"
+            , width <| fromFloat (2.0 * collarRadius) ++ "px"
+            , viewBox "-100 -100 200 200"
+            ]
         )
-        [ svg
-            (List.append
-                [ height <| fromFloat (2.0 * collarRadius) ++ "px"
-                , width <| fromFloat (2.0 * collarRadius) ++ "px"
-                , viewBox "-100 -100 200 200"
-                ]
-                events
-            )
-            [ g
-                [ SvgAttr.class (css .collar)
-                ]
-              <|
+        [ g []
+            [ g [ class (css .collar) ] <|
                 List.append
                     [ circle
                         [ SvgAttr.class (css .outer)
@@ -234,28 +242,34 @@ view dial toMsg =
                         (\i _ -> viewSector i)
                         config.options
             , circle
-                [ SvgAttr.class (css .ring)
+                [ class (css .ring)
                 , cx "0"
                 , cy "0"
                 , r "36"
                 ]
                 []
             , circle
-                [ SvgAttr.class (css .inner)
+                [ class (css .inner)
                 , cx "0"
                 , cy "0"
                 , r "28"
                 ]
                 []
             ]
-        , ul
+        , g
             [ class (css .collar) ]
           <|
             indexedMapToList viewOption config.options
-        , div
+        , g
             [ class (css .value)
+            , transform <|
+                "translate("
+                    ++ fromFloat (-0.5 * faceRadius)
+                    ++ ","
+                    ++ fromFloat (-0.5 * faceRadius)
+                    ++ ")"
             ]
-            [ span [ class <| css .viewValue ]
+            [ g [ class <| css .viewValue ]
                 [ config.viewValue theValue ]
             ]
         ]

@@ -1,64 +1,50 @@
 module Music.Views.MeasureView exposing
-    ( view
-    , viewKey
-    , viewTime
+    ( drawKey
+    , drawTime
+    , view
     )
 
-import Html exposing (Html, div, text)
-import Html.Attributes as HtmlAttr exposing (style)
-import List.Nonempty as Nonempty
+import Html exposing (Html)
 import Music.Models.Beat as Beat
-import Music.Models.Key as Key exposing (Key)
+import Music.Models.Key exposing (Key)
 import Music.Models.Layout as Layout
     exposing
         ( Layout
         , Pixels
         , scalePitch
         )
-import Music.Models.Measure as Measure exposing (..)
+import Music.Models.Measure exposing (Measure, toSequence)
 import Music.Models.Pitch as Pitch exposing (Pitch, flat, sharp)
-import Music.Models.Staff as Staff exposing (Staff)
 import Music.Models.Time as Time exposing (Time)
 import Music.Views.MeasureStyles exposing (css)
 import Music.Views.NoteView as NoteView
 import Music.Views.StaffView as StaffView
 import Music.Views.Symbols as Symbols
 import String exposing (fromFloat, fromInt)
-import Svg exposing (Svg, g, svg, text_)
+import Svg exposing (Svg, g, svg, text, text_)
 import Svg.Attributes
     exposing
         ( class
         , fontSize
         , height
         , transform
-        , viewBox
         , width
         , x
         , y
         )
+import Music.Models.Staff exposing (Staff)
 
 
-viewTime : Layout -> Maybe Time -> Svg msg
-viewTime layout time =
+drawTime : Layout -> Maybe Time -> Svg msg
+drawTime layout time =
     let
         sp =
             Layout.spacing layout
-
-        offset =
-            Layout.timeOffset layout
     in
     case time of
         Just t ->
-            svg
-                [ class (css .time)
-                , width <| fromFloat <| 4.0 * sp.px
-                , height <| fromFloat <| 4.0 * sp.px
-                , viewBox <|
-                    "0 0 "
-                        ++ (fromFloat <| 4.0 * sp.px)
-                        ++ " "
-                        ++ (fromFloat <| 4.0 * sp.px)
-                ]
+            g
+                [ class (css .time)                ]
                 [ text_
                     [ fontSize <| fromFloat <| 3.0 * sp.px
                     , x <| fromFloat <| 0.8 * sp.px
@@ -128,19 +114,18 @@ drawKeySymbol layout n p =
             Pixels <| 0.75 * sp.px * toFloat n
     in
     g
-        [ transform
-            ("translate("
+        [ transform <|
+            "translate("
                 ++ fromFloat (xpos.px + sp.px)
                 ++ ","
                 ++ fromFloat (ypos.px - margins.top.px)
                 ++ ")"
-            )
         ]
         [ Symbols.view symbol ]
 
 
-viewKey : Layout -> Maybe Key -> Svg msg
-viewKey layout key =
+drawKey : Layout -> Maybe Key -> Svg msg
+drawKey layout key =
     case key of
         Just k ->
             let
@@ -163,21 +148,10 @@ viewKey layout key =
 
                 marks =
                     abs k.fifths
-
-                h =
-                    Layout.height layout
             in
-            svg
+            g
                 [ class (css .key)
-                , width <| fromFloat <| (0.75 + toFloat marks) * sp.px
-                , height <| fromFloat <| 5.0 * sp.px
-                , viewBox <|
-                    "0 "
-                        ++ (fromFloat <| -1.0 * sp.px)
-                        ++ " "
-                        ++ (fromFloat <| (1.0 + toFloat marks) * sp.px)
-                        ++ " "
-                        ++ (fromFloat <| 5.0 * sp.px)
+                , transform <| "translate(0," ++ fromFloat sp.px ++ ")"
                 ]
             <|
                 List.indexedMap (drawKeySymbol layout) <|
@@ -187,8 +161,8 @@ viewKey layout key =
             text ""
 
 
-viewClef : Layout -> Maybe Staff -> Svg msg
-viewClef layout clef =
+drawClef : Layout -> Maybe Staff -> Svg msg
+drawClef layout clef =
     case clef of
         Just c ->
             let
@@ -198,18 +172,14 @@ viewClef layout clef =
                 symbol =
                     Symbols.trebleClef
             in
-            svg
+            g
                 [ class (css .clef)
-                , width <| fromFloat <| 3.0 * sp.px
-                , height <| fromFloat <| 5.0 * sp.px
-                , viewBox <|
-                    (fromFloat <| -1.5 * sp.px)
-                        ++ " "
-                        ++ (fromFloat <| -1.0 * sp.px)
-                        ++ " "
-                        ++ (fromFloat <| 3.0 * sp.px)
-                        ++ " "
-                        ++ (fromFloat <| 5.0 * sp.px)
+                , transform <|
+                    "translate("
+                        ++ fromFloat (1.5 * sp.px)
+                        ++ ","
+                        ++ fromFloat sp.px
+                        ++ ")"
                 ]
                 [ Symbols.view symbol ]
 
@@ -225,9 +195,6 @@ view layout measure =
 
         w =
             Layout.width layout
-
-        fixed =
-            Layout.fixedWidth layout
 
         h =
             Layout.height layout
@@ -246,43 +213,55 @@ view layout measure =
 
         drawNote =
             \( beat, note ) ->
-                NoteView.view layout beat note
+                NoteView.draw layout beat note
 
         noteSequence =
             List.map (\( d, n ) -> ( Beat.fromDuration t d, n )) <|
                 toSequence measure
     in
-    div [ HtmlAttr.class (css .measure) ] <|
+    svg
+        [ class (css .measure)
+        , height <| fromFloat h.px
+        , width <| fromFloat w.px
+        ]
+    <|
         List.append
-            [ svg
+            [ g
                 [ class (css .staff)
-                , height <| fromFloat h.px
-                , width <| fromFloat w.px
+                , transform <|
+                    "translate(0,"
+                        ++ fromFloat margins.top.px
+                        ++ ")"
                 ]
-                [ g
-                    [ transform
-                        ("translate(0," ++ fromFloat margins.top.px ++ ")")
-                    ]
-                    [ StaffView.draw layout ]
-                ]
-            , div
+                [ StaffView.draw layout ]
+            , g
                 [ class (css .clef)
-                , style "top" <| fromFloat (margins.top.px + sp.px) ++ "px"
-                , style "left" "0"
+                , transform <|
+                    "translate(0,"
+                        ++ fromFloat (margins.top.px + sp.px)
+                        ++ ")"
                 ]
-                [ viewClef layout layout.direct.staff ]
-            , div
+                [ drawClef layout layout.direct.staff ]
+            , g
                 [ class (css .key)
-                , style "top" <| fromFloat (margins.top.px - sp.px) ++ "px"
-                , style "left" <| fromFloat keyOffset.px ++ "px"
+                , transform <|
+                    "translate("
+                        ++ fromFloat keyOffset.px
+                        ++ ","
+                        ++ fromFloat (margins.top.px - sp.px)
+                        ++ ")"
                 ]
-                [ viewKey layout layout.direct.key ]
-            , div
+                [ drawKey layout layout.direct.key ]
+            , g
                 [ class (css .time)
-                , style "top" <| fromFloat margins.top.px ++ "px"
-                , style "left" <| fromFloat timeOffset.px ++ "px"
+                , transform <|
+                    "translate("
+                        ++ fromFloat timeOffset.px
+                        ++ ","
+                        ++ fromFloat margins.top.px
+                        ++ ")"
                 ]
-                [ viewTime layout layout.direct.time ]
+                [ drawTime layout layout.direct.time ]
             ]
         <|
             List.map drawNote noteSequence

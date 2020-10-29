@@ -20,8 +20,8 @@ import Html as Html
 import Html.Attributes exposing (class, classList)
 import Html.Events exposing (onClick)
 import Music.Models.Score as Score exposing (Score)
-import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Actions.AppUpdate exposing (update)
+import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.App as App exposing (App)
 import TouchTunes.Views.AppStyles exposing (css)
 import TouchTunes.Views.AppView as AppView
@@ -45,8 +45,8 @@ main =
 -- MODEL
 
 
-type alias Model = App
-
+type alias Model =
+    App
 
 
 
@@ -73,6 +73,3 @@ view model =
                     Maybe.map (\m -> [ text m ]) model.message
             ]
         ]
-
-
-
