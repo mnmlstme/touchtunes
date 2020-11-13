@@ -25,9 +25,17 @@ import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick)
 import Music.Models.Beat exposing (Beat)
 import Music.Models.Key exposing (keyName)
-import Music.Models.Layout exposing (Layout)
+import Music.Models.Layout as Layout exposing (Layout, scaleBeat)
 import Music.Views.MeasureView as MeasureView
 import String exposing (fromFloat)
+import Svg exposing (Svg, g, svg)
+import Svg.Attributes as SvgAttr
+    exposing
+        ( height
+        , transform
+        , viewBox
+        , width
+        )
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.Editor as Editor exposing (Editor)
 import TouchTunes.Models.Overlay exposing (Selection(..))
@@ -35,7 +43,6 @@ import TouchTunes.Views.DialView as Dial
 import TouchTunes.Views.EditorStyles exposing (css)
 import TouchTunes.Views.OverlayView as OverlayView
 import TouchTunes.Views.RulerView as RulerView
-import Music.Models.Layout exposing (scaleBeat)
 
 
 view : Editor -> Html Msg
@@ -51,7 +58,7 @@ viewScreen =
     div [ class (css .screen) ] []
 
 
-viewControls : Editor -> Html Msg
+viewControls : Editor -> Svg Msg
 viewControls editor =
     let
         controls =
@@ -59,13 +66,8 @@ viewControls editor =
 
         overlay =
             editor.overlay
-    in
-    ul
-        [ class (css .controls) ]
-    <|
-        List.map
-            (\e -> li [] [ e ])
-        <|
+
+        dials =
             case overlay.selection of
                 HarmonySelection _ _ _ ->
                     [ Dial.view controls.kindDial Actions.KindMsg
@@ -84,6 +86,40 @@ viewControls editor =
                     , Dial.view controls.keyDial Actions.KeyMsg
                     , Dial.view controls.subdivisionDial Actions.SubdivisionMsg
                     ]
+
+        s =
+            100.0
+
+        h =
+            s * toFloat (List.length dials)
+
+        w =
+            2.0 * s
+
+        dialGroup i e =
+            g
+                [ transform <|
+                    "translate(0,"
+                        ++ fromFloat (toFloat i * s)
+                        ++ ")"
+                ]
+                [ e ]
+    in
+    svg
+        [ SvgAttr.class (css .controls)
+        , height <| fromFloat h
+        , width <| fromFloat w
+        , viewBox <|
+            fromFloat -s
+                ++ " "
+                ++ fromFloat -s
+                ++ " "
+                ++ fromFloat w
+                ++ " "
+                ++ fromFloat h
+        ]
+    <|
+        List.indexedMap dialGroup dials
 
 
 viewMeasure : Editor -> Html Msg
@@ -119,8 +155,9 @@ viewEraseButton b l =
         , style "left" <| fromFloat left ++ "px"
         ]
         [ button [ onClick EraseSelection ]
-          [ text "Erase" ]
+            [ text "Erase" ]
         ]
+
 
 viewInPlaceControls : Editor -> Html Msg
 viewInPlaceControls editor =

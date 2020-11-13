@@ -11,7 +11,7 @@ import Json.Decode as Json exposing (Decoder, at, field, float, int, succeed)
 import List.Extra exposing (findIndex)
 import Maybe.Extra
 import String exposing (fromFloat)
-import Svg exposing (Svg, circle, g, line, path, rect, svg)
+import Svg exposing (Svg, circle, g, line, path, rect)
 import Svg.Attributes as SvgAttr
     exposing
         ( class
@@ -165,7 +165,7 @@ view dial toMsg =
                         )
             in
             path
-                [ SvgAttr.class <| String.join " " classList
+                [ class <| String.join " " classList
                 , d <|
                     String.join " "
                         [ "M"
@@ -211,19 +211,16 @@ view dial toMsg =
                 Nothing ->
                     [ Pointer.onDown (\_ -> Start |> toMsg) ]
     in
-    svg
+    g
         (List.append
             events
             [ class <|
-                case log "dial tracking: " tracking of
+                case tracking of
                     Just _ ->
                         css .dial ++ " " ++ css .active
 
                     Nothing ->
                         css .dial
-            , height <| fromFloat (2.0 * collarRadius) ++ "px"
-            , width <| fromFloat (2.0 * collarRadius) ++ "px"
-            , viewBox "-100 -100 200 200"
             ]
         )
         [ g []

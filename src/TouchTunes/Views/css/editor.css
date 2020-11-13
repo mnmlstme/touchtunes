@@ -84,27 +84,9 @@
 
 .controls {
     position: absolute;
-    width: 50px;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    color: white;
-    background: #5f78f9;
     font-size: 20px;
     user-select: none;
     fill: #5f78f9;
-    box-shadow: 1px 2px 3px rgba(49, 42, 128, 0.6);
-    text-shadow: 1px 2px 3px #312a8099;
-
-}
-
-.controls > li {
-    height: 50px;
-    width: 50px;
-    position: relative;
-    margin: 10px;
-
 }
 
 .inplace {
