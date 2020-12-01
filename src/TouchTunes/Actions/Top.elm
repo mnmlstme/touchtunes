@@ -8,7 +8,7 @@ import Music.Models.Note exposing (Note)
 import Music.Models.Part as Part
 import Music.Models.Pitch exposing (Pitch, Semitones)
 import Music.Models.Time exposing (Time)
-import TouchTunes.Models.Dial as Dial
+import Vectrol.Models.Dial as Dial
 
 import Http
 

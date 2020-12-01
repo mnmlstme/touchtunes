@@ -39,7 +39,7 @@ import Svg.Attributes as SvgAttr
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.Editor as Editor exposing (Editor)
 import TouchTunes.Models.Overlay exposing (Selection(..))
-import TouchTunes.Views.DialView as Dial
+import Vectrol.Views.DialView as Dial
 import TouchTunes.Views.EditorStyles exposing (css)
 import TouchTunes.Views.OverlayView as OverlayView
 import TouchTunes.Views.RulerView as RulerView

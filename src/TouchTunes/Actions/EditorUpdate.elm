@@ -1,7 +1,6 @@
 module TouchTunes.Actions.EditorUpdate exposing (update)
 
 import Array as Array
-import Debug exposing (log)
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
 import Music.Models.Harmony as Harmony
@@ -22,7 +21,7 @@ import Music.Models.Time as Time
 import Music.Views.MeasureView as MeasureView
 import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls
-import TouchTunes.Models.Dial as Dial
+import Vectrol.Models.Dial as Dial
 import TouchTunes.Models.Editor as Editor
     exposing
         ( Editor
@@ -43,7 +42,7 @@ update msg editor =
         overlay =
             Overlay.subdivide subdivisions editor.overlay
     in
-    case log "Editor got msg" msg of
+    case  msg of
         StartEdit _ _ attributes measure ->
             Editor.open attributes measure
 
@@ -152,8 +151,7 @@ update msg editor =
         HarmonyMsg dialAction ->
             let
                 hd =
-                    log "updated harmonyDial" <|
-                        Dial.update dialAction controls.harmonyDial
+                    Dial.update dialAction controls.harmonyDial
 
                 ed =
                     { editor
@@ -242,7 +240,7 @@ update msg editor =
                     Dial.update dialAction controls.altHarmonyDial
 
                 alt = Dial.value ad
-                      
+
                 h = Maybe.map (Harmony.setAlteration alt) <| Dial.value controls.harmonyDial
 
                 ed =

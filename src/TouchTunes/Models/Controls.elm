@@ -41,7 +41,7 @@ import Music.Views.Symbols as Symbols
 import Svg exposing (Svg, g, text, text_)
 import Svg.Attributes exposing (transform)
 import TouchTunes.Actions.Top exposing (Msg(..))
-import TouchTunes.Models.Dial as Dial exposing (Dial)
+import Vectrol.Models.Dial as Dial exposing (Dial)
 import TouchTunes.Models.Overlay exposing (Selection(..))
 import TouchTunes.Views.Symbols
     exposing

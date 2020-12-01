@@ -8,7 +8,6 @@ module TouchTunes.Models.Editor exposing
     )
 
 import Array exposing (Array)
-import Debug exposing (log)
 import Maybe.Extra
 import Music.Models.Beat as Beat exposing (Beat)
 import Music.Models.Duration as Duration exposing (Duration)
@@ -22,7 +21,7 @@ import Music.Models.Time as Time exposing (Time)
 import String
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls exposing (Controls)
-import TouchTunes.Models.Dial as Dial
+import Vectrol.Models.Dial as Dial
 import TouchTunes.Models.Overlay as Overlay exposing (Overlay, Selection(..))
 
 
@@ -69,14 +68,11 @@ commit editor =
         newLayout =
             Layout.forMeasure overlay.layout.indirect theMeasure
 
-        
-
         sub =
             Dial.value editor.controls.subdivisionDial
     in
     { editor
-        | measure =
-            log "commit" theMeasure
+        | measure = theMeasure
         , overlay = Overlay.subdivide sub { overlay | layout = newLayout }
     }
 
@@ -108,8 +104,7 @@ latent editor =
         controlled =
             override editor.measure
     in
-    log "Editor.latent editor" <|
-        case log "selection" editor.overlay.selection of
+        case editor.overlay.selection of
             HarmonySelection _ _ beat ->
                 let
                     t =
@@ -119,7 +114,6 @@ latent editor =
                         editor.controls.chordDial.value
 
                     mHarmony =
-                        log "latent harmonyDial" <|
                             editor.controls.harmonyDial.value
 
                     bass =
