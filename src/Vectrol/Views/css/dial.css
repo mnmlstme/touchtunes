@@ -6,6 +6,7 @@
     margin-left: -150%;
     margin-top: -150%;
     position: relative; /* for z-index */
+    filter: url(#SVG_HUD_Filter);
     z-index: 0;
 }
 
@@ -42,12 +43,15 @@ circle.outer {
 }
 
 circle.inner {
-    fill:  rgba(255,255,255,0.8);
+    /*fill:  rgba(255,255,255,0.8);*/
+    fill: none;
     pointer-events: all;
 }
 
 circle.ring {
-    fill: inherit;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2px;
 }
 
 path.sector {
@@ -71,6 +75,7 @@ path.sector.active {
 
 .viewValue {
     user-select: none;
+    fill: currentColor;
 }
 
 .option .viewValue {

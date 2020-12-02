@@ -109,7 +109,7 @@ viewBeat layout divisor fullBeat =
             beats
 
 
-view : Layout -> Html msg
+view : Layout -> Svg msg
 view layout =
     let
         time =
@@ -136,11 +136,8 @@ view layout =
         fixed =
             Layout.fixedWidth layout
     in
-    svg
-        [ class (css .ruler)
-        , height <| fromPixels h
-        , width <| fromPixels w
-        ]
+    g
+        [ class (css .ruler) ]
         (List.concat
             [ [ g [ class (css .margins) ]
                     [ viewBand layout 0 (m.left.px - pad)

@@ -159,11 +159,8 @@ view measure overlay =
                 NoSelection ->
                     [ downHarmonyHandler ]
     in
-    svg
-        [ class (css .overlay)
-        , height <| fromFloat h
-        , width <| fromPixels <| Layout.width layout
-        ]
+    g
+        [ class (css .overlay) ]
         (List.append
             [ rect
                 (List.append

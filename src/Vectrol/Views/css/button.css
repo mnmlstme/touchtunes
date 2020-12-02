@@ -1,0 +1,15 @@
+/* Dial */
+
+.button {
+    cursor: pointer;
+    fill: currentColor;
+    stroke: none;
+    pointer-events: visibleFill;
+    filter: url(#SVG_HUD_Filter);
+}
+
+
+.ring {
+    fill: none;
+    stroke: currentColor;
+}

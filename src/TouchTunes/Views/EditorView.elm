@@ -25,10 +25,10 @@ import Html.Attributes exposing (class, classList, style)
 import Html.Events exposing (onClick)
 import Music.Models.Beat exposing (Beat)
 import Music.Models.Key exposing (keyName)
-import Music.Models.Layout as Layout exposing (Layout, scaleBeat)
+import Music.Models.Layout as Layout exposing (Layout, Pixels, scaleBeat)
 import Music.Views.MeasureView as MeasureView
 import String exposing (fromFloat)
-import Svg exposing (Svg, g, svg)
+import Svg as Svg exposing (Svg, g, svg)
 import Svg.Attributes as SvgAttr
     exposing
         ( height
@@ -39,10 +39,15 @@ import Svg.Attributes as SvgAttr
 import TouchTunes.Actions.Top as Actions exposing (Msg(..))
 import TouchTunes.Models.Editor as Editor exposing (Editor)
 import TouchTunes.Models.Overlay exposing (Selection(..))
+import Vectrol.Views.ButtonView as Button
 import Vectrol.Views.DialView as Dial
 import TouchTunes.Views.EditorStyles exposing (css)
 import TouchTunes.Views.OverlayView as OverlayView
 import TouchTunes.Views.RulerView as RulerView
+
+fromPixels : Pixels -> String
+fromPixels p =
+    fromFloat p.px
 
 
 view : Editor -> Html Msg
@@ -70,21 +75,21 @@ viewControls editor =
         dials =
             case overlay.selection of
                 HarmonySelection _ _ _ ->
-                    [ Dial.view controls.kindDial Actions.KindMsg
-                    , Dial.view controls.chordDial Actions.DegreeMsg
-                    , Dial.view controls.altHarmonyDial Actions.AltHarmonyMsg
-                    , Dial.view controls.bassDial Actions.BassMsg
+                    [ Dial.view KindMsg controls.kindDial
+                    , Dial.view DegreeMsg controls.chordDial
+                    , Dial.view AltHarmonyMsg controls.altHarmonyDial
+                    , Dial.view BassMsg controls.bassDial
                     ]
 
                 NoteSelection _ _ _ ->
-                    [ Dial.view controls.alterationDial Actions.AlterationMsg
-                    , Dial.view controls.subdivisionDial Actions.SubdivisionMsg
+                    [ Dial.view  AlterationMsg controls.alterationDial
+                    , Dial.view  SubdivisionMsg controls.subdivisionDial
                     ]
 
                 NoSelection ->
-                    [ Dial.view controls.timeDial Actions.TimeMsg
-                    , Dial.view controls.keyDial Actions.KeyMsg
-                    , Dial.view controls.subdivisionDial Actions.SubdivisionMsg
+                    [ Dial.view TimeMsg controls.timeDial
+                    , Dial.view KeyMsg controls.keyDial
+                    , Dial.view SubdivisionMsg controls.subdivisionDial
                     ]
 
         s =
@@ -94,7 +99,7 @@ viewControls editor =
             s * toFloat (List.length dials)
 
         w =
-            2.0 * s
+            s
 
         dialGroup i e =
             g
@@ -110,9 +115,9 @@ viewControls editor =
         , height <| fromFloat h
         , width <| fromFloat w
         , viewBox <|
-            fromFloat -s
+            fromFloat (-s / 2.0)
                 ++ " "
-                ++ fromFloat -s
+                ++ fromFloat (-s / 2.0)
                 ++ " "
                 ++ fromFloat w
                 ++ " "
@@ -134,8 +139,11 @@ viewMeasure editor =
         l =
             editor.overlay.layout
     in
-    div
-        [ class (css .editor) ]
+    svg
+        [ SvgAttr.class (css .editor)
+        , height <| fromPixels <| Layout.height l
+        , width <| fromPixels <| Layout.width l
+        ]
         [ RulerView.view l
         , MeasureView.view l m
         , OverlayView.view m editor.overlay
@@ -144,22 +152,24 @@ viewMeasure editor =
         ]
 
 
-viewEraseButton : Beat -> Layout -> Html Msg
+viewEraseButton : Beat -> Layout -> Svg Msg
 viewEraseButton b l =
     let
         left =
             .px <| scaleBeat l b
+
+        top =
+            .px (Layout.height l) - 20
     in
-    li
-        [ class (css .below)
-        , style "left" <| fromFloat left ++ "px"
+    g
+        [ SvgAttr.class (css .below)
+        , transform <| "translate(" ++ fromFloat left ++ "," ++ fromFloat top ++ ")"
         ]
-        [ button [ onClick EraseSelection ]
-            [ text "Erase" ]
+        [ Button.view EraseSelection <| Svg.text_ [] [ Svg.text "Erase" ]
         ]
 
 
-viewInPlaceControls : Editor -> Html Msg
+viewInPlaceControls : Editor -> Svg Msg
 viewInPlaceControls editor =
     let
         c =
@@ -171,22 +181,21 @@ viewInPlaceControls editor =
         l =
             editor.overlay.layout
     in
-    ul
-        [ class (css .inplace) ]
+    g [ SvgAttr.class (css .inplace) ]
         [ case s of
             NoteSelection _ _ _ ->
-                text ""
+                Svg.text ""
 
             HarmonySelection _ _ beat ->
                 let
                     left =
                         .px <| scaleBeat l beat
                 in
-                li
-                    [ class (css .above)
-                    , style "left" <| fromFloat left ++ "px"
+                g
+                    [ SvgAttr.class (css .above)
+                    , transform <| "translate(" ++ fromFloat left ++ ",20)"
                     ]
-                    [ Dial.view c.harmonyDial Actions.HarmonyMsg
+                    [ Dial.view HarmonyMsg c.harmonyDial
                     ]
 
             NoSelection ->
@@ -199,35 +208,29 @@ viewInPlaceControls editor =
                 viewEraseButton beat l
 
             NoSelection ->
-                text ""
+                Svg.text ""
         ]
 
 
-viewNavigation : Editor -> Html Msg
+viewNavigation : Editor -> Svg Msg
 viewNavigation editor =
-    ul [ class (css .navigation) ]
-        [ li [ class (css .previous) ]
-            [ button [ onClick PreviousEdit ]
-                [ text "<<" ]
+    g [ SvgAttr.class (css .navigation) ]
+        [ g [ SvgAttr.class (css .previous) ]
+            [ Button.view PreviousEdit <| Svg.text_ [] [ Svg.text "<<" ]
             ]
-        , li [ class (css .previousNew) ]
-            [ button [ onClick PreviousNew ]
-                [ text "<+" ]
+        , g [ SvgAttr.class (css .previousNew) ]
+            [ Button.view PreviousNew  <| Svg.text_ [] [ Svg.text "<+" ]
             ]
-        , li [ class (css .cancel) ]
-            [ button [ onClick CancelEdit ]
-                [ text "×" ]
+        , g [ SvgAttr.class (css .cancel) ]
+            [ Button.view CancelEdit <| Svg.text_ [] [ Svg.text "×" ]
             ]
-        , li [ class (css .done) ]
-            [ button [ onClick DoneEdit ]
-                [ text "✓" ]
+        , g [ SvgAttr.class (css .done) ]
+            [ Button.view DoneEdit <| Svg.text_ [] [ Svg.text "✓" ]
             ]
-        , li [ class (css .next) ]
-            [ button [ onClick NextEdit ]
-                [ text ">>" ]
+        , g [ SvgAttr.class (css .next) ]
+            [ Button.view NextEdit <| Svg.text_ [] [ Svg.text ">>" ]
             ]
-        , li [ class (css .nextNew) ]
-            [ button [ onClick NextNew ]
-                [ text "+>" ]
+        , g [ SvgAttr.class (css .nextNew) ]
+            [ Button.view NextNew <| Svg.text_ [] [ Svg.text "+>" ]
             ]
         ]

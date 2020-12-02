@@ -19,11 +19,14 @@
 }
 
 .editor {
+    font-size: 20px;
     position: relative;
     margin: 30px auto;
-    background: white;
+    /* background: white;           */
     border-radius: 4px;
-    box-shadow: 0 0 60px 60px white;
+    /* box-shadow: 0 0 60px 60px white; */
+    overflow: visible;
+    z-index: 0;
 }
 
 .overlay {
@@ -83,106 +86,59 @@
 }
 
 .controls {
-    position: absolute;
     font-size: 20px;
     user-select: none;
     fill: #5f78f9;
+    overflow: visible;
+    z-index: 1;
 }
+
 
 .inplace {
     fill: #5f78f9;
     color: #5f78f9;
     pointer-events: none;
+    overflow: visible;
 }
 
-.inplace > li {
-    height: 50px;
-    width: 50px;
-    position: absolute;
-    z-index: 1;
+
+/* Inline #8 | http://localhost:8080/ */
+
+.navigation text {
+  text-anchor: middle;
+  text-align: center;
+  transform: translate(0,6px);
 }
 
-.inplace > li.above {
-    color: white;
-    top: 0;
-}
-
-.inplace > li.below {
-    bottom: 0;
-}
 
 .navigation {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    color: #5f78f9;
-    text-shadow: 1px 2px 3px rgba(0,0,0,0.5);
+    font-size: 20px;
+    fill: #5f78f9;
     pointer-events: none;
 }
 
-.navigation::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    box-shadow: 0 0 0 40px;
-    border-radius: 5px;
-}
-
-.navigation > li {
-  position: absolute;
-}
-
-.navigation button,
-.inplace button {
-    font-family: Lato, Helvetica, Arial, sans-serif;
-    font-weight: 100;
-    font-size: 20px;
-    color: inherit;
-    text-shadow: inherit;
-    box-shadow: 0 0 4px rgba(0,0,0,0.5) inset;
-    background: linear-gradient(328deg, #fff9ff, #fff2e7 30%, #a1b1ff);
-    border: 8px solid;
-    padding: .5em;
-    cursor: pointer;
-    pointer-events: auto;
-    border-radius: 50%;
-    height: 3em;
-    width: 3em;
-}
-
 .navigation > .previous  {
-    right: 100%;
-    top: 65%;
+    transform: translate(0, 65%);
 }
 
 .navigation > .previousNew  {
-    right: 100%;
-    top: 35%;
+    transform: translate(0 35%);
 }
 
 .navigation > .next  {
-    left: 100%;
-    top: 65%;
+    transform: translate(100%, 65%);
 }
 
 .navigation > .nextNew  {
-    left: 100%;
-    top: 35%;
+    transform: translate(100%, 35%);
 }
 
 .navigation > .cancel  {
-    right: 100%;
-    top: 0;
+    transform: translate(100%, 0);
 }
 
 .navigation > .done  {
-    left: 100%;
-    top: 100%;
+    transform: translate(100%, 100%);
 }
 
 .navigation > * > *:first-child {

@@ -3,7 +3,7 @@ module Vectrol.Views.DialView exposing (view)
 import Array as Array exposing (Array)
 import Array.Extra exposing (indexedMapToList)
 import Debug exposing (log)
-import Html exposing (Html)
+import Html
 import Html.Events
 import Html.Events.Extra.Mouse as Mouse
 import Html.Events.Extra.Pointer as Pointer
@@ -87,10 +87,10 @@ onVectorMove message =
 
 
 view :
-    Dial val msg
-    -> (Action -> msg)
-    -> Html msg
-view dial toMsg =
+    (Action -> msg)
+    -> Dial val msg
+    -> Svg msg
+view toMsg dial =
     let
         { config, tracking } =
             dial
