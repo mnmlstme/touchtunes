@@ -41,7 +41,6 @@ import Music.Views.Symbols as Symbols
 import Svg exposing (Svg, g, text, text_)
 import Svg.Attributes exposing (transform)
 import TouchTunes.Actions.Top exposing (Msg(..))
-import Vectrol.Models.Dial as Dial exposing (Dial)
 import TouchTunes.Models.Overlay exposing (Selection(..))
 import TouchTunes.Views.Symbols
     exposing
@@ -49,6 +48,7 @@ import TouchTunes.Views.Symbols
         , subdivideOne
         , subdivideTwo
         )
+import Vectrol.Models.Dial as Dial exposing (Dial)
 
 
 type alias Controls msg =
@@ -170,16 +170,10 @@ initSubdivisionDial =
     -- TODO: options depend on time signature
     -- TODO: initial depends on notes in measure
     Dial.init
+        8
+        viewSubdivision
+        [ 4, 2, 1 ]
         1
-        { options =
-            Array.fromList
-                [ 4
-                , 2
-                , 1
-                ]
-        , segments = 8
-        , viewValue = viewSubdivision
-        }
 
 
 initAlterationDial : Chromatic -> Dial Chromatic msg
@@ -187,12 +181,10 @@ initAlterationDial chr =
     -- alterationDial: sets alteration (sharp/flat/natural)
     -- TODO: initial depends on selected note
     Dial.init
+        12
+        viewAlteration
+        [ DoubleFlat, Flat, Natural, Sharp, DoubleSharp ]
         chr
-        { options =
-            Array.fromList [ DoubleFlat, Flat, Natural, Sharp, DoubleSharp ]
-        , segments = 12
-        , viewValue = viewAlteration
-        }
 
 
 initTimeDial : Maybe Time -> Dial Time msg
@@ -200,97 +192,90 @@ initTimeDial t =
     -- timeDial: sets Time signature
     -- TODO: initial depends on current mesaure
     Dial.init
-        (Maybe.withDefault Time.common t)
-        { options =
-            Array.fromList
-                [ Time.cut
-                , Time 2 Four
-                , Time 3 Four
-                , Time.common
-                , Time 5 Four
-                , Time 6 Eight
-                , Time 7 Eight
-                , Time 9 Eight
-                ]
-        , segments = 10
-        , viewValue = drawTime
-        }
+        10
+        drawTime
+        [ Time.cut
+        , Time 2 Four
+        , Time 3 Four
+        , Time.common
+        , Time 5 Four
+        , Time 6 Eight
+        , Time 7 Eight
+        , Time 9 Eight
+        ]
+    <|
+        Maybe.withDefault Time.common t
 
 
 initKeyDial : Maybe KeyName -> Dial KeyName msg
 initKeyDial k =
     -- keyDial: sets Key signature
     Dial.init
-        (Maybe.withDefault C k)
-        { options =
-            Array.fromList
-                [ Dflat
-                , Aflat
-                , Eflat
-                , Bflat
-                , F
-                , C
-                , G
-                , D
-                , A
-                , E
-                , B
-                , Fsharp
-                ]
-        , segments = 15
-        , viewValue = drawKey
-        }
+        15
+        drawKey
+        [ Dflat
+        , Aflat
+        , Eflat
+        , Bflat
+        , F
+        , C
+        , G
+        , D
+        , A
+        , E
+        , B
+        , Fsharp
+        ]
+    <|
+        Maybe.withDefault C k
 
 
 initHarmonyDial : Key -> Maybe Harmony -> Dial (Maybe Harmony) msg
 initHarmonyDial k h =
     -- harmonyDial: chose chord based on function in Key
     Dial.init
-        (Just <| Maybe.withDefault (Harmony.function k Triad I) h)
-        { options =
-            Array.fromList <|
-                List.append [ Nothing ] <|
-                    List.map2
-                        (\f degree -> Just <| function k degree f)
-                        [ I, II, III, IV, V, VI, VII ]
-                        [ Triad, Triad, Triad, Triad, Seventh, Triad, Seventh ]
-        , segments = 12
-        , viewValue =
-            \mh ->
-                case mh of
-                    Just harmony ->
-                        HarmonyView.draw harmony
+        12
+        (\mh ->
+            case mh of
+                Just harmony ->
+                    HarmonyView.draw harmony
 
-                    Nothing ->
-                        text "N.C."
-        }
+                Nothing ->
+                    text "N.C."
+        )
+        (List.append [ Nothing ] <|
+            List.map2
+                (\f degree -> Just <| function k degree f)
+                [ I, II, III, IV, V, VI, VII ]
+                [ Triad, Triad, Triad, Triad, Seventh, Triad, Seventh ]
+        )
+    <|
+        Just <|
+            Maybe.withDefault (Harmony.function k Triad I) h
 
 
 initBassDial : Key -> Maybe Root -> Dial Root msg
 initBassDial k r =
     -- bassDial: sets Bass note if not Root of Chord
     Dial.init
-        (Maybe.withDefault (root Pitch.C Natural) r)
-        { options =
-            -- TODO: should depend on Key, center on Tonic
-            Array.fromList
-                [ root Pitch.G Flat
-                , root Pitch.D Flat
-                , root Pitch.A Flat
-                , root Pitch.E Flat
-                , root Pitch.B Flat
-                , root Pitch.F Natural
-                , root Pitch.C Natural
-                , root Pitch.G Natural
-                , root Pitch.D Natural
-                , root Pitch.A Natural
-                , root Pitch.E Natural
-                , root Pitch.B Natural
-                , root Pitch.F Sharp
-                ]
-        , segments = 24
-        , viewValue = HarmonyView.drawBass << Just
-        }
+        24
+        (HarmonyView.drawBass << Just)
+        [ root Pitch.G Flat
+        , root Pitch.D Flat
+        , root Pitch.A Flat
+        , root Pitch.E Flat
+        , root Pitch.B Flat
+        , root Pitch.F Natural
+        , root Pitch.C Natural
+        , root Pitch.G Natural
+        , root Pitch.D Natural
+        , root Pitch.A Natural
+        , root Pitch.E Natural
+        , root Pitch.B Natural
+        , root Pitch.F Sharp
+        ]
+    <|
+        Maybe.withDefault (root Pitch.C Natural) r
 
 
 initKindDial : Maybe Kind -> Dial Kind msg
@@ -327,21 +312,18 @@ initKindDial k =
                     Triad
     in
     Dial.init
+        18
+        (kindString >> HarmonyView.drawKindString)
+        [ Major chord
+        , Minor chord
+        , Diminished chord
+        , Augmented chord
+        , Dominant chord
+        , HalfDiminished
+        , MajorMinor
+        , Power
+        ]
         initial
-        { options =
-            Array.fromList
-                [ Major chord
-                , Minor chord
-                , Diminished chord
-                , Augmented chord
-                , Dominant chord
-                , HalfDiminished
-                , MajorMinor
-                , Power
-                ]
-        , segments = 18
-        , viewValue = kindString >> HarmonyView.drawKindString
-        }
 
 
 kindString : Kind -> String
@@ -375,50 +357,46 @@ kindString kind =
 initChordDial : Maybe Chord -> Dial Chord msg
 initChordDial ch =
     Dial.init
-        (Maybe.withDefault Triad ch)
-        { options =
-            Array.fromList
-                [ Triad
-                , Sixth
-                , Seventh
-                , Ninth
-                , Eleventh
-                , Thirteenth
-                ]
-        , segments = 15
-        , viewValue =
-            HarmonyView.degreeNumber
-                >> Maybe.withDefault "Triad"
-                >> HarmonyView.drawDegree
-        }
+        15
+        (HarmonyView.degreeNumber
+            >> Maybe.withDefault "Triad"
+            >> HarmonyView.drawDegree
+        )
+        [ Triad
+        , Sixth
+        , Seventh
+        , Ninth
+        , Eleventh
+        , Thirteenth
+        ]
+    <|
+        Maybe.withDefault Triad ch
 
 
 initAltHarmonyDial : Maybe (List Alteration) -> Dial (List Alteration) msg
 initAltHarmonyDial ls =
     Dial.init
-        (Maybe.withDefault [] ls)
-        { options =
-            Array.fromList
-                [ []
-                , [ Sus 2 ]
-                , [ Sus 4 ]
-                , [ Add 9 ]
-                , [ No 3 ]
-                , [ Raised 5 ]
-                , [ Raised 9 ]
-                , [ Raised 11 ]
-                , [ Lowered 5 ]
-                , [ Lowered 9 ]
-                ]
-        , segments = 18
-        , viewValue =
-            \alts ->
-                if List.isEmpty alts then
-                    text_ [] [ text "( )" ]
+        18
+        (\alts ->
+            if List.isEmpty alts then
+                text_ [] [ text "( )" ]
 
-                else
-                    HarmonyView.drawAlterationList alts
-        }
+            else
+                HarmonyView.drawAlterationList alts
+        )
+        [ []
+        , [ Sus 2 ]
+        , [ Sus 4 ]
+        , [ Add 9 ]
+        , [ No 3 ]
+        , [ Raised 5 ]
+        , [ Raised 9 ]
+        , [ Raised 11 ]
+        , [ Lowered 5 ]
+        , [ Lowered 9 ]
+        ]
+    <|
+        Maybe.withDefault [] ls
 
 
 fakeLayout : Layout

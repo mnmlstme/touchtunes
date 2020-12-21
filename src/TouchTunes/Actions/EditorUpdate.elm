@@ -21,13 +21,13 @@ import Music.Models.Time as Time
 import Music.Views.MeasureView as MeasureView
 import TouchTunes.Actions.Top exposing (Msg(..))
 import TouchTunes.Models.Controls as Controls
-import Vectrol.Models.Dial as Dial
 import TouchTunes.Models.Editor as Editor
     exposing
         ( Editor
         , commit
         )
 import TouchTunes.Models.Overlay as Overlay
+import Vectrol.Models.Dial as Dial
 
 
 update : Msg -> Editor -> Editor
@@ -42,7 +42,7 @@ update msg editor =
         overlay =
             Overlay.subdivide subdivisions editor.overlay
     in
-    case  msg of
+    case msg of
         StartEdit _ _ attributes measure ->
             Editor.open attributes measure
 
@@ -166,8 +166,9 @@ update msg editor =
 
                 mHarm =
                     Maybe.map
-                        (\h -> Harmony.setDegree dd.value h)
-                        hd.value
+                        (\h -> Harmony.setDegree (Dial.value dd) h)
+                    <|
+                        Dial.value hd
             in
             case dialAction of
                 Dial.Finish ->
@@ -184,13 +185,17 @@ update msg editor =
                 kd =
                     Dial.update dialAction controls.kindDial
 
-                kind = Dial.value kd
+                kind =
+                    Dial.value kd
 
-                degree = Dial.value controls.chordDial
+                degree =
+                    Dial.value controls.chordDial
 
-                h = Maybe.map
-                    (\harm -> Harmony.setDegree degree <| Harmony.setKind kind harm)
-                    <| Dial.value controls.harmonyDial
+                h =
+                    Maybe.map
+                        (\harm -> Harmony.setDegree degree <| Harmony.setKind kind harm)
+                    <|
+                        Dial.value controls.harmonyDial
 
                 ed =
                     { editor
@@ -200,7 +205,6 @@ update msg editor =
                                 , harmonyDial = Dial.override h controls.harmonyDial
                             }
                     }
-
             in
             case dialAction of
                 Dial.Finish ->
@@ -214,9 +218,11 @@ update msg editor =
                 cd =
                     Dial.update dialAction controls.chordDial
 
-                degree = Dial.value cd
+                degree =
+                    Dial.value cd
 
-                h = Maybe.map (Harmony.setDegree degree) <| Dial.value controls.harmonyDial
+                h =
+                    Maybe.map (Harmony.setDegree degree) <| Dial.value controls.harmonyDial
 
                 ed =
                     { editor
@@ -239,9 +245,11 @@ update msg editor =
                 ad =
                     Dial.update dialAction controls.altHarmonyDial
 
-                alt = Dial.value ad
+                alt =
+                    Dial.value ad
 
-                h = Maybe.map (Harmony.setAlteration alt) <| Dial.value controls.harmonyDial
+                h =
+                    Maybe.map (Harmony.setAlteration alt) <| Dial.value controls.harmonyDial
 
                 ed =
                     { editor
@@ -251,7 +259,6 @@ update msg editor =
                                 , harmonyDial = Dial.override h controls.harmonyDial
                             }
                     }
-
             in
             case dialAction of
                 Dial.Finish ->
@@ -265,9 +272,11 @@ update msg editor =
                 bd =
                     Dial.update dialAction controls.bassDial
 
-                bass = Dial.value bd
+                bass =
+                    Dial.value bd
 
-                h = Maybe.map (Harmony.over bass) <| Dial.value controls.harmonyDial
+                h =
+                    Maybe.map (Harmony.over bass) <| Dial.value controls.harmonyDial
 
                 ed =
                     { editor
@@ -277,7 +286,6 @@ update msg editor =
                                 , harmonyDial = Dial.override h controls.harmonyDial
                             }
                     }
-
             in
             case dialAction of
                 Dial.Finish ->

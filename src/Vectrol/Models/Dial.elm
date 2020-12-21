@@ -1,21 +1,24 @@
 module Vectrol.Models.Dial exposing
     ( Action(..)
-    , Config
     , Dial
     , Tracking
     , init
+    , options
     , override
+    , segments
+    , tracking
     , transientValue
     , update
     , value
+    , viewOption
     )
 
 import Array as Array exposing (Array)
 import Array.Extra exposing (indexedMapToList)
 import Debug exposing (log)
-import Svg exposing (Svg)
 import List.Extra exposing (findIndex)
 import Maybe.Extra
+import Svg exposing (Svg)
 import Tuple exposing (pair)
 
 
@@ -26,11 +29,8 @@ type Action
     | Cancel
 
 
-type alias Config val msg =
-    { options : Array val
-    , viewValue : val -> Svg msg
-    , segments : Int
-    }
+type Config val msg
+    = Config (Array val) (val -> Svg msg) Int
 
 
 type alias Track =
@@ -43,33 +43,82 @@ type alias Tracking =
     Maybe Track
 
 
-type alias Dial val msg =
-    { value : val
-    , config : Config val msg
-    , tracking : Tracking
-    }
+type Dial val msg
+    = Dial val (Config val msg) Tracking
 
 
-init : val -> Config val msg -> Dial val msg
-init v config =
+init : Int -> (val -> Svg msg) -> List val -> val -> Dial val msg
+init segs fn opts v =
+    let
+        config =
+            Config (Array.fromList opts) fn segs
+    in
     Dial v config Nothing
 
 
 value : Dial val msg -> val
 value dial =
-    dial.value
+    case dial of
+        Dial v _ _ ->
+            v
 
 
 override : val -> Dial val msg -> Dial val msg
 override v dial =
-    { dial | value = v }
+    case dial of
+        Dial _ config trk ->
+            Dial v config trk
 
-    
+
+options : Dial val msg -> Array val
+options dial =
+    case dial of
+        Dial _ config _ ->
+            case config of
+                Config opts _ _ ->
+                    opts
+
+
+segments : Dial val msg -> Int
+segments dial =
+    case dial of
+        Dial _ config _ ->
+            case config of
+                Config _ _ segs ->
+                    segs
+
+
+viewOption : Dial val msg -> (val -> Svg msg)
+viewOption dial =
+    case dial of
+        Dial _ config _ ->
+            case config of
+                Config _ fn _ ->
+                    fn
+
+
+tracking : Dial val msg -> Tracking
+tracking dial =
+    case dial of
+        Dial _ _ trk ->
+            trk
+
+
 transientValue : Dial val msg -> val
 transientValue dial =
-    Maybe.withDefault dial.value <|
+    let
+        val =
+            value dial
+
+        opts =
+            options dial
+
+        trk =
+            tracking dial
+    in
+    Maybe.withDefault val <|
         Maybe.Extra.join <|
-            Maybe.map (\t -> Array.get t.index dial.config.options) dial.tracking
+            Maybe.map (\t -> Array.get t.index opts) trk
 
 
 update :
@@ -78,27 +127,30 @@ update :
     -> Dial val msg
 update dialAction dial =
     let
+        trk =
+            tracking dial
+
         i0 =
-            case dial.tracking of
+            case trk of
                 Just theTrack ->
                     theTrack.originalIndex
 
                 Nothing ->
                     Maybe.withDefault 0 <|
                         findIndex
-                            ((==) dial.value)
+                            ((==) (value dial))
                         <|
-                            Array.toList dial.config.options
+                            Array.toList (options dial)
     in
     case dialAction of
         Start ->
-            { dial
-                | tracking =
-                    Just
-                        { originalIndex = i0
-                        , index = i0
-                        }
-            }
+            case dial of
+                Dial val config _ ->
+                    Dial val config <|
+                        Just
+                            { originalIndex = i0
+                            , index = i0
+                            }
 
         Drag mi ->
             let
@@ -110,19 +162,20 @@ update dialAction dial =
                         Nothing ->
                             i0
             in
-            { dial
-                | tracking =
-                    Just
-                        { originalIndex = i0
-                        , index = newIndex
-                        }
-            }
+            case dial of
+                Dial val config _ ->
+                    Dial val config <|
+                        Just
+                            { originalIndex = i0
+                            , index = newIndex
+                            }
 
         Cancel ->
-            { dial | tracking = Nothing }
+            case dial of
+                Dial val config _ ->
+                    Dial val config Nothing
 
         Finish ->
-            { dial
-                | value = transientValue dial
-                , tracking = Nothing
-            }
+            case dial of
+                Dial _ config _ ->
+                    Dial (transientValue dial) config Nothing

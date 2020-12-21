@@ -31,9 +31,9 @@ import Svg.Attributes as SvgAttr
         , y1
         , y2
         )
+import Tuple exposing (pair)
 import Vectrol.Models.Dial as Dial exposing (Action(..), Dial)
 import Vectrol.Views.DialStyles exposing (css)
-import Tuple exposing (pair)
 
 
 collarRadius =
@@ -92,20 +92,23 @@ view :
     -> Svg msg
 view toMsg dial =
     let
-        { config, tracking } =
-            dial
+        tracking =
+            Dial.tracking dial
 
         theValue =
             Dial.transientValue dial
 
         segments =
-            config.segments
+            Dial.segments dial
+
+        options =
+            Dial.options dial
 
         sect =
-            360 // config.segments
+            360 // segments
 
         n =
-            Array.length config.options
+            Array.length options
 
         rmid =
             40.0
@@ -136,7 +139,7 @@ view toMsg dial =
                             ++ fromFloat (-0.5 * faceRadius)
                             ++ ")"
                     ]
-                    [ config.viewValue v ]
+                    [ Dial.viewOption dial v ]
                 ]
 
         viewSector i =
@@ -237,7 +240,7 @@ view toMsg dial =
                 <|
                     indexedMapToList
                         (\i _ -> viewSector i)
-                        config.options
+                        options
             , circle
                 [ class (css .ring)
                 , cx "0"
@@ -256,7 +259,7 @@ view toMsg dial =
         , g
             [ class (css .collar) ]
           <|
-            indexedMapToList viewOption config.options
+            indexedMapToList viewOption options
         , g
             [ class (css .value)
             , transform <|
@@ -267,6 +270,6 @@ view toMsg dial =
                     ++ ")"
             ]
             [ g [ class <| css .viewValue ]
-                [ config.viewValue theValue ]
+                [ Dial.viewOption dial theValue ]
             ]
         ]
