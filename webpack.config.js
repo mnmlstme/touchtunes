@@ -23,15 +23,15 @@ console.log("WEBPACK GO! Building for " + TARGET_ENV);
 var commonConfig = {
   mode: TARGET_ENV,
   entry: {
-    main: entryPath
+    main: entryPath,
   },
   output: {
     path: outputPath,
-    filename: `static/js/${outputFilename}`
+    filename: `static/js/${outputFilename}`,
   },
   resolve: {
     extensions: [".js", ".elm"],
-    modules: ["node_modules"]
+    modules: ["node_modules"],
   },
   module: {
     rules: [
@@ -44,11 +44,11 @@ var commonConfig = {
             loader: "css-loader",
             options: {
               modules: {
-                localIdentName: "[local]--[hash:base64:5]"
-              }
-            }
-          }
-        ]
+                localIdentName: "[local]--[hash:base64:5]",
+              },
+            },
+          },
+        ],
       },
       {
         test: /.elm$/,
@@ -57,13 +57,11 @@ var commonConfig = {
           {
             loader: "babel-loader",
             options: {
-              plugins: ["module:elm-css-modules-plugin"]
-              //   presets: ["@babel/preset-env"],
-              // plugins: [elmCssModulesPlugin]
-            }
+              plugins: ["module:elm-css-modules-plugin"],
+            },
           },
-          { loader: "elm-webpack-loader" }
-        ]
+          { loader: "elm-webpack-loader" },
+        ],
       },
       {
         test: /\.svg$/,
@@ -71,20 +69,20 @@ var commonConfig = {
         use: [
           {
             loader: "svg-sprite-loader",
-            options: {}
+            options: {},
           },
-          "svgo-loader"
-        ]
-      }
-    ]
+          "svgo-loader",
+        ],
+      },
+    ],
   },
   plugins: [
     new HtmlWebpackPlugin({
       template: "src/static/index.html",
       inject: "body",
-      filename: "index.html"
-    })
-  ]
+      filename: "index.html",
+    }),
+  ],
 };
 
 // additional webpack settings for local env (when invoked by 'npm start')
@@ -94,7 +92,7 @@ if (isDev === true) {
       // serve index.html in place of 404 responses
       historyApiFallback: true,
       contentBase: "./src",
-      hot: true
+      hot: true,
     },
     module: {
       rules: [
@@ -105,23 +103,23 @@ if (isDev === true) {
             {
               loader: "babel-loader",
               options: {
-                plugins: ["module:elm-css-modules-plugin"]
+                plugins: ["module:elm-css-modules-plugin"],
                 //   presets: ["@babel/preset-env"],
                 // plugins: [elmCssModulesPlugin]
-              }
+              },
             },
             {
               loader: "elm-webpack-loader",
               options: {
                 optimize: false,
                 verbose: true,
-                debug: true
-              }
-            }
-          ]
-        }
-      ]
-    }
+                debug: true,
+              },
+            },
+          ],
+        },
+      ],
+    },
   });
 }
 
@@ -137,26 +135,26 @@ if (isProd === true) {
             {
               loader: "babel-loader",
               options: {
-                plugins: ["module:elm-css-modules-plugin"]
+                plugins: ["module:elm-css-modules-plugin"],
                 //   presets: ["@babel/preset-env"],
                 // plugins: [elmCssModulesPlugin]
-              }
+              },
             },
-            { loader: "elm-webpack-loader" }
-          ]
-        }
-      ]
+            { loader: "elm-webpack-loader" },
+          ],
+        },
+      ],
     },
     plugins: [
       new CopyWebpackPlugin([
         {
           from: "src/static/img/",
-          to: "static/img/"
+          to: "static/img/",
         },
         {
-          from: "src/favicon.ico"
-        }
-      ])
-    ]
+          from: "src/favicon.ico",
+        },
+      ]),
+    ],
   });
 }

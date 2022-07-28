@@ -11,7 +11,8 @@
     "build": "webpack",
     "start": "nodemon server/app.js",
     "dev": "webpack-dev-server --hot --inline",
-    "analyze": "elm-analyse"
+    "analyze": "elm-analyse",
+    "play": "cre-a-tive ./projects"
   },
   "repository": {
     "type": "git",
@@ -32,6 +33,8 @@
   "dependencies": {
     "@babel/core": "^7.6.0",
     "@babel/preset-env": "^7.9.5",
+    "@cre.ative/cre-a-tive": "file:.yalc/@cre.ative/cre-a-tive",
+    "@cre.ative/kram-elm": "file:.yalc/@cre.ative/kram-elm",
     "airtable": "^0.8.1",
     "babel-loader": "^8.0.6",
     "copy-webpack-plugin": "^5.0.4",

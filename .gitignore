@@ -7,3 +7,6 @@
 package-lock.json
 *.xml
 elm.js
+/.yalc
+/kram_modules
+/yalc.lock

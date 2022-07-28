@@ -1,0 +1,4 @@
+projects:
+  music: ./music
+platforms:
+  elm: "@cre.ative/kram-elm"
